@@ -1,0 +1,1903 @@
+.engine mycomputer
+
+TESTMODE    equ 1
+
+; Direct-Threaded Forth model for the Zilog Z80
+;        Z80        Forth
+;-----------------------------------------------
+;        BC =       TOS (top Param Stack item)
+;        DE =       IP   instruction Pointer
+;        SP =       PSP  Param Stack Pointer
+;        IX =       RSP  Return Stack Pointer
+
+CHECK_PAR_STACK equ 0
+
+ROM_SIZE    equ $8000
+RAM_SIZE    equ $8000
+BUFFER_SIZE equ 128
+
+START_ROM   equ 0
+START_RAM   equ START_ROM + ROM_SIZE
+END_RAM     equ START_RAM + RAM_SIZE
+RET_STACK   equ END_RAM             ; Return stack, 128 B, grows down
+PAR_STACK   equ RET_STACK - 128     ; Parameter stack, 128B, grows down
+
+IO_DATA  equ  $81
+IO_CTRL  equ  $80
+
+MSK_IMMED equ $80
+MSK_HIDDEN equ $20
+MSK_LENGTH equ $1f	                ; length mask
+
+JP_OPCODE equ $C3
+
+.macro NEXT
+        ex DE,HL
+        NEXT_1
+.endm
+
+.macro NEXT_1
+        jp (IY)
+.endm
+
+; Store the chain of links.
+link: .set 0
+
+.macro defword, name, namelen, flags, label
+
+HEADER_label:
+	    DW link		            ; link
+
+link: .set HEADER_label
+
+    	DB flags + namelen	    ; flags + length byte
+    	DB name		            ; the name
+label:
+    	JP DO_COLON
+    	; list of word pointers follow
+.endm
+
+.macro defcode, name, namelen, flags, label
+
+HEADER_label:
+	    DW link		            ; link
+
+link: .set HEADER_label
+
+	    DB flags + namelen	; flags + length byte
+	    DB name		    ; the name
+label:
+.endm
+
+.macro defvar, name, namelen, flags, label, initial
+	defcode name,namelen,flags,label
+	    push BC
+	    ld BC, VAR_label
+    NEXT
+var_label:
+        DW initial
+.endm
+
+.macro defconst, name, namelen, flags, label, value
+	defcode name,namelen,flags,label
+    	push BC
+    	ld BC, value
+    NEXT
+.endm
+
+; Macros to deal with the param stack.
+.macro PUSH_PAR, regHI, regLO
+        push BC             ; push TOS reg pair
+        ld B, regHI         ; move register pair into TOS reg pair
+        ld C, regLO
+.endm
+
+.macro POP_PAR, regHI, regLO
+        ld regHI, B         ; move TOS reg pair into register pair
+        ld regLO, c
+        pop BC
+.endm
+
+; Macros to deal with the return stack.
+.macro PUSH_RET, regHI, regLO
+        dec IX              ; push register pair on ret stack
+        ld (IX+0),regHI
+        dec IX
+        ld (IX+0),regLO
+.endm
+
+.macro POP_RET, regHI, regLO
+        ld regLO,(IX+0)     ; pop register pair from ret stk
+        inc IX
+        ld regHI,(IX+0)
+        inc IX
+.endm
+
+.macro SAVE_REGS, regTOS    ; Swap register bank and transfer TOS to regTOS
+        push BC             ; only use if word doesn't execute other words
+        exx
+        pop regTOS
+.endm
+
+.macro RESTORE_REGS, regTOS ; Swap register bank and transfer regTOS to TOS
+        push regTOS         ; only use if word doesn't execute other words
+        exx
+        pop BC
+.endm
+
+.macro RESTORE_REGS0    ; Swap register bank and clear TOS
+                                ; only use if word doesn't execute other words
+        exx
+        pop BC
+.endm
+
+.macro LOAD16, destHI, destLO, srcHI, srcLO    ; transfer from src reg pair to dest reg pair
+        ld destLO, srcLO
+        ld destHI, srcHI
+.endm
+
+.macro ISZERO16, regHI, regLO    ; check if reg pair is zero
+        ld a, regLO              ; NOTE: A is destroyed
+        or regHI
+.endm
+
+.macro PRINT_STR, addr
+        push DE
+        ld DE, addr
+        call puts
+        pop DE
+.endm
+
+.macro PRINT_CR
+        push DE
+        ld DE, TXT_NEWLINE
+        call puts
+        pop DE
+.endm
+
+.macro PRINT_NUM
+        push HL
+        push DE
+        push BC
+        LOAD16 H,L, B,C
+        ld A,(VAR_BASE)
+        ld C,A
+        ld DE, word_buffer
+        call FORMAT
+        call putstr
+        pop BC
+        pop DE
+        pop HL
+        PRINT_CR
+.endm
+
+.macro CMP16, val
+        ld DE, val
+        or A
+        sbc HL, DE
+        ISZERO16 H,L
+.endm
+
+.macro TEST_PUSH, val
+        PUSH BC
+        LD BC, val
+.endm
+
+.macro TEST_POP
+        LOAD16 H,L, B,C
+        pop BC
+.endm
+
+.macro CLEAR_BUFFER
+        ld HL, buffer
+        ld (bufftop),HL
+        ld (currkey),HL
+.endm
+
+.macro TEST_SET_TEXT, s1
+        ld HL, tst_text%%M
+        ld (char_pointer), HL
+        JP tst_done%%M
+tst_text%%M:
+        db s1,"\r\n",-1,"\r\n"
+tst_done%%M:
+.endm
+
+.macro TEST_PUSH_TEXT, s1
+        PUSH BC
+        LD BC, tpt_text%%M
+        JP tpt_done%%M
+tpt_text%%M:
+        db s1
+tpt_done%%M:
+.endm
+
+.macro TEST_WORD, name
+        ld DE, tf_nextword%%M
+        ld HL, name
+        jp (HL)
+tf_nextword%%M:
+        DW $ + 2
+tf_done%%M:
+.endm
+
+.macro TEST_EXPECT, expect, failtxt
+        PRINT_NUM
+        LOAD16 H,L, B,C
+        ld L, C
+        pop BC
+        CMP16 expect
+        jp z, tf_done%%M
+        ld DE, FAILED
+        call puts
+        ld DE, te_fail%%M
+        call puts
+        halt
+te_fail%%M:
+        .pstr failtxt
+tf_done%%M:
+.endm
+
+
+START_ROM:
+        org 0
+        jp START
+
+        org $40            ; main code begins after restart vectors
+
+DO_COLON:
+    	PUSH_RET D,E		; push IP on to the return stack
+    	inc HL		        ; HL = W which points to codeword, so make
+    	inc HL		        ; IP point to first data word
+        inc HL
+
+DO_NEXT_1:
+        ld E,(HL)
+        inc HL
+        ld D,(HL)
+        inc HL
+        ex DE,HL
+        jp (HL)
+
+defconst "VERSION",7,,VERSION,1
+defconst "R0",2,,RZ, RET_STACK
+defconst "DO_COLON",5,, __DOCOL,DO_COLON
+defconst "MSK_IMMED",7,,__MSK_IMMED,MSK_IMMED
+defconst "MSK_HIDDEN",8,,__MSK_HIDDEN,MSK_HIDDEN
+defconst "MSK_LENGTH",9,,__MSK_LENGTH,MSK_LENGTH
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; getc - input
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+getc:
+.if TESTMODE
+
+        push HL
+        ld HL, (char_pointer)
+        ld A, (HL)
+        inc HL
+        ld (char_pointer), HL
+        pop HL
+        ret
+
+.else
+
+        call getrdy
+        jr z, getc
+        in A, IO_DATA
+        or A
+        ret
+.endif
+
+getrdy:
+        in A, IO_CTRL
+        and 01h
+        ret z
+        ret
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; putc - output a character
+;; params: A = char to output
+;; destroys: AF
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+putc:
+        push AF
+serdy:
+        in A,IO_CTRL
+        and 02
+        jr z,serdy
+        pop AF
+        out IO_DATA,A
+        ret
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; getline - input line of text
+;; params: HL = addr, DE = max (currently up to 255)
+;; returns: BC = length - up to 255
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+getline:
+        push AF
+        push HL
+.if CHECK_PAR_STACK
+        ld HL,PAR_STACK - 16
+        or A
+        sbc HL,SP
+        jp nc, gl_stack_ok
+        PRINT_STR TXT_STACK_UNDERFLOW
+gl_stack_ok:
+.endif
+        PRINT_STR TXT_PROMPT
+        pop HL
+        push HL
+        ld BC, 0
+gl_loop:
+        call getc
+        cp $08
+        jr nz, gl_append
+        call putc
+        ld a, " "
+        call putc
+        ld a, $08
+        call putc
+        ISZERO16 B,C
+        jr z, gl_loop
+        dec HL
+        dec BC
+        jr gl_loop
+gl_append:
+        ld (HL), A
+        inc HL
+        inc BC
+        cp "\r"
+        jr z, gl_loopexit
+        cp "\n"
+        jr z, gl_loopexit
+        bit 7,a
+        jr nz, gl_checklength
+        call putc
+gl_checklength:
+        ld A, E
+        cp C
+        jr c, gl_loopexit
+        jr gl_loop
+gl_loopexit:
+        ld a, 0
+        cp c
+        jr z, gl_loop
+        pop AF
+        pop HL
+        PRINT_CR
+        ret
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Output pascal string
+; params: DE = addr
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+puts:
+        push AF
+        push BC
+        push DE
+        ld A, (DE)
+        ld C, A
+        ld B, 0
+        inc DE
+        jr puts_loop
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Output string
+; params: DE = addr, BC = length
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+putstr:
+        push AF
+        push BC
+        push DE
+puts_loop:
+        ld A,(DE)
+        call putc
+        inc DE
+        dec BC
+        ISZERO16 B,C
+        jr nz, puts_loop
+puts_end:
+        pop DE
+        pop BC
+        pop AF
+        ret
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; getKey -  inputs a buffered character
+;; params: none
+;; returns: A = character,
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+getKey:
+        push HL
+        push DE
+        push BC
+getKey1:
+    	ld HL, (currkey)
+    	ld DE, (bufftop)
+    	or A
+    	sbc HL, DE
+    	jr nc, getKey2			    ; exhausted the input buffer?
+
+    	ld HL, (currkey)
+    	ld A,(HL)		            ; get next key from input buffer
+    	inc HL
+    	ld (currkey),HL	        ; increment currkey
+        jr getKey3
+
+getKey2:	; Out of input get a line
+        ld HL, BUFFER
+        ld DE, BUFFER_SIZE
+        call getline
+        ld HL, BUFFER
+    	ld (currkey), HL
+        or A
+    	adc HL, BC		            ; buffer+DE = bufftop
+    	ld (bufftop),HL
+        jr getKey1
+
+getKey3:
+        pop BC
+        pop DE
+        pop HL
+    	ret
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; getToken -  returns a word string as delimited by spaces
+;; ignores leading spaces, ignores comments starting with /
+;;
+;; params: none
+;; returns: DE = address of word_buffer, BC = length,
+;; destroys: AF
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+getToken:
+	    ; Search for first non-blank character.
+	    ; Also skip \ comments.
+	    push HL
+	    push AF
+gtk1:
+    	call getKey		            ; get next key, returned in HL
+        bit 7, A
+        jr z, gtk1a
+        ld BC, 0
+        jr gtk_RETURN
+
+gtk1a:
+    	cp " " + 1                  ; <= space?
+    	jr c, gtk1             ; if so, keep looking
+    	cp $5C                     ; \ start of a comment?
+    	jr nz, gtk2	        ; if so, skip the comment
+    	; Code to skip \ comments to end of the current line.
+gtk_COMMENT:
+    	call getKey
+    	cp "\r"		                ; end of line yet?
+    	jr z, gtk_COMMENT_EXIT
+    	cp "\n"		                ; end of line yet?
+    	jr z, gtk_COMMENT_EXIT
+    	jr gtk_COMMENT
+gtk_COMMENT_EXIT:
+        jr gtk1
+
+    	; Search for the end of the word, storing chars as we go.
+gtk2:
+        ld E,31
+    	ld HL, word_buffer      ; pointer to return buffer
+gtk_LOOP:
+    	ld (HL), A          ; add character to return buffer
+    	inc HL
+    	call getKey		    ; get next key
+    	cp ' ' + 1		    ; <= space?
+    	jr c, gtk_END
+    	dec E
+    	jr z, gtk_END
+    	jr gtk_LOOP
+gtk_END:
+
+    	; Return the word (well, the static buffer) and length.
+    	ld DE, word_buffer
+    	or A
+    	sbc HL, DE     ; return length of the word
+        LOAD16 B,C, H,L
+
+gtk_RETURN:
+        pop AF
+        pop HL
+    	ret
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; toNumber -  converts string to number in the
+;; base strored in VAR_BASE
+;;
+;; params: HL = string address, BC = string length
+;; returns: DE = parsed number, BC = 0: success, not 0, uparsed chars
+;; destroys: AF
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+toNumber:
+        push IY             ; save regs
+        push HL
+
+        push HL             ; IY = HL
+        pop IY
+
+    	ld DE, 0            ; 16 bit accum
+    	ld HL, 0            ; 8 bit char
+        ISZERO16 B,C        ; if BC == 0 exit de = 0, BC = 0 (no error)
+    	jr z, toNumber5	; trying to parse a zero-length string is an error, But will return 0.
+
+    	                    ; Check if first character is '-'.
+    	ld A, (IY)		    ; l = first character in string
+    	inc IY
+    	push DE		        ; push 0 on stack
+    	cp '-'		        ; negative number?
+    	jr nz, toNumber2
+    	pop DE
+        ld HL, 1
+    	push HL		        ; push <> 0 on stack, indicating negative
+    	dec BC
+    	ISZERO16 B,C
+    	jr nz, toNumber1
+    	pop HL		        ; error: string is only '-'.
+    	ld BC, 1
+    	jr toNumber5
+
+	    ; Loop reading digits.
+toNumber1:
+        push BC
+    	ld BC, (VAR_BASE)	; get BASE (in %dl)
+        call DO_UMUL 	        ; de *= BASE, HL is destroyed
+    	pop BC
+
+    	ld A, (IY)		    ; a = next character in string
+    	inc IY
+
+	                        ; Convert 0-9, A-Z to a number 0-35.
+toNumber2:
+        sub '0'		        ; < '0'?
+    	jr c, toNumber4     ; invalid char, end of number
+    	cp 10		        ; <= '9'?
+    	jr c, toNumber3
+    	sub 17		        ; < 'A'? (17 is 'A'-'0')
+    	jr c, toNumber4
+    	add a, 10
+
+toNumber3:
+    	ld HL, (VAR_BASE)	; get BASE (in %dl)
+        cp l		        ; >= BASE?
+    	jr nc, toNumber4    ; then invalid char, end of number
+
+    	                    ; OK, so add it to de and loop.
+    	add A, E
+    	ld E, A
+    	ld A, 0
+    	adc a, d
+    	ld D, A
+    	dec BC              ; dec char count
+        ISZERO16 B,C
+        jr nz, toNumber1
+
+	    ; Negate the result if first character was '-' (saved on the stack).
+toNumber4:
+        pop HL
+        ISZERO16 H,L
+    	jr z, toNumber5    ; if not -ve then skip
+
+        ex DE,HL            ; negate de
+        call DO_NEGATE
+        ex DE,HL
+
+toNumber5:
+        pop HL
+        pop IY
+        ret                 ; de = number, BC = err
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; lookup - lookup header in dictionary
+;;
+;; params: HL = string address, BC = string length
+;; returns: DE = found header ptr or 0
+;; destroys: AF
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+lookup:
+    	; Now we start searching backwards through the dictionary for this word.
+
+    	ld DE, (VAR_LATEST)     ; LATEST points to name header of the latest word in the dictionary
+
+lookup_1:
+        ISZERO16 D,E            ; NULL pointer?  (end of the linked list)
+    	ret z
+
+lookup_2:
+    	; Compare the length expected and the length of the word.
+    	; Note that if the MSK_HIDDEN flag is set on the word, then by a bit of trickery
+    	; this won't pick the word (the length will appear to be wrong).
+
+        push DE                     ; save ptr to header
+
+        inc DE                      ; skip over first field
+        inc DE
+    	ld A, (DE)	                ; a = flags+length field
+    	and MSK_HIDDEN | MSK_LENGTH    ; %al = name length
+    	cp C		                ; Length is the same?
+    	jr nz, lookup_3
+
+    	; Compare the strings in detail.
+
+        inc DE                  ; DE = Dictionary string we are checking against.
+
+        push HL                 ; save HL, BC
+        push BC
+    	call DO_SEQUAL           ; Compare the strings. BC = len
+        pop BC
+        pop HL
+
+        or A                    ; if A == 0 then matched
+    	jr nz, lookup_3
+        pop DE                  ; matched, restore DE and return
+        ret
+
+lookup_3:                       ; no match
+        pop DE                  ; restore DE
+        ex DE, HL               ; load DE with link to previous header
+        ld A,(HL)               ; in dictionary
+        inc HL
+        ld H,(HL)
+        ld l,a
+        ex DE, HL
+    	jr lookup_1		        ; .. and loop.
+
+defcode "EXIT",4,,EXIT
+    	POP_RET H,L		            ; pop return stack into IP
+        NEXT_1
+
+defword "INTERP",6,,INTERP
+    	DW LIT, 0
+    	DW INTERP_STOP, STORE
+    	DW INTERPRET		; interpret the next word
+    	DW INTERP_STOP, FETCH
+    	DW ZBRANCH,-8		; and loop (indefinitely)
+        DW EXIT
+
+defword "QUIT",4,,QUIT
+    	DW RZ,RSPSTORE	    ; reset the return stack R0 RSP!
+    	DW INTERP		; interpret the next word
+
+defcode "INTERPRET",9,,INTERPRET
+        exx
+
+    	call getToken		            ; Returns BC = length, DE = pointer to word.
+    	ISZERO16 B,C
+    	jr z, INTERPRET_STOPPING
+
+    	ld A, 0
+    	ld (IS_LITERAL), A              ; Not a literal number (not yet anyway ...)
+    	ex DE, HL                       ; word ptr in HL
+    	call lookup		            ; Returns DE = pointer to header or 0 if not found.
+        ISZERO16 D,E                    ; Found?
+    	jr z, INTERPRET_NOTFOUND
+        LOAD16 H,L, D,E                 ; Found. Is it an IMMEDIATE codeword?
+    	inc HL
+    	inc HL
+    	ld A, (HL)                      ; Get name+flags.
+    	push AF		                    ; Just save it for now.
+    	call DO_TCFA		            ; DE = dictionary entry
+                                        ; HL = code addr
+    	pop AF
+    	and MSK_IMMED	                ; Is IMMED flag set?
+    	jr nz, INTERPRET_EXECUTE	    ; If IMMED, jump straight to executing.
+
+        			                    ; Copy code ptr
+        LOAD16 B,C, H,L
+        jr INTERPRET_FOUND
+
+INTERPRET_NOTFOUND:                     ; Not found (not a word) so assume
+	                                    ; it's a literal number.
+        ld A, 1
+    	ld (IS_LITERAL), A              ; set to true
+    	call toNumber                  ; params: HL = string address,
+    	                                ; BC = string length
+    			                        ; Returns the parsed number in DE,
+    	                                ; BC = 0, success
+        ISZERO16 B,C
+    	ld A, 0
+     	jr nz, INTERPRET_ERROR          ; if nz, parse error
+
+    	ld BC, LIT		                ; BC = LIT code ptr
+
+INTERPRET_FOUND:	                    ; Are we compiling or executing?
+
+    	ld A, (VAR_STATE)
+    	or A
+    	jr z, INTERPRET_EXECUTE			; Jump if executing.
+
+    	; Compiling - just append the word to the current dictionary definition.
+
+    	call DO_COMMA                   ; write code ptr to word
+
+    	ld A, (IS_LITERAL)              ; Was it a literal?
+    	or A
+    	jr z, INTERPRET_DONE
+
+        LOAD16 B,C, D,E                 ; write literal value to word
+    	call DO_COMMA
+
+        jr INTERPRET_DONE
+
+INTERPRET_EXECUTE:
+    	ld A, (IS_LITERAL)              ; is literal ?
+    	or A
+    	jr nz, INTERPRET_LITERAL
+
+        push HL                         ; no, execute code ptr
+        exx
+        pop HL
+        jp (HL)
+
+INTERPRET_LITERAL:
+
+        push DE                         ; yes, push literal value
+        exx
+        pop HL
+        PUSH_PAR H,L
+        NEXT
+
+INTERPRET_ERROR:
+        ld DE, TXT_ERROR
+        call puts
+        ex DE, HL                       ; DE = word ptr
+        call putstr
+        PRINT_CR
+    	jr INTERPRET_DONE
+
+INTERPRET_STOPPING:
+        ld HL, 1
+        ld (VAR_INTERP_STOP), HL
+INTERPRET_DONE:
+        exx
+        NEXT
+
+
+defcode "TOKEN",5,,TOKEN                ; -- c-addr length  ; NOT STANDARD
+        push BC                         ; save TOS
+        exx
+        call getToken
+        push DE             ; DE = str ptr
+        RESTORE_REGS BC     ; HL = length
+        NEXT
+
+defcode "+!",2,,ADDSTORE            ; (n addr -- )
+    	POP_PAR H, L		        ; HL = address, TOS = amount to add
+    	ld A,(HL)
+    	add A,C                     ; add TOS at (HL),
+    	ld (HL),A
+    	inc HL
+    	ld A,(HL)
+    	adc A,B
+    	ld (HL),A
+    	pop BC                      ; clear param stack
+        NEXT
+
+; ALLOT                             ( n -- addr ) allocate n bytes of memory
+defword "ALLOT",5,,ALLOT
+    	DW HERE, FETCH, SWAP	    ; here n
+    	DW HERE, ADDSTORE		            ; adds n to HERE, old value of HERE left on stack
+        DW EXIT
+
+defcode "[",1,MSK_IMMED,LBRAC
+    	ld HL, 0
+    	ld (VAR_STATE), HL	; Set STATE to 0.
+        NEXT
+
+defcode "]",1,,RBRAC
+    	ld HL, 1
+    	ld (VAR_STATE), HL	; Set STATE to 1.
+        NEXT
+
+defcode "HIDDEN",6,,HIDDEN
+        POP_PAR H,L		            ; HL = Dictionary entry.
+        inc HL
+        inc HL                      ; Point to name/flags byte.
+
+        ld A, (HL)
+        xor MSK_HIDDEN        	    ; Toggle the HIDDEN bit.
+        ld (HL), A
+        NEXT
+
+; 1+      n1/u1 -- n2/u2            add 1 to TOS
+defcode "1+",2,,ONEPLUS
+        inc BC
+        NEXT
+
+; 2+      n1/u1 -- n2/u2            add 2 to TOS
+defcode "2+",2,,TWOPLUS
+        inc BC
+        inc BC
+        NEXT
+
+; 1*      n1/u1 -- n2/u2            do nothing
+defcode "NOOP",4,,noop
+        NEXT
+
+defcode "BRANCH",6,,BRANCH          ; relative branching
+        ex DE, HL                   ; add the offset to the instruction pointer
+        ld E, (HL)
+        inc HL
+        ld D, (HL)
+        dec HL
+        add HL, DE
+        NEXT_1
+
+; ?branch   x --              branch if TOS zero
+defcode "0BRANCH",7,,ZBRANCH
+        ISZERO16 B,C        ; test old TOS
+        pop BC              ; pop new TOS
+        jr z,BRANCH         ; if old TOS=0, branch
+        inc DE              ; else skip inline value
+        inc DE
+        NEXT
+
+; U*   u1 u2 -- ud   unsigned mutliply
+defcode "U*",2,,UMUL  ; u1 u2 -- ud
+        SAVE_REGS BC    ; u2 in BC
+        pop DE          ; u1 in DE
+    	call DO_UMUL
+        push DE         ; udlo result
+        RESTORE_REGS BC ; udhi result
+        NEXT
+
+;C 0<     n -- flag      true if TOS negative
+defcode "0<",2,,ZEROLESS
+        sla b           ; sign bit -> cy flag
+        sbc a,a         ;
+        and 1            ; <0 = -1, >0 = 0
+        ld b,0
+        ld c,a
+        NEXT
+
+; NEGATE  n1 -- n2                        negate n1
+defword "NEGATE",1,,NEGATE
+        DW INVERT
+        DW ONEPLUS
+        DW EXIT
+
+; ABS   n -- u                      absolute value
+defword "ABS",3,,ABS
+        DW DUP                      ; copy arg
+        DW ZEROLESS
+        DW ZBRANCH, 4               ; if arg > 0 then skip
+        DW NEGATE                   ; negeate -ve numbers
+        DW EXIT
+
+defword "*",1,,MUL  ; u1 u2 -- ud
+        DW OVER, OVER           ; dupe both args
+        DW ABS, SWAP, ABS       ; remove sign from both args
+        DW UMUL, DROP           ; multiply, drop hi-word
+        DW ROT, ROT             ; move to bottom
+        DW XOR                  ; zero is signs are the same
+        DW ZEROLESS             ; if high bit set
+        DW ZBRANCH, 4
+        DW NEGATE               ; if signs differ then negate answer
+        DW EXIT
+
+defcode "LIT",3,,LIT
+
+    	; IP points to the next command, But in this case it points to the next
+    	; literal 16 bit integer.  Get that literal increment IP.
+
+    	push BC         ; push TOS
+    	ex DE, HL       ; HL = IP
+    	ld C, (HL)      ; TOS = (IP), IP + 2
+    	inc HL
+    	ld B, (HL)
+    	inc HL
+        NEXT_1
+
+;Z RSP!  a-addr --                  set return stack pointer
+defcode "RSP!",4,,RSPSTORE
+    	push BC
+    	pop IX                      ; RSP = TOS
+    	pop BC                      ; pop TOS
+        NEXT
+
+;;;;;;; minimal set
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; memory access
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; !        x a-addr --   store cell in memory
+defcode "!",1,,STORE
+        POP_PAR H,L
+        ld (HL),C
+        inc HL
+        ld (HL),B
+        pop BC          ; pop new TOS
+        NEXT
+
+defcode ",",1,,COMMA
+    	call DO_COMMA        ; TOS = BC = 16-bit value to store.
+    	pop BC		        ; cleanup TOS
+        NEXT
+
+defcode "@",1,,FETCH
+        LOAD16 H,L, B,C ; HL = TOS
+    	ld C, (HL)      ; TOS = (HL)
+    	inc HL
+    	ld B, (HL)
+        NEXT
+
+; CELL+    c-addr1 -- c-addr2   add cell size to addr
+defcode "CELL+",5,,CELLPLUS
+        jp twoplus
+
+; CELLS   ( n1 -- n2 ) n2 is the size in address units of n1 cells.
+defcode "CELLS",5,,CELLS
+        jp twostar
+
+; C!      char c-addr --    store char in memory
+defcode "C!",2,,CSTORE
+        POP_PAR H,L
+        ld (HL),C
+        pop BC          ; pop new TOS
+        NEXT
+
+defcode "C,",1,,CCOMMA
+        push HL
+    	ld HL, (VAR_HERE)	; HERE
+    	ld (HL), C          ; Store DE at memory pointed to by VAR_HERE
+    	inc HL
+    	ld (VAR_HERE), HL	; Update HERE (incremented)
+        pop HL
+    	pop BC		        ; cleanup TOS
+        NEXT
+
+; C@     c-addr -- char   fetch char from memory
+defcode "C@",2,,CFETCH
+        ld A,(BC)
+        ld C,A
+        ld B,0
+        NEXT
+
+; CHAR+    c-addr1 -- c-addr2   add char size to addr
+defcode "CHAR+",5,,CHARPLUS
+        jp oneplus
+
+; CELLS   ( n1 -- n2 ) n2 is the size in address units of n1 cells.
+defcode "CHARS",5,,CHARS
+        jp noop
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; arithmetic
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; */MOD star-slash-mod
+
+; +       n1/u1 n2/u2 -- n3/u3     add n1+n2
+defcode "+",1,,PLUS
+        pop HL
+        add HL,BC
+        LOAD16 B,C, H,L
+        NEXT
+
+; 2*      n1/u1 -- n2/u2            arithmetic left shift
+defcode "2*",2,,TWOSTAR
+        sla C
+        rl B
+        NEXT
+
+defcode "-",1,,MINUS
+        pop HL
+        or A
+        sbc HL,BC
+        LOAD16 B,C, H,L
+        NEXT
+
+; U/MOD   ud u1 -- u2 u3   unsigned 32/16->16
+defcode "U/MOD",5,,USLASHMOD
+        SAVE_REGS BC    ; BC = divisor
+        pop HL      ; HLDE = dividend
+        pop DE
+        call DO_UMSLASHMOD
+        push HL     ; push remainder
+        RESTORE_REGS BC     ; quotient remains in TOS
+        NEXT
+
+; 2/      x1 -- x2                  arithmetic right shift
+defcode "2/",2,,TWOSLASH
+        sra B
+        rr C
+        NEXT
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; logic
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; 0= zero-equals
+defcode "0=",2,,ZEROEQUAL
+        ISZERO16 B,C            ; result=0 if bc was 0
+        jr z, ZE1
+        ld BC, -1
+ZE1:
+        inc BC
+        NEXT
+
+; <      n1 n2 -- flag          test n1<n2
+defcode "<",1,,LESSTHAN	        ; less than
+        pop HL
+        or A
+        sbc HL,BC       ; n1-n2 in HL, SZVC valid
+        jp pe,revsense  ; if OV, use rev. sense
+        jp p,tosfalse   ;   if +ve, result false
+tostrue:
+        ld bc, 1       ;   if -ve, result true
+        NEXT
+tosfalse:
+        ld bc, 0
+        NEXT
+revsense:
+        jp m,tosfalse ; OV: if -ve, reslt false
+        jr tostrue      ;     if +ve, result true
+
+; AND    x1 x2 -- x3            logical AND
+defcode "AND",3,,AND	        ; bitwise AND
+        pop HL
+        ld A,b
+        and H
+        ld B,A
+        ld A,C
+        and L
+        ld C,A
+        NEXT
+
+; INVERT x1 -- x2               ; bitwise complement
+defcode "INVERT",6,,INVERT
+        ld A,B
+        cpl
+        ld B,A
+        ld A,C
+        cpl
+        ld C,A
+        NEXT
+
+; TRUE
+defcode "TRUE",4,,TRUE
+        push BC
+        ld BC,1
+        NEXT
+
+; LSHIFT  x1 u -- x2       logical L shift u places
+defcode "LSHIFT",6,,LSHIFT
+        pop HL              ;   NB: hi 8 bits ignored!
+        ld B,C              ; b = loop counter
+        inc B               ; test for counter=0 case
+        jr LSHIFT2
+LSHIFT1:   add HL,HL        ; left shift HL, n times
+LSHIFT2:   djnz LSHIFT1
+
+        LOAD16 B,C, H,L     ; result is new TOS
+        NEXT
+
+; =      x1 x2 -- flag         test x1=x2
+defcode "=",1,,EQUALS
+        pop HL
+        or A
+        sbc HL,BC       ; x1-x2 in HL, SZVC valid
+        jr z,EQ1
+        ld BC, -1       ;   if -ve, result true
+EQ1:
+        inc BC
+        NEXT
+
+; >      n1 n2 -- flag          test n1 > n2
+defcode ">",1,,GREATERTHAN	        ; less than
+        pop HL                  ; swap operands
+        PUSH_PAR H,L
+        jr LESSTHAN
+
+; OR    x1 x2 -- x3             logical OR
+defcode "OR",2,,OR	            ; bitwise OR
+        pop HL
+        ld A,B
+        or H
+        ld B,A
+        ld A,C
+        or L
+        ld C,A
+        NEXT
+
+; XOR    x1 x2 -- x3            logical XOR
+defcode "XOR",3,,XOR	        ; bitwise XOR
+        pop HL
+        ld A,B
+        xor H
+        ld B,A
+        ld A,C
+        xor L
+        ld C,A
+        NEXT
+
+; FALSE
+defcode "FALSE",5,,FALSE
+        push BC
+        ld BC,0
+        NEXT
+
+;RSHIFT  x1 u -- x2    logical R shift u places
+defcode "RSHIFT",6,,RSHIFT
+        pop HL        ;   NB: hi 8 bits ignored!
+        ld B,C        ; b = loop counter
+        inc B         ; test for counter=0 case
+        jr RSHIFT2
+RSHIFT1:   srl H         ; right shift HL, n times
+        rr L
+RSHIFT2:   djnz RSHIFT1
+        LOAD16 B,C, H,L     ; result is new TOS
+        NEXT
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; stack
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+defcode "DUP",3,,DUP        ; x -- x x
+        push BC
+        NEXT
+
+; SWAP     x1 x2 -- x2 x1    swap top two items
+defcode "SWAP",4,,SWAP      ; x1 x2 -- x2 x1
+        pop hl
+        PUSH_PAR H,L
+        NEXT
+
+; >R    ( x -- ) ( R: -- x )  Move  x from TOS to the return stack.
+defcode ">R",2,,TO_R
+	    PUSH_RET B,C
+        pop BC
+        NEXT
+
+; R@ r-fetch
+
+defcode "DROP",4,,DROP      ; x --
+        pop BC		    ; drop top of stack
+        NEXT
+
+; OVER    x1 x2 -- x1 x2 x1
+defcode "OVER",4,,OVER
+        pop hl
+        push hl
+        PUSH_PAR H,L
+        NEXT
+
+; R>    ( -- x ) ( R: x -- )  Move x from the return stack to TOS
+defcode "R>",2,,R_FROM
+        push BC
+        POP_RET B,C
+        NEXT
+
+defcode "ROT",3,,ROT        ; x1 x2 x3 -- x2 x3 x1
+        pop HL              ; x2 in HL
+        ex (sp),HL          ; x2 on stack, x1 in HL
+        PUSH_PAR H, L       ; push x1
+        NEXT
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; flow control
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+defword "IF",2,MSK_IMMED,IF
+        DW LIT, ZBRANCH, COMMA              ; compile 0BRANCH
+        DW HERE, FETCH, DUP, COMMA          ; compile HERE and also push on stack
+        DW EXIT
+
+defword "THEN",4,MSK_IMMED,THEN
+    	DW DUP
+    	DW HERE, FETCH, SWAP, MINUS	        ; calculate the offset from the address saved on the stack
+    	DW SWAP, STORE		                ; store the offset in the back-filled location
+        DW EXIT
+
+defword "ELSE",4,MSK_IMMED,ELSE
+    	DW LIT, BRANCH, COMMA	            ; definite branch to just over the false-part
+    	DW HERE, FETCH		                ; save HERE on stack
+    	DW LIT, 0, COMMA		            ; compile a dummy offset
+    	DW SWAP		                        ; now back-fill the original (IF) offset
+        DW THEN
+        DW EXIT
+
+; BEGIN condition WHILE ... REPEAT
+
+defword "BEGIN",5,MSK_IMMED,BEGIN
+    	DW HERE, FETCH		                ; save HERE on stack (HERE1)
+        DW EXIT
+
+defword "WHILE",5,MSK_IMMED,WHILE
+        DW LIT, ZBRANCH, COMMA              ; compile branch on zero
+    	DW HERE, FETCH		                ; save HERE in stack (HERE2)
+        DW LIT, 0, COMMA                    ; compile dummy offset
+        DW EXIT
+
+defword "REPEAT",6,MSK_IMMED,REPEAT
+        DW LIT, BRANCH, COMMA               ; compile branch
+        DW SWAP                             ; TOS = HERE1
+    	DW HERE, FETCH, MINUS, COMMA		; compile offset (HERE1 - HERE3)
+    	DW DUP
+    	DW HERE, FETCH, SWAP, MINUS		    ; compile offset (HERE2 - HERE3)
+    	DW SWAP, STORE                      ; save offset in HERE2
+        DW EXIT
+
+; DO
+; I
+; AGAIN
+; LOOP
+; J
+; EXECUTE
+; UNTIL
+
+defcode "'",1,,TICK                 ; ( -- addr ) push code word ptr of following word
+        jp LIT
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; definitions
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+defword ":",1,,COLON
+    	DW TOKEN		            ; Get the name of the new word
+    	DW CREATE		            ; CREATE the dictionary entry / header
+        DW LIT, JP_OPCODE, CCOMMA                ; write Z80 JP OPCODE to word
+    	DW LIT, DO_COLON, COMMA	    ; Append DO_COLON  (the codeword).
+    	DW LATEST, FETCH, HIDDEN    ; Make the word hidden (see below for definition).
+    	DW RBRAC		            ; Go into compile mode.
+    	DW EXIT		                ; Return from the function.
+
+; CONSTANT   n --      define a Forth constant
+;   CREATE
+;   ,
+;   DOES> (machine code fragment)
+defword "CONSTANT",8,,CONSTANT              ; ( n -- ) get name from input
+        DW TOKEN                            ; read name
+        DW CREATE                           ; create header
+        DW LIT, JP_OPCODE, CCOMMA                ; write Z80 JP OPCODE to word
+        DW LIT, DO_COLON, COMMA                ; write addr DO_COLON to word
+        DW LIT, LIT, COMMA                  ; write addr of LIT to word
+        DW COMMA                            ; write TOS to word
+        DW LIT, EXIT, COMMA                  ; write addr of LIT to word
+        DW EXIT
+
+; CREATE     addr len --       create new header from name
+defcode "CREATE",6,,CREATE  ; addr len --
+
+        SAVE_REGS BC
+        POP HL
+    	; Link pointer.
+    	ld DE, (VAR_HERE)	    ; DE point to the start of a new header
+    	ld A, (VAR_LATEST) 	    ; write ptr to previous word in header
+        ld (DE), A
+        inc DE
+        ld A, (VAR_LATEST + 1)
+        ld (DE), A
+        inc DE
+
+    	; Length byte and the word itself.
+    	ld A, C		    ; Get the length of namw.
+    	ld (DE), A      ; write to length/flags field of header
+        inc DE          ; HL = name, de = name field in header, BC = length
+    	ldir            ; copy BC bytes from (HL) to (DE)
+
+    	; Update LATEST and HERE.
+    	ld HL, (VAR_HERE)
+    	ld (VAR_LATEST), HL
+    	ld (VAR_HERE), DE
+
+        RESTORE_REGS0
+        NEXT
+
+defword ";",1,MSK_IMMED,SEMICOLON
+    	DW LIT, EXIT, COMMA	        ; Append EXIT (so the word will return).
+    	DW LATEST, FETCH, HIDDEN    ; Toggle hidden flag -- unhide the word (see below for definition).
+    	DW LBRAC		            ; Go back to IMMEDIATE mode.
+    	DW EXIT		                ; Return from the function.
+
+defword "VARIABLE",8,,VARIABLE              ; ( n -- ) get name from input
+        DW LIT, 1, CELLS, ALLOT                    ; allocate 1 word, push addr
+        DW TOKEN                            ; read name
+        DW CREATE                           ; create header
+        DW LIT, JP_OPCODE, CCOMMA                ; write Z80 JP OPCODE to word
+        DW LIT, DO_COLON, COMMA             ; write addr DO_COLON to word
+        DW LIT, LIT, COMMA                  ; write addr of LIT to word
+        DW COMMA                            ; write addr of variable to word
+        DW LIT, EXIT, COMMA                 ; write addr of LIT to word
+        DW EXIT
+
+defcode "IMMEDIATE",9,MSK_IMMED,IMMEDIATE
+	    ld HL, (VAR_LATEST)                 ; get head of latest word
+	    inc HL                              ; point to flags byte
+	    inc HL
+        ld a, MSK_IMMED
+	    xor (HL)                            ; toggle the IMMED bit.
+        ld (HL),a
+        NEXT
+
+
+; DOES> does
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; device
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+defcode "ACCEPT",6,,ACCEPT              ; ( addr max -- len )
+        SAVE_REGS DE                    ; max - up to 255
+    	pop HL                          ; addr
+        call getline
+        RESTORE_REGS BC                 ; TOS = len
+        NEXT
+
+defcode "KEY",3,,KEY                ; ( -- c )
+    	call getKey
+        ld b, 0
+        ld c, a
+        NEXT
+
+defcode "EMIT",4,,EMIT              ; print the character on the stack
+    	ld A, C                     ; (c -- )
+    	call putc
+        pop BC                      ; clear stack
+        NEXT
+
+defword "CR",2,,CR                  ; ( -- )
+        DW LIT                      ; emit cr lf
+        DB "\n", 0
+        DW LIT
+        DB "\r", 0
+        DW EMIT
+        DW EMIT
+        DW EXIT
+
+defcode "KEY?",4,,QKEY              ; ( -- c )
+    	push BC		                ; save TOS
+    	call getrdy
+        ld BC, 1                    ; TOS = true
+        jr z, QKEY_DONE
+        ld BC, 0                    ; TOS = false
+QKEY_DONE:
+        NEXT
+
+defcode ".",1,,DOT                 ; print top of stack in BASE
+        PRINT_NUM
+        pop BC
+        NEXT
+
+; HL = data, DE = ptr to buffer, C = base
+; DE = ptr to string, BC = length
+FORMAT:
+        ; Detect sign of HL.
+        bit 7, H
+        jr z, FORMAT_UNSIGNED
+
+        ; HL is negative. Output '-' to string and negate HL.
+        ld A, '-'
+        ld (DE), A
+        inc DE
+        call DO_NEGATE
+
+FORMAT_UNSIGNED:
+
+        ld B, 0     ; B will count character length of number
+FORMAT2:
+        push BC
+        call DIV16_8  ; HL = HL / A, A = remainder
+        pop BC
+        push AF
+        inc B
+        ISZERO16 H,L
+        jr nz, FORMAT2
+
+        ; Retrieve digits from stack
+FORMAT3:
+        pop AF
+        ; or $30
+
+        add A,$30                     ; convert digit to ASCII
+        cp $3A
+        jr c, FORMAT4
+        add A,7
+FORMAT4:
+
+        ld (DE), A
+        inc DE
+        djnz FORMAT3
+
+        ld HL,word_buffer           ;calc length
+        ex DE,HL
+        or A
+        sbc HL,DE
+        LOAD16 B,C, H,L
+        ret
+
+; negate HL
+DO_NEGATE:
+        ; Negate HL (using two's complement)
+        xor    A
+        sub    L
+        ld     L, A
+        ld     A, 0     ; Note that XOR A or SUB A would disturb CF
+        sbc    A, H
+        ld     H, A
+        ret
+
+; HL / C remainder in A
+DIV16_8:
+        ld B, 16
+        xor	A
+DIV_LOOP:
+        add	HL, HL
+        rla
+        jr	c, L2
+        cp	C
+        jr	c, L3
+L2:
+        sub	C
+        inc	L
+L3:
+        djnz	DIV_LOOP
+        ret
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; tools
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; ( paren
+; .S dot-s
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; UMUL -  unsigned multiply
+;;
+;; params:  u1 in BC, u2 in DE
+;; returns: result in HLDE
+;; destroys: AF
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+DO_UMUL:
+        ld HL,0
+        ld A,17     ; loop counter
+        or A        ; clear cy
+umloop: rr H
+        rr L
+        rr D
+        rr E
+        jr nc,noadd
+        add HL,BC
+noadd:  dec A
+        jr nz,umloop
+        ret
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; umult -  unsigned divide
+;;
+;; params:  BC = divisor, HLDE = dividend
+;; returns: BC = quotient, HL = remainder
+;; destroys: AF
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+DO_UMSLASHMOD:
+        ld A,16     ; loop counter
+        sla E
+        rl D        ; hi bit DE -> carry
+udloop: adc HL,HL   ; rot left w/ carry
+        jr nc,udiv3
+        ; case 1: 17 bit, cy:HL = 1xxxx
+        or A        ; we know we can subtract
+        sbc HL,BC
+        or A        ; clear cy to indicate sub ok
+        jr udiv4
+        ; case 2: 16 bit, cy:HL = 0xxxx
+udiv3:  sbc HL,BC   ; try the subtract
+        jr nc,udiv4 ; if no cy, subtract ok
+        add HL,BC   ; else cancel the subtract
+        scf         ;   and set cy to indicate
+udiv4:  rl E        ; rotate result bit into DE,
+        rl D        ; and next bit of DE into cy
+        dec A
+        jr nz,udloop
+        ; now have complemented quotient in DE,
+        ; and remainder in HL
+        ld A,D
+        cpl
+        ld B,A
+        ld A,E
+        cpl
+        ld C,A
+        ret
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; DO_TCFA - convert header ptr to CFA pointer
+;;
+;; params: DE = ptr to header
+;; returns: HL = ptr to CFA
+;; destroys: AF
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+DO_TCFA:
+        LOAD16 H,L, D,E
+    	inc HL              ; Skip link pointer.
+    	inc HL
+
+    	ld A,(HL)	    	; Load flags+len into A
+    	inc HL		        ; Skip flags+len byte.
+    	and MSK_LENGTH	    ; Just the length, not the flags.
+    	add A, L       		; Skip the name.
+    	ld L, A
+    	ld A, 0
+    	adc A, H
+    	ld H, A
+    	ret
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; DO_COMMA - stores a 16 bit number at memory pointer by VAR_HERE
+;;
+;; params: BC = data
+;; returns: nothing, updates vars
+;; destroys: AF, HL
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+DO_COMMA:
+    	ld HL, (VAR_HERE)	; HERE
+    	ld (HL), C          ; Store DE at memory pointed to by VAR_HERE
+    	inc HL
+    	ld (HL), B
+    	inc HL
+    	ld (VAR_HERE), HL	; Update HERE (incremented)
+    	ret
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; DO_SEQUAL - string equal
+;; params: de = string1, HL = string2, BC = length
+;; returns: a = -1, 0, 1
+;; destroys: de, HL, BC
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+DO_SEQUAL:
+        ISZERO16 B,C    ; test for Count=0
+        jr z,smatch     ; by definition, match!
+sloop:
+        ld A,(DE)
+        inc DE
+        cpi
+        jr nz,sdiff     ; char mismatch: exit
+        jp pe,sloop     ; count not exhausted
+smatch:
+        ; count exhausted & no mismatch found
+        ld A,0          ; a=0000  (s1=s2)
+        ret
+sdiff:
+        ; mismatch!  undo last 'cpi' increment
+        dec HL          ; point at mismatch char
+        cp (HL)         ; set cy if char1 < char2
+        sbc A,A
+        or 1            ; a = ff if carry, 1 if no carry
+        ret
+
+
+COLD:
+        DW QUIT                     ; headerless word which never terminates
+
+START:
+        di
+        ld A, 15h
+        out (IO_CTRL),a
+
+        ld IX, RET_STACK            ; Initialise the return stack.
+        ld sp, PAR_STACK            ; Initialise the param stack.
+        ld BC, 0                    ; TOS
+        ld IY, DO_NEXT_1            ; fast way to jump to NEXT_1
+
+.if TESTMODE
+        jp TESTS_START
+
+.else
+        PRINT_STR TXT_INTRO
+        ld DE, COLD                 ; Initialise interpreter.
+        NEXT
+.endif
+
+TXT_NEWLINE:
+    	.pstr "\r\n"
+TXT_PROMPT:
+    	.pstr "> "
+TXT_INTRO:
+    	.pstr "John's Z80 Forth\r\n\r\n"
+TXT_ERROR:
+        .pstr "PARSE ERROR: "
+TXT_STACK_UNDERFLOW:
+        .pstr "Error: Stack underflow\r\n"
+
+.if TESTMODE
+
+DONE:   .pstr "\r\nDone! \r\n"
+FAILED: .pstr "Failed: \r\n"
+
+.endif
+
+        org START_RAM
+
+.if TESTMODE
+
+; used for mocking getc
+
+char_pointer:
+        dw 0
+
+.endif
+
+currkey:
+        dw buffer
+bufftop:
+        dw buffer
+buffer:
+        ds BUFFER_SIZE
+
+; A static buffer TOKEN fills.  Subsequent calls
+; overwrite this buffer.  Maximum word length is 32 chars.
+
+word_buffer:
+    	ds 32
+
+IS_LITERAL:
+	    DB 0			;Flag used to record if reading a literal
+
+defvar "HERE",4,,HERE,START_USER
+defvar "INTERP_STOP",12,,INTERP_STOP,0
+defvar "STATE",5,,STATE,0
+defvar "S0",2,,SZ,RET_STACK
+defvar "BASE",4,,BASE,10
+defvar "LATEST",6,,LATEST,HEADER_LATEST,0
+
+START_USER:         ; user allocated data starts here
+
+.if TESTMODE
+
+TESTS_START:
+
+.endif
+
+.if TESTMODE=1
+
+        TEST_SET_TEXT "hello\r\n"
+        TEST_WORD KEY
+        TEST_EXPECT $68, "KEY 'h'"
+        TEST_WORD KEY
+        TEST_EXPECT $65, "KEY 'e'"
+
+        CLEAR_BUFFER
+        TEST_SET_TEXT "x"
+        TEST_WORD TOKEN
+        TEST_EXPECT 1, "TOKEN 'x'"
+        TEST_POP
+
+        CLEAR_BUFFER
+        TEST_SET_TEXT "xyz"
+        TEST_WORD TOKEN
+        TEST_EXPECT 3, "TOKEN 'xyz'"
+        TEST_POP
+
+        CLEAR_BUFFER
+        TEST_SET_TEXT "a xyz "
+        TEST_WORD TOKEN
+        TEST_EXPECT 1, "TOKEN 'a xyz'"
+        TEST_WORD TOKEN
+        TEST_EXPECT 3, "TOKEN 'a xyz'"
+        TEST_POP
+
+        TEST_WORD HERE
+        TEST_WORD FETCH
+        TEST_EXPECT START_USER, "HERE"
+
+        TEST_PUSH_TEXT "XYZ"
+        TEST_PUSH 3
+        TEST_WORD CREATE
+        TEST_WORD LATEST
+        TEST_WORD FETCH
+        TEST_EXPECT START_USER, "CREATE XYZ LATEST"
+        TEST_WORD HERE
+        TEST_WORD FETCH
+        TEST_EXPECT START_USER + 6, "CREATE XYZ HERE"
+
+        CLEAR_BUFFER
+        TEST_SET_TEXT "DUP"
+        TEST_PUSH 1
+        TEST_WORD INTERP
+        TEST_EXPECT 1, "1 INTERPRET DUP"
+        TEST_EXPECT 1, "1 INTERPRET DUP 2"
+
+        CLEAR_BUFFER
+        TEST_SET_TEXT "123"
+        TEST_WORD INTERP
+        TEST_EXPECT 123, "INTERPRET 123"
+
+        TEST_PUSH 999
+        CLEAR_BUFFER
+        TEST_SET_TEXT "$$123"
+        TEST_WORD INTERP
+        TEST_EXPECT 999, "INTERPRET $$123"
+
+        TEST_PUSH 1
+        TEST_PUSH 2
+        TEST_WORD DUP
+        TEST_EXPECT 2, "DUP 2"
+        TEST_EXPECT 2, "DUP 2"
+
+        CLEAR_BUFFER
+        TEST_SET_TEXT "X123"
+        TEST_PUSH 123
+        TEST_WORD CONSTANT
+        TEST_SET_TEXT "X123"
+        TEST_WORD INTERP
+        TEST_EXPECT 123, "CONSTANT X123 = 123"
+
+        CLEAR_BUFFER
+        TEST_SET_TEXT "V1"
+        TEST_WORD VARIABLE
+
+        TEST_PUSH 123
+        CLEAR_BUFFER
+        TEST_SET_TEXT "V1"
+        TEST_WORD INTERP
+        TEST_WORD STORE
+
+        CLEAR_BUFFER
+        TEST_SET_TEXT "V1"
+        TEST_WORD INTERP
+        TEST_WORD FETCH
+        TEST_EXPECT 123, "VARIABLE V1 = 123"
+
+        CLEAR_BUFFER
+        TEST_SET_TEXT ": DBL DUP + ;"
+        TEST_WORD INTERP
+        TEST_PUSH 2
+        TEST_SET_TEXT "DBL"
+        TEST_WORD INTERP
+        TEST_EXPECT 4, "COLON DBL 2 = 4"
+
+        TEST_WORD CR
+
+        CLEAR_BUFFER
+        TEST_SET_TEXT "a xyz"
+        TEST_WORD TOKEN
+        TEST_EXPECT 1, "TOKEN 'a xyz'"
+        TEST_WORD TOKEN
+        TEST_EXPECT 3, "TOKEN 'a xyz'"
+
+        CLEAR_BUFFER
+        TEST_SET_TEXT "100 100 +"
+        TEST_WORD INTERP
+        TEST_EXPECT 200, "TOKEN '100 100 + = 200'"
+
+        ld HL, 12
+        ld C, 10
+        call DIV16_8
+        ld B, 0
+        ld C, A
+        TEST_EXPECT 2, "DIV 11 / 10 = 1 1"
+
+        CLEAR_BUFFER
+        TEST_SET_TEXT "100 10 + ."
+        TEST_WORD INTERP
+
+        CLEAR_BUFFER
+        TEST_SET_TEXT "16 BASE ! 20"
+        TEST_WORD INTERP
+        TEST_EXPECT 32, "expect $20 to be 32"
+
+        CLEAR_BUFFER
+        TEST_SET_TEXT "0A BASE ! 20"
+        TEST_WORD INTERP
+        TEST_EXPECT 20, "expect DECIMAL 20 to be 32"
+
+        CLEAR_BUFFER
+        TEST_SET_TEXT "-10 ABS"
+        TEST_WORD INTERP
+        TEST_EXPECT 10, "expect abs -10 to be 10"
+
+        CLEAR_BUFFER
+        TEST_SET_TEXT "10 ABS"
+        TEST_WORD INTERP
+        TEST_EXPECT 10, "expect abs 10 to be 10"
+
+        TEST_PUSH -10
+        TEST_PUSH 10
+        TEST_WORD MUL
+        TEST_EXPECT -100, "expect -10 * 10 to be -100"
+
+        TEST_PUSH -10
+        TEST_PUSH -20
+        TEST_WORD MUL
+        TEST_EXPECT 200, "expect -10 * -20 to be 200"
+
+        TEST_PUSH 10
+        TEST_PUSH -20
+        TEST_WORD MUL
+        TEST_EXPECT -200, "expect -10 * -20 to be 200"
+
+        CLEAR_BUFFER
+        TEST_SET_TEXT ": TESTIF2 IF 100 THEN ;"
+
+        TEST_WORD INTERP
+
+        TEST_PUSH 200
+        TEST_PUSH 1
+
+        CLEAR_BUFFER
+        TEST_SET_TEXT "TESTIF2"
+        TEST_WORD INTERP
+        TEST_EXPECT 100, "1 IF 100 THEN --> 100"
+
+        TEST_PUSH 0
+
+        CLEAR_BUFFER
+        TEST_SET_TEXT "TESTIF2"
+        TEST_WORD INTERP
+        TEST_EXPECT 200, "0 IF 100 THEN --> 200"
+
+        CLEAR_BUFFER
+        TEST_SET_TEXT ": TESTIF3 IF 100 ELSE 200 THEN ;"
+
+        TEST_WORD INTERP
+
+        TEST_PUSH 0
+
+        CLEAR_BUFFER
+        TEST_SET_TEXT "TESTIF3"
+        TEST_WORD INTERP
+        TEST_EXPECT 200, "0 --> 200"
+
+        TEST_PUSH 1
+
+        CLEAR_BUFFER
+        TEST_SET_TEXT "TESTIF3"
+        TEST_WORD INTERP
+        TEST_EXPECT 100, "1 --> 100"
+
+        CLEAR_BUFFER
+        TEST_SET_TEXT ": TESTLOOP BEGIN DUP 5 < WHILE DUP . 1+ REPEAT ;"
+
+        TEST_WORD INTERP
+
+        TEST_PUSH 0
+
+        CLEAR_BUFFER
+        TEST_SET_TEXT "TESTLOOP"
+        TEST_WORD INTERP
+        TEST_EXPECT 5, "Loop until limit < 5"
+.endif
+
+.if TESTMODE=2
+; /////////////////////////////////////////////////////////////////////////////////
+.endif
+
+.if TESTMODE
+
+; TEST_DONE:
+        PRINT_STR DONE
+        halt
+
+.endif
+
