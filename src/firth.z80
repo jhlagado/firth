@@ -3,16 +3,18 @@
 TESTMODE        equ     1
 
 ; Direct-Threaded Forth model for the Zilog Z80
-;        Z80        Forth
-;-----------------------------------------------
-;        BC =       TOS (top Param Stack item)
-;        DE =       IP   instruction Pointer
-;        SP =       PSP  Param Stack Pointer
-;        IX =       RSP  Return Stack Pointer
+;
+;   BC = TOS (top Param Stack item)
+;   DE = IP   instruction Pointer
+;   SP = PSP  Param Stack Pointer
+;   IX = RSP  Return Stack Pointer
 
 ROM_SIZE        equ     $8000
 RAM_SIZE        equ     $8000
 BUFFER_SIZE     equ     128
+SER_BUFSIZE     equ     3FH
+SER_FULLSIZE    equ     30H
+SER_EMPTYSIZE   equ     5
 
 START_ROM       equ     0
 START_RAM       equ     START_ROM + ROM_SIZE
@@ -29,18 +31,8 @@ MSK_LENGTH      equ     $1f	                ; length mask
 
 JP_OPCODE       equ     $C3
 
-SER_BUFSIZE     equ     3FH
-SER_FULLSIZE    equ     30H
-SER_EMPTYSIZE   equ     5
-
 RTS_HIGH        equ     0D6H
 RTS_LOW         equ     096H
-
-serBuf          equ     $2000
-serInPtr        equ     serBuf+SER_BUFSIZE
-serRdPtr        equ     serInPtr+2
-serBufUsed      equ     serRdPtr+2
-TEMPSTACK       equ     $20ED
 
 .macro NEXT
         ex DE,HL
@@ -159,29 +151,6 @@ var_label:
         pop DE
 .endm
 
-.macro PRINT_CR
-        push DE
-        ld DE, TXT_NEWLINE
-        call puts
-        pop DE
-.endm
-
-.macro PRINT_NUM
-        push HL
-        push DE
-        push BC
-        LOAD16 H,L, B,C
-        ld A,(VAR_BASE)
-        ld C,A
-        ld DE, word_buffer
-        call FORMAT
-        call putstr
-        pop BC
-        pop DE
-        pop HL
-        PRINT_CR
-.endm
-
 .macro CMP16, val
         ld DE, val
         or A
@@ -233,7 +202,7 @@ tf_done%%M:
 .endm
 
 .macro TEST_EXPECT, expect, failtxt
-        PRINT_NUM
+        call PRINT_NUM
         LOAD16 H,L, B,C
         ld L, C
         pop BC
@@ -275,42 +244,42 @@ RST66:
         retn                   ; do nothing
 
 serialIn:
-        push    AF
-        push    HL
+        push AF
+        push HL
 
-        in      A,($80)
-        and     $01             ; Check if interupt due to read buffer full
-        jr      Z,rts0          ; if not, ignore
+        in A,($80)
+        and $01             ; Check if interupt due to read buffer full
+        jr z,rts0          ; if not, ignore
 
-        in      A,($81)
-        push    AF
-        ld      A,(serBufUsed)
-        cp      SER_BUFSIZE     ; If full then ignore
-        jr      NZ,notFull
-        pop     AF
-        jr      rts0
+        in A,($81)
+        push AF
+        ld A,(serBufUsed)
+        cp SER_BUFSIZE     ; If full then ignore
+        jr nz,notFull
+        pop AF
+        jr rts0
 
 notFull:
-        ld      HL,(serInPtr)
-        inc     HL
-        ld      A,L             ; Only need to check low byte becasuse buffer<256 bytes
-        cp      (serBuf+SER_BUFSIZE) & $FF
-        jr      NZ, notWrap
-        ld      HL,serBuf
+        ld HL,(serInPtr)
+        inc HL
+        ld A,L             ; Only need to check low byte becasuse buffer<256 bytes
+        cp (serBuf+SER_BUFSIZE) & $FF
+        jr nz, notWrap
+        ld HL,serBuf
 notWrap:
-        ld      (serInPtr),HL
-        pop     AF
-        ld      (HL),A
-        ld      A,(serBufUsed)
-        inc     A
-        ld      (serBufUsed),A
-        cp      SER_FULLSIZE
-        jr      C,rts0
-        ld      A,RTS_HIGH
-        out     ($80),A
+        ld (serInPtr),HL
+        pop AF
+        ld (HL),A
+        ld A,(serBufUsed)
+        inc A
+        ld (serBufUsed),A
+        cp SER_FULLSIZE
+        jr c,rts0
+        ld A,RTS_HIGH
+        out ($80),A
 rts0:
-        pop     HL
-        pop     AF
+        pop HL
+        pop AF
         ei
         reti
 
@@ -331,30 +300,30 @@ getc:
 
 .else
 waitForChar:
-        ld       A,(serBufUsed)
-        cp       $00
-        jr       Z, waitForChar
-        push     HL
-        ld       HL,(serRdPtr)
-        inc      HL
-        ld       A,L             ; Only need to check low byte becasuse buffer<256 bytes
-        cp       (serBuf+SER_BUFSIZE) & $FF
-        jr       NZ, notRdWrap
-        ld       HL,serBuf
+        ld A,(serBufUsed)
+        cp $00
+        jr z, waitForChar
+        push HL
+        ld HL,(serRdPtr)
+        inc HL
+        ld A,L             ; Only need to check low byte becasuse buffer<256 bytes
+        cp (serBuf+SER_BUFSIZE) & $FF
+        jr nz, notRdWrap
+        ld HL,serBuf
 notRdWrap:
         di
-        ld       (serRdPtr),HL
-        ld       A,(serBufUsed)
-        dec      A
-        ld       (serBufUsed),A
-        cp       SER_EMPTYSIZE
-        jr       NC,rts1
-        ld       A,RTS_LOW
-        out      ($80),A
+        ld (serRdPtr),HL
+        ld A,(serBufUsed)
+        dec A
+        ld (serBufUsed),A
+        cp SER_EMPTYSIZE
+        jr nc,rts1
+        ld A,RTS_LOW
+        out ($80),A
 rts1:
-        ld       A,(HL)
+        ld A,(HL)
         ei
-        pop      HL
+        pop HL
         ret                      ; Char ready in A
 .endif
 
@@ -363,37 +332,37 @@ rts1:
 ;; params: A = char to output
 ;; destroys: AF
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 putc:
         push     AF              ; Store character
 conout1:
-        in       A,($80)         ; Status byte
-        BIT      1,A             ; Set Zero flag if still transmitting character
-        jr       Z,conout1       ; Loop until flag signals ready
-        pop      AF              ; Retrieve character
-        out      ($81),A         ; Output the character
+        in A,($80)         ; Status byte
+        bit 1,A             ; Set Zero flag if still transmitting character
+        jr z,conout1       ; Loop until flag signals ready
+        pop AF              ; Retrieve character
+        out ($81),A         ; Output the character
         ret
 
-inputReady      ld       A,(serBufUsed)
-        cp       $0
+inputReady:
+        ld A,(serBufUsed)
+        cp $0
         ret
 
 START:
-        ld       HL,TEMPSTACK    ; Temp stack
-        ld       SP,HL           ; Set up a temporary stack
-        ld       HL,serBuf
-        ld       (serInPtr),HL
-        ld       (serRdPtr),HL
-        xor      A               ;0 to accumulator
-        ld       (serBufUsed),A
-        ld       A,RTS_LOW
-        out      ($80),A         ; Initialise ACIA
-        im       1
-        ei
 
         ld IX, RET_STACK            ; Initialise the return stack.
-        ld sp, PAR_STACK            ; Initialise the param stack.
+        ld SP, PAR_STACK            ; Initialise the param stack.
         ld BC, 0                    ; TOS
         ld IY, DO_NEXT_1            ; fast way to jump to NEXT_1
+        ld HL,serBuf
+        ld (serInPtr),HL
+        ld (serRdPtr),HL
+        xor A               ;0 to accumulator
+        ld (serBufUsed),A
+        ld A,RTS_LOW
+        out ($80),A         ; Initialise ACIA
+        im 1
+        ei
 
 .if TESTMODE
         jp TESTS_START
@@ -424,7 +393,6 @@ DO_NEXT_1:
         inc HL
         ex DE,HL
         jp (HL)
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; getline - input line of text
@@ -475,7 +443,7 @@ gl_loopexit:
         jr z, gl_loop
         pop AF
         pop HL
-        PRINT_CR
+        call PRINT_CR
         ret
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -511,6 +479,29 @@ puts_end:
         pop DE
         pop BC
         pop AF
+        ret
+
+PRINT_CR:
+        push DE
+        ld DE, TXT_NEWLINE
+        call puts
+        pop DE
+        ret
+
+PRINT_NUM:
+        push HL
+        push DE
+        push BC
+        LOAD16 H,L, B,C
+        ld A,(VAR_BASE)
+        ld C,A
+        ld DE, word_buffer
+        call FORMAT
+        call putstr
+        pop BC
+        pop DE
+        pop HL
+        call PRINT_CR
         ret
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -663,7 +654,7 @@ toNumber1:
     	ld A, (IY)		    ; a = next character in string
     	inc IY
 
-	                        ; Convert 0-9, A-Z to a number 0-35.
+	                        ; Convert 0-9, A-z to a number 0-35.
 toNumber2:
         sub '0'		        ; < '0'?
     	jr c, toNumber4     ; invalid char, end of number
@@ -986,7 +977,7 @@ INTERPRET_ERROR:
         call puts
         ex DE, HL                       ; DE = word ptr
         call putstr
-        PRINT_CR
+        call PRINT_CR
     	jr INTERPRET_DONE
 
 INTERPRET_STOPPING:
@@ -1132,14 +1123,12 @@ defcode "LIT",3,,LIT
     	inc HL
         NEXT_1
 
-;Z RSP!  a-addr --                  set return stack pointer
+;z RSP!  a-addr --                  set return stack pointer
 defcode "RSP!",4,,RSPSTORE
     	push BC
     	pop IX                      ; RSP = TOS
     	pop BC                      ; pop TOS
         NEXT
-
-;;;;;;; minimal set
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -1617,7 +1606,7 @@ QKEY_DONE:
         NEXT
 
 defcode ".",1,,DOT                 ; print top of stack in BASE
-        PRINT_NUM
+        call PRINT_NUM
         pop BC
         NEXT
 
@@ -1750,6 +1739,14 @@ char_pointer:
 
 .endif
 
+serBuf:
+        ds BUFFER_SIZE
+serInPtr:
+        dw 0
+serRdPtr:
+        dw 0
+serBufUsed:
+        dw 0
 currkey:
         dw buffer
 bufftop:
@@ -1995,3 +1992,4 @@ TESTS_START:
         halt
 
 .endif
+
