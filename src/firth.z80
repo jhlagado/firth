@@ -11,10 +11,10 @@ TESTMODE        equ     1
 
 ROM_SIZE        equ     $8000
 RAM_SIZE        equ     $8000
-BUFFER_SIZE     equ     128
 SER_BUFSIZE     equ     3FH
 SER_FULLSIZE    equ     30H
 SER_EMPTYSIZE   equ     5
+BUFFER_SIZE     equ     128
 
 START_ROM       equ     0
 START_RAM       equ     START_ROM + ROM_SIZE
@@ -31,12 +31,12 @@ MSK_LENGTH      equ     $1f	                ; length mask
 
 JP_OPCODE       equ     $C3
 
-RTS_HIGH        equ     0D6H
-RTS_LOW         equ     096H
+RTS_HIGH        equ     0D6H ; 11010110
+RTS_LOW         equ     096H ; 10010110
 
 .macro NEXT
         ex DE,HL
-        NEXT_1
+        jp (IY)
 .endm
 
 .macro NEXT_1
@@ -263,7 +263,7 @@ notFull:
         ld HL,(serInPtr)
         inc HL
         ld A,L             ; Only need to check low byte becasuse buffer<256 bytes
-        cp (serBuf+SER_BUFSIZE) & $FF
+        cp (serBuf + SER_BUFSIZE) & $FF
         jr nz, notWrap
         ld HL,serBuf
 notWrap:
@@ -307,7 +307,7 @@ waitForChar:
         ld HL,(serRdPtr)
         inc HL
         ld A,L             ; Only need to check low byte becasuse buffer<256 bytes
-        cp (serBuf+SER_BUFSIZE) & $FF
+        cp (serBuf + SER_BUFSIZE) & $FF
         jr nz, notRdWrap
         ld HL,serBuf
 notRdWrap:
@@ -1740,7 +1740,7 @@ char_pointer:
 .endif
 
 serBuf:
-        ds BUFFER_SIZE
+        ds SER_BUFSIZE
 serInPtr:
         dw 0
 serRdPtr:
