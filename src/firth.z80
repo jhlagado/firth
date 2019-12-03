@@ -1,6 +1,6 @@
 .engine mycomputer
 
-TESTMODE    equ 1
+TESTMODE        equ     1
 
 ; Direct-Threaded Forth model for the Zilog Z80
 ;        Z80        Forth
@@ -10,26 +10,37 @@ TESTMODE    equ 1
 ;        SP =       PSP  Param Stack Pointer
 ;        IX =       RSP  Return Stack Pointer
 
-CHECK_PAR_STACK equ 0
+ROM_SIZE        equ     $8000
+RAM_SIZE        equ     $8000
+BUFFER_SIZE     equ     128
 
-ROM_SIZE    equ $8000
-RAM_SIZE    equ $8000
-BUFFER_SIZE equ 128
+START_ROM       equ     0
+START_RAM       equ     START_ROM + ROM_SIZE
+END_RAM         equ     START_RAM + RAM_SIZE
+RET_STACK       equ     END_RAM             ; Return stack, 128 B, grows down
+PAR_STACK       equ     RET_STACK - 128     ; Parameter stack, 128B, grows down
 
-START_ROM   equ 0
-START_RAM   equ START_ROM + ROM_SIZE
-END_RAM     equ START_RAM + RAM_SIZE
-RET_STACK   equ END_RAM             ; Return stack, 128 B, grows down
-PAR_STACK   equ RET_STACK - 128     ; Parameter stack, 128B, grows down
+IO_DATA         equ     $81
+IO_CTRL         equ     $80
 
-IO_DATA  equ  $81
-IO_CTRL  equ  $80
+MSK_IMMED       equ     $80
+MSK_HIDDEN      equ     $20
+MSK_LENGTH      equ     $1f	                ; length mask
 
-MSK_IMMED equ $80
-MSK_HIDDEN equ $20
-MSK_LENGTH equ $1f	                ; length mask
+JP_OPCODE       equ     $C3
 
-JP_OPCODE equ $C3
+SER_BUFSIZE     equ     3FH
+SER_FULLSIZE    equ     30H
+SER_EMPTYSIZE   equ     5
+
+RTS_HIGH        equ     0D6H
+RTS_LOW         equ     096H
+
+serBuf          equ     $2000
+serInPtr        equ     serBuf+SER_BUFSIZE
+serRdPtr        equ     serInPtr+2
+serBufUsed      equ     serRdPtr+2
+TEMPSTACK       equ     $20ED
 
 .macro NEXT
         ex DE,HL
@@ -53,7 +64,7 @@ link: .set HEADER_label
     	DB flags + namelen	    ; flags + length byte
     	DB name		            ; the name
 label:
-    	JP DO_COLON
+    	jp DO_COLON
     	; list of word pointers follow
 .endm
 
@@ -179,8 +190,8 @@ var_label:
 .endm
 
 .macro TEST_PUSH, val
-        PUSH BC
-        LD BC, val
+        push BC
+        ld BC, val
 .endm
 
 .macro TEST_POP
@@ -197,16 +208,16 @@ var_label:
 .macro TEST_SET_TEXT, s1
         ld HL, tst_text%%M
         ld (char_pointer), HL
-        JP tst_done%%M
+        jp tst_done%%M
 tst_text%%M:
         db s1,"\r\n",-1,"\r\n"
 tst_done%%M:
 .endm
 
 .macro TEST_PUSH_TEXT, s1
-        PUSH BC
-        LD BC, tpt_text%%M
-        JP tpt_done%%M
+        push BC
+        ld BC, tpt_text%%M
+        jp tpt_done%%M
 tpt_text%%M:
         db s1
 tpt_done%%M:
@@ -238,33 +249,70 @@ te_fail%%M:
 tf_done%%M:
 .endm
 
+        .org START_ROM
+RST00:                          ; Reset
+        di                      ; Disable interrupts
+        jp      START
 
-START_ROM:
-        org 0
-        jp START
+        .org    0008H
+RST08:                                  ; TX a character over RS232
+        jp      putc
 
-        org $40            ; main code begins after restart vectors
+        .org    0010H
+RST10:                                  ; RX a character over RS232 Channel A [Console], hold here until char ready.
+        jp      getc
 
-DO_COLON:
-    	PUSH_RET D,E		; push IP on to the return stack
-    	inc HL		        ; HL = W which points to codeword, so make
-    	inc HL		        ; IP point to first data word
-        inc HL
+        .org    0018H
+RST18:                                  ; Check serial status
+        jp      inputReady
 
-DO_NEXT_1:
-        ld E,(HL)
-        inc HL
-        ld D,(HL)
-        inc HL
-        ex DE,HL
-        jp (HL)
+        .org    0038H
+RST38:                                  ; rst 38 - INTERRUPT VECTOR [ for IM 1 ]
+        jr      serialIn
 
-defconst "VERSION",7,,VERSION,1
-defconst "R0",2,,RZ, RET_STACK
-defconst "DO_COLON",5,, __DOCOL,DO_COLON
-defconst "MSK_IMMED",7,,__MSK_IMMED,MSK_IMMED
-defconst "MSK_HIDDEN",8,,__MSK_HIDDEN,MSK_HIDDEN
-defconst "MSK_LENGTH",9,,__MSK_LENGTH,MSK_LENGTH
+        .org    0066H                   ; rst 66 - NON-MASKABLE INTERRUPT
+RST66:
+        retn                   ; do nothing
+
+serialIn:
+        push    AF
+        push    HL
+
+        in      A,($80)
+        and     $01             ; Check if interupt due to read buffer full
+        jr      Z,rts0          ; if not, ignore
+
+        in      A,($81)
+        push    AF
+        ld      A,(serBufUsed)
+        cp      SER_BUFSIZE     ; If full then ignore
+        jr      NZ,notFull
+        pop     AF
+        jr      rts0
+
+notFull:
+        ld      HL,(serInPtr)
+        inc     HL
+        ld      A,L             ; Only need to check low byte becasuse buffer<256 bytes
+        cp      (serBuf+SER_BUFSIZE) & $FF
+        jr      NZ, notWrap
+        ld      HL,serBuf
+notWrap:
+        ld      (serInPtr),HL
+        pop     AF
+        ld      (HL),A
+        ld      A,(serBufUsed)
+        inc     A
+        ld      (serBufUsed),A
+        cp      SER_FULLSIZE
+        jr      C,rts0
+        ld      A,RTS_HIGH
+        out     ($80),A
+rts0:
+        pop     HL
+        pop     AF
+        ei
+        reti
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; getc - input
@@ -282,19 +330,33 @@ getc:
         ret
 
 .else
-
-        call getrdy
-        jr z, getc
-        in A, IO_DATA
-        or A
-        ret
+waitForChar:
+        ld       A,(serBufUsed)
+        cp       $00
+        jr       Z, waitForChar
+        push     HL
+        ld       HL,(serRdPtr)
+        inc      HL
+        ld       A,L             ; Only need to check low byte becasuse buffer<256 bytes
+        cp       (serBuf+SER_BUFSIZE) & $FF
+        jr       NZ, notRdWrap
+        ld       HL,serBuf
+notRdWrap:
+        di
+        ld       (serRdPtr),HL
+        ld       A,(serBufUsed)
+        dec      A
+        ld       (serBufUsed),A
+        cp       SER_EMPTYSIZE
+        jr       NC,rts1
+        ld       A,RTS_LOW
+        out      ($80),A
+rts1:
+        ld       A,(HL)
+        ei
+        pop      HL
+        ret                      ; Char ready in A
 .endif
-
-getrdy:
-        in A, IO_CTRL
-        and 01h
-        ret z
-        ret
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; putc - output a character
@@ -302,14 +364,67 @@ getrdy:
 ;; destroys: AF
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 putc:
-        push AF
-serdy:
-        in A,IO_CTRL
-        and 02
-        jr z,serdy
-        pop AF
-        out IO_DATA,A
+        push     AF              ; Store character
+conout1:
+        in       A,($80)         ; Status byte
+        BIT      1,A             ; Set Zero flag if still transmitting character
+        jr       Z,conout1       ; Loop until flag signals ready
+        pop      AF              ; Retrieve character
+        out      ($81),A         ; Output the character
         ret
+
+inputReady      ld       A,(serBufUsed)
+        cp       $0
+        ret
+
+START:
+        ld       HL,TEMPSTACK    ; Temp stack
+        ld       SP,HL           ; Set up a temporary stack
+        ld       HL,serBuf
+        ld       (serInPtr),HL
+        ld       (serRdPtr),HL
+        xor      A               ;0 to accumulator
+        ld       (serBufUsed),A
+        ld       A,RTS_LOW
+        out      ($80),A         ; Initialise ACIA
+        im       1
+        ei
+
+        ld IX, RET_STACK            ; Initialise the return stack.
+        ld sp, PAR_STACK            ; Initialise the param stack.
+        ld BC, 0                    ; TOS
+        ld IY, DO_NEXT_1            ; fast way to jump to NEXT_1
+
+.if TESTMODE
+        jp TESTS_START
+
+.else
+        PRINT_STR TXT_INTRO
+        ld DE, COLD                 ; Initialise interpreter.
+        NEXT
+.endif
+
+defconst "VERSION",7,,VERSION,1
+defconst "R0",2,,RZ, RET_STACK
+defconst "DO_COLON",5,, __DOCOL,DO_COLON
+defconst "MSK_IMMED",7,,__MSK_IMMED,MSK_IMMED
+defconst "MSK_HIDDEN",8,,__MSK_HIDDEN,MSK_HIDDEN
+defconst "MSK_LENGTH",9,,__MSK_LENGTH,MSK_LENGTH
+
+DO_COLON:
+    	PUSH_RET D,E		; push IP on to the return stack
+    	inc HL		        ; HL = W which points to codeword, so make
+    	inc HL		        ; IP point to first data word
+        inc HL
+
+DO_NEXT_1:
+        ld E,(HL)
+        inc HL
+        ld D,(HL)
+        inc HL
+        ex DE,HL
+        jp (HL)
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; getline - input line of text
@@ -320,14 +435,6 @@ serdy:
 getline:
         push AF
         push HL
-.if CHECK_PAR_STACK
-        ld HL,PAR_STACK - 16
-        or A
-        sbc HL,SP
-        jp nc, gl_stack_ok
-        PRINT_STR TXT_STACK_UNDERFLOW
-gl_stack_ok:
-.endif
         PRINT_STR TXT_PROMPT
         pop HL
         push HL
@@ -651,6 +758,133 @@ lookup_3:                       ; no match
         ld l,a
         ex DE, HL
     	jr lookup_1		        ; .. and loop.
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; UMUL -  unsigned multiply
+;;
+;; params:  u1 in BC, u2 in DE
+;; returns: result in HLDE
+;; destroys: AF
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+DO_UMUL:
+        ld HL,0
+        ld A,17     ; loop counter
+        or A        ; clear cy
+umloop: rr H
+        rr L
+        rr D
+        rr E
+        jr nc,noadd
+        add HL,BC
+noadd:  dec A
+        jr nz,umloop
+        ret
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; umult -  unsigned divide
+;;
+;; params:  BC = divisor, HLDE = dividend
+;; returns: BC = quotient, HL = remainder
+;; destroys: AF
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+DO_UMSLASHMOD:
+        ld A,16     ; loop counter
+        sla E
+        rl D        ; hi bit DE -> carry
+udloop: adc HL,HL   ; rot left w/ carry
+        jr nc,udiv3
+        ; case 1: 17 bit, cy:HL = 1xxxx
+        or A        ; we know we can subtract
+        sbc HL,BC
+        or A        ; clear cy to indicate sub ok
+        jr udiv4
+        ; case 2: 16 bit, cy:HL = 0xxxx
+udiv3:  sbc HL,BC   ; try the subtract
+        jr nc,udiv4 ; if no cy, subtract ok
+        add HL,BC   ; else cancel the subtract
+        scf         ;   and set cy to indicate
+udiv4:  rl E        ; rotate result bit into DE,
+        rl D        ; and next bit of DE into cy
+        dec A
+        jr nz,udloop
+        ; now have complemented quotient in DE,
+        ; and remainder in HL
+        ld A,D
+        cpl
+        ld B,A
+        ld A,E
+        cpl
+        ld C,A
+        ret
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; DO_TCFA - convert header ptr to CFA pointer
+;;
+;; params: DE = ptr to header
+;; returns: HL = ptr to CFA
+;; destroys: AF
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+DO_TCFA:
+        LOAD16 H,L, D,E
+    	inc HL              ; Skip link pointer.
+    	inc HL
+
+    	ld A,(HL)	    	; Load flags+len into A
+    	inc HL		        ; Skip flags+len byte.
+    	and MSK_LENGTH	    ; Just the length, not the flags.
+    	add A, L       		; Skip the name.
+    	ld L, A
+    	ld A, 0
+    	adc A, H
+    	ld H, A
+    	ret
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; DO_COMMA - stores a 16 bit number at memory pointer by VAR_HERE
+;;
+;; params: BC = data
+;; returns: nothing, updates vars
+;; destroys: AF, HL
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+DO_COMMA:
+    	ld HL, (VAR_HERE)	; HERE
+    	ld (HL), C          ; Store DE at memory pointed to by VAR_HERE
+    	inc HL
+    	ld (HL), B
+    	inc HL
+    	ld (VAR_HERE), HL	; Update HERE (incremented)
+    	ret
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; DO_SEQUAL - string equal
+;; params: de = string1, HL = string2, BC = length
+;; returns: a = -1, 0, 1
+;; destroys: de, HL, BC
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+DO_SEQUAL:
+        ISZERO16 B,C    ; test for Count=0
+        jr z,smatch     ; by definition, match!
+sloop:
+        ld A,(DE)
+        inc DE
+        cpi
+        jr nz,sdiff     ; char mismatch: exit
+        jp pe,sloop     ; count not exhausted
+smatch:
+        ; count exhausted & no mismatch found
+        ld A,0          ; a=0000  (s1=s2)
+        ret
+sdiff:
+        ; mismatch!  undo last 'cpi' increment
+        dec HL          ; point at mismatch char
+        cp (HL)         ; set cy if char1 < char2
+        sbc A,A
+        or 1            ; a = ff if carry, 1 if no carry
+        ret
+
 
 defcode "EXIT",4,,EXIT
     	POP_RET H,L		            ; pop return stack into IP
@@ -1051,8 +1285,8 @@ revsense:
         jp m,tosfalse ; OV: if -ve, reslt false
         jr tostrue      ;     if +ve, result true
 
-; AND    x1 x2 -- x3            logical AND
-defcode "AND",3,,AND	        ; bitwise AND
+; and    x1 x2 -- x3            logical and
+defcode "AND",3,,and	        ; bitwise and
         pop HL
         ld A,b
         and H
@@ -1118,8 +1352,8 @@ defcode "OR",2,,OR	            ; bitwise OR
         ld C,A
         NEXT
 
-; XOR    x1 x2 -- x3            logical XOR
-defcode "XOR",3,,XOR	        ; bitwise XOR
+; xor    x1 x2 -- x3            logical xor
+defcode "XOR",3,,xor	        ; bitwise xor
         pop HL
         ld A,B
         xor H
@@ -1261,7 +1495,7 @@ defcode "'",1,,TICK                 ; ( -- addr ) push code word ptr of followin
 defword ":",1,,COLON
     	DW TOKEN		            ; Get the name of the new word
     	DW CREATE		            ; CREATE the dictionary entry / header
-        DW LIT, JP_OPCODE, CCOMMA                ; write Z80 JP OPCODE to word
+        DW LIT, JP_OPCODE, CCOMMA                ; write Z80 jp OPCODE to word
     	DW LIT, DO_COLON, COMMA	    ; Append DO_COLON  (the codeword).
     	DW LATEST, FETCH, HIDDEN    ; Make the word hidden (see below for definition).
     	DW RBRAC		            ; Go into compile mode.
@@ -1274,7 +1508,7 @@ defword ":",1,,COLON
 defword "CONSTANT",8,,CONSTANT              ; ( n -- ) get name from input
         DW TOKEN                            ; read name
         DW CREATE                           ; create header
-        DW LIT, JP_OPCODE, CCOMMA                ; write Z80 JP OPCODE to word
+        DW LIT, JP_OPCODE, CCOMMA                ; write Z80 jp OPCODE to word
         DW LIT, DO_COLON, COMMA                ; write addr DO_COLON to word
         DW LIT, LIT, COMMA                  ; write addr of LIT to word
         DW COMMA                            ; write TOS to word
@@ -1285,7 +1519,7 @@ defword "CONSTANT",8,,CONSTANT              ; ( n -- ) get name from input
 defcode "CREATE",6,,CREATE  ; addr len --
 
         SAVE_REGS BC
-        POP HL
+        pop HL
     	; Link pointer.
     	ld DE, (VAR_HERE)	    ; DE point to the start of a new header
     	ld A, (VAR_LATEST) 	    ; write ptr to previous word in header
@@ -1319,7 +1553,7 @@ defword "VARIABLE",8,,VARIABLE              ; ( n -- ) get name from input
         DW LIT, 1, CELLS, ALLOT                    ; allocate 1 word, push addr
         DW TOKEN                            ; read name
         DW CREATE                           ; create header
-        DW LIT, JP_OPCODE, CCOMMA                ; write Z80 JP OPCODE to word
+        DW LIT, JP_OPCODE, CCOMMA                ; write Z80 jp OPCODE to word
         DW LIT, DO_COLON, COMMA             ; write addr DO_COLON to word
         DW LIT, LIT, COMMA                  ; write addr of LIT to word
         DW COMMA                            ; write addr of variable to word
@@ -1374,9 +1608,10 @@ defword "CR",2,,CR                  ; ( -- )
 
 defcode "KEY?",4,,QKEY              ; ( -- c )
     	push BC		                ; save TOS
-    	call getrdy
+    ; 	call getrdy
+    	call inputReady
         ld BC, 1                    ; TOS = true
-        jr z, QKEY_DONE
+        jr nz, QKEY_DONE
         ld BC, 0                    ; TOS = false
 QKEY_DONE:
         NEXT
@@ -1385,6 +1620,18 @@ defcode ".",1,,DOT                 ; print top of stack in BASE
         PRINT_NUM
         pop BC
         NEXT
+
+defvar "HERE",4,,HERE,START_USER
+defvar "INTERP_STOP",12,,INTERP_STOP,0
+defvar "STATE",5,,STATE,0
+defvar "S0",2,,SZ,RET_STACK
+defvar "BASE",4,,BASE,10
+defvar "LATEST",6,,LATEST,HEADER_LATEST,0
+
+
+
+
+
 
 ; HL = data, DE = ptr to buffer, C = base
 ; DE = ptr to string, BC = length
@@ -1439,7 +1686,7 @@ DO_NEGATE:
         xor    A
         sub    L
         ld     L, A
-        ld     A, 0     ; Note that XOR A or SUB A would disturb CF
+        ld     A, 0     ; Note that xor A or SUB A would disturb CF
         sbc    A, H
         ld     H, A
         ret
@@ -1470,154 +1717,9 @@ L3:
 ; ( paren
 ; .S dot-s
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; UMUL -  unsigned multiply
-;;
-;; params:  u1 in BC, u2 in DE
-;; returns: result in HLDE
-;; destroys: AF
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-DO_UMUL:
-        ld HL,0
-        ld A,17     ; loop counter
-        or A        ; clear cy
-umloop: rr H
-        rr L
-        rr D
-        rr E
-        jr nc,noadd
-        add HL,BC
-noadd:  dec A
-        jr nz,umloop
-        ret
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; umult -  unsigned divide
-;;
-;; params:  BC = divisor, HLDE = dividend
-;; returns: BC = quotient, HL = remainder
-;; destroys: AF
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-DO_UMSLASHMOD:
-        ld A,16     ; loop counter
-        sla E
-        rl D        ; hi bit DE -> carry
-udloop: adc HL,HL   ; rot left w/ carry
-        jr nc,udiv3
-        ; case 1: 17 bit, cy:HL = 1xxxx
-        or A        ; we know we can subtract
-        sbc HL,BC
-        or A        ; clear cy to indicate sub ok
-        jr udiv4
-        ; case 2: 16 bit, cy:HL = 0xxxx
-udiv3:  sbc HL,BC   ; try the subtract
-        jr nc,udiv4 ; if no cy, subtract ok
-        add HL,BC   ; else cancel the subtract
-        scf         ;   and set cy to indicate
-udiv4:  rl E        ; rotate result bit into DE,
-        rl D        ; and next bit of DE into cy
-        dec A
-        jr nz,udloop
-        ; now have complemented quotient in DE,
-        ; and remainder in HL
-        ld A,D
-        cpl
-        ld B,A
-        ld A,E
-        cpl
-        ld C,A
-        ret
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; DO_TCFA - convert header ptr to CFA pointer
-;;
-;; params: DE = ptr to header
-;; returns: HL = ptr to CFA
-;; destroys: AF
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-DO_TCFA:
-        LOAD16 H,L, D,E
-    	inc HL              ; Skip link pointer.
-    	inc HL
-
-    	ld A,(HL)	    	; Load flags+len into A
-    	inc HL		        ; Skip flags+len byte.
-    	and MSK_LENGTH	    ; Just the length, not the flags.
-    	add A, L       		; Skip the name.
-    	ld L, A
-    	ld A, 0
-    	adc A, H
-    	ld H, A
-    	ret
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; DO_COMMA - stores a 16 bit number at memory pointer by VAR_HERE
-;;
-;; params: BC = data
-;; returns: nothing, updates vars
-;; destroys: AF, HL
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-DO_COMMA:
-    	ld HL, (VAR_HERE)	; HERE
-    	ld (HL), C          ; Store DE at memory pointed to by VAR_HERE
-    	inc HL
-    	ld (HL), B
-    	inc HL
-    	ld (VAR_HERE), HL	; Update HERE (incremented)
-    	ret
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; DO_SEQUAL - string equal
-;; params: de = string1, HL = string2, BC = length
-;; returns: a = -1, 0, 1
-;; destroys: de, HL, BC
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-DO_SEQUAL:
-        ISZERO16 B,C    ; test for Count=0
-        jr z,smatch     ; by definition, match!
-sloop:
-        ld A,(DE)
-        inc DE
-        cpi
-        jr nz,sdiff     ; char mismatch: exit
-        jp pe,sloop     ; count not exhausted
-smatch:
-        ; count exhausted & no mismatch found
-        ld A,0          ; a=0000  (s1=s2)
-        ret
-sdiff:
-        ; mismatch!  undo last 'cpi' increment
-        dec HL          ; point at mismatch char
-        cp (HL)         ; set cy if char1 < char2
-        sbc A,A
-        or 1            ; a = ff if carry, 1 if no carry
-        ret
-
 
 COLD:
         DW QUIT                     ; headerless word which never terminates
-
-START:
-        di
-        ld A, 15h
-        out (IO_CTRL),a
-
-        ld IX, RET_STACK            ; Initialise the return stack.
-        ld sp, PAR_STACK            ; Initialise the param stack.
-        ld BC, 0                    ; TOS
-        ld IY, DO_NEXT_1            ; fast way to jump to NEXT_1
-
-.if TESTMODE
-        jp TESTS_START
-
-.else
-        PRINT_STR TXT_INTRO
-        ld DE, COLD                 ; Initialise interpreter.
-        NEXT
-.endif
 
 TXT_NEWLINE:
     	.pstr "\r\n"
@@ -1663,13 +1765,6 @@ word_buffer:
 
 IS_LITERAL:
 	    DB 0			;Flag used to record if reading a literal
-
-defvar "HERE",4,,HERE,START_USER
-defvar "INTERP_STOP",12,,INTERP_STOP,0
-defvar "STATE",5,,STATE,0
-defvar "S0",2,,SZ,RET_STACK
-defvar "BASE",4,,BASE,10
-defvar "LATEST",6,,LATEST,HEADER_LATEST,0
 
 START_USER:         ; user allocated data starts here
 
@@ -1900,4 +1995,3 @@ TESTS_START:
         halt
 
 .endif
-
