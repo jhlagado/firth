@@ -72,19 +72,10 @@ link: .set HEADER_label
 label:
 .endm
 
-.macro defvar, name, namelen, flags, label, initial
+.macro defvar, name, namelen, flags, label, var_label
 	defcode name,namelen,flags,label
 	    push BC
-	    ld BC, VAR_label
-    NEXT
-var_label:
-        DW initial
-.endm
-
-.macro defvar1, name, namelen, flags, label
-	defcode name,namelen,flags,label
-	    push BC
-	    ld BC, VAR_label
+	    ld BC, var_label
     NEXT
 .endm
 
@@ -1617,12 +1608,12 @@ defcode ".",1,0,DOT                 ; print top of stack in BASE
         pop BC
         NEXT
 
-defvar1 "HERE",4,0,HERE
-defvar1 "INTERP_STOP",12,0,INTERP_STOP
-defvar1 "STATE",5,0,STATE
-defvar1 "S0",2,0,SZ
-defvar1 "BASE",4,0,BASE
-defvar1 "LATEST",6,0,LATEST
+defvar "HERE",4,0,HERE, VAR_HERE
+defvar "INTERP_STOP",12,0,INTERP_STOP, VAR_INTERP_STOP
+defvar "STATE",5,0,STATE, VAR_STATE
+defvar "S0",2,0,SZ, VAR_SZ
+defvar "BASE",4,0,BASE, VAR_BASE
+defvar "LATEST",6,0,LATEST, VAR_LATEST
 
 ; HL = data, DE = ptr to buffer, C = base
 ; DE = ptr to string, BC = length
