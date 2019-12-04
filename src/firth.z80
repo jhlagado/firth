@@ -9,8 +9,8 @@ TESTMODE        equ     1
 ;   SP = PSP  Param Stack Pointer
 ;   IX = RSP  Return Stack Pointer
 
-ROM_SIZE        equ     $8000
-RAM_SIZE        equ     $8000
+ROM_SIZE        equ     $1000
+RAM_SIZE        equ     $10000 - ROM_SIZE
 SER_BUFSIZE     equ     3FH
 SER_FULLSIZE    equ     30H
 SER_EMPTYSIZE   equ     5
@@ -31,8 +31,8 @@ MSK_LENGTH      equ     $1f	                ; length mask
 
 JP_OPCODE       equ     $C3
 
-RTS_HIGH        equ     0D6H ; 11010110
-RTS_LOW         equ     096H ; 10010110
+RTS_HIGH        equ     0D6H                ; 11010110
+RTS_LOW         equ     096H                ; 10010110
 
 .macro NEXT
         ex DE,HL
@@ -1738,26 +1738,19 @@ buffer:         ds BUFFER_SIZE
 ; A static buffer TOKEN fills.  Subsequent calls
 ; overwrite this buffer.  Maximum word length is 32 chars.
 
-word_buffer:
-    	ds 32
+word_buffer:    ds 32
 
-IS_LITERAL:
-	    db 0			;Flag used to record if reading a literal
+IS_LITERAL:     db 0			; Flag used to record if reading a literal
 
-VAR_HERE:
-        dw START_USER
+VAR_HERE:       dw START_USER
 VAR_INTERP_STOP:
-        dw 0
-VAR_STATE:
-        dw 0
-VAR_SZ:
-        dw RET_STACK
-VAR_BASE:
-        dw 10
-VAR_LATEST:
-        dw HEADER_LATEST
+                dw 0
+VAR_STATE:      dw 0
+VAR_SZ:         dw RET_STACK
+VAR_BASE:       dw 10
+VAR_LATEST:     dw HEADER_LATEST
 
-START_USER:         ; user allocated data starts here
+START_USER:                     ; user allocated data starts here
 
 .if TESTMODE
 
