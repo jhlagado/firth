@@ -1,13 +1,13 @@
 cpu Z80
 
-memory.ram.from 0x0000
-memory.ram.to 0xffff
 memory.rom.from 0x0000
-memory.rom.to 0x000
+memory.rom.to 0x0fff
+memory.ram.from 0x1000
+memory.ram.to 0xffff
 
 serial 6850
-serial.control 0x80
 serial.data 0x81
+serial.control 0x80
 
 serial.interrupt 1
 

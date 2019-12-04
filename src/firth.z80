@@ -145,7 +145,7 @@ label:
 .macro PRINT_STR, addr
         push DE
         ld DE, addr
-        call puts
+        call printPStr
         pop DE
 .endm
 
@@ -166,13 +166,10 @@ label:
         pop BC
 .endm
 
-.macro CLEAR_BUFFER
+.macro TEST_SET_TEXT, s1
         ld HL, buffer
         ld (bufftop),HL
         ld (currkey),HL
-.endm
-
-.macro TEST_SET_TEXT, s1
         ld HL, tst_text%%M
         ld (char_pointer), HL
         jp tst_done%%M
@@ -200,16 +197,16 @@ tf_done%%M:
 .endm
 
 .macro TEST_EXPECT, expect, failtxt
-        call PRINT_NUM
+        call printNum
         LOAD16 H,L, B,C
         ld L, C
         pop BC
         CMP16 expect
         jp z, tf_done%%M
         ld DE, FAILED
-        call puts
+        call printPStr
         ld DE, te_fail%%M
-        call puts
+        call printPStr
         halt
 te_fail%%M:
         .pstr failtxt
@@ -328,7 +325,6 @@ rts1:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; putc - output a character
 ;; params: A = char to output
-;; destroys: AF
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 putc:
@@ -441,14 +437,14 @@ gl_loopexit:
         jr z, gl_loop
         pop AF
         pop HL
-        call PRINT_CR
+        call printCR
         ret
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Output pascal string
 ; params: DE = addr
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-puts:
+printPStr:
         push AF
         push BC
         push DE
@@ -456,37 +452,36 @@ puts:
         ld C, A
         ld B, 0
         inc DE
-        jr puts_loop
+        jr printStrLoop
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Output string
 ; params: DE = addr, BC = length
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-putstr:
+printStr:
         push AF
         push BC
         push DE
-puts_loop:
+printStrLoop:
         ld A,(DE)
         call putc
         inc DE
         dec BC
         ISZERO16 B,C
-        jr nz, puts_loop
-puts_end:
+        jr nz, printStrloop
         pop DE
         pop BC
         pop AF
         ret
 
-PRINT_CR:
+printCR:
         push DE
         ld DE, TXT_NEWLINE
-        call puts
+        call printPStr
         pop DE
         ret
 
-PRINT_NUM:
+printNum:
         push HL
         push DE
         push BC
@@ -495,11 +490,11 @@ PRINT_NUM:
         ld C,A
         ld DE, word_buffer
         call FORMAT
-        call putstr
+        call printStr
         pop BC
         pop DE
         pop HL
-        call PRINT_CR
+        call printCR
         ret
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -972,10 +967,10 @@ INTERPRET_LITERAL:
 
 INTERPRET_ERROR:
         ld DE, TXT_ERROR
-        call puts
+        call printPStr
         ex DE, HL                       ; DE = word ptr
-        call putstr
-        call PRINT_CR
+        call printStr
+        call printCR
     	jr INTERPRET_DONE
 
 INTERPRET_STOPPING:
@@ -1604,7 +1599,7 @@ QKEY_DONE:
         NEXT
 
 defcode ".",1,0,DOT                 ; print top of stack in BASE
-        call PRINT_NUM
+        call printNum
         pop BC
         NEXT
 
@@ -1721,9 +1716,9 @@ FAILED:         .pstr "Failed: \r\n"
 
 .if TESTMODE
 
-; used for mocking getc
+    ; used for mocking getc
 
-char_pointer:   dw 0
+    char_pointer:   dw 0
 
 .endif
 
@@ -1766,19 +1761,16 @@ TESTS_START:
         TEST_WORD KEY
         TEST_EXPECT $65, "KEY 'e'"
 
-        CLEAR_BUFFER
         TEST_SET_TEXT "x"
         TEST_WORD TOKEN
         TEST_EXPECT 1, "TOKEN 'x'"
         TEST_POP
 
-        CLEAR_BUFFER
         TEST_SET_TEXT "xyz"
         TEST_WORD TOKEN
         TEST_EXPECT 3, "TOKEN 'xyz'"
         TEST_POP
 
-        CLEAR_BUFFER
         TEST_SET_TEXT "a xyz "
         TEST_WORD TOKEN
         TEST_EXPECT 1, "TOKEN 'a xyz'"
@@ -1800,20 +1792,17 @@ TESTS_START:
         TEST_WORD FETCH
         TEST_EXPECT START_USER + 6, "CREATE XYZ HERE"
 
-        CLEAR_BUFFER
         TEST_SET_TEXT "DUP"
         TEST_PUSH 1
         TEST_WORD INTERP
         TEST_EXPECT 1, "1 INTERPRET DUP"
         TEST_EXPECT 1, "1 INTERPRET DUP 2"
 
-        CLEAR_BUFFER
         TEST_SET_TEXT "123"
         TEST_WORD INTERP
         TEST_EXPECT 123, "INTERPRET 123"
 
         TEST_PUSH 999
-        CLEAR_BUFFER
         TEST_SET_TEXT "$$123"
         TEST_WORD INTERP
         TEST_EXPECT 999, "INTERPRET $$123"
@@ -1824,7 +1813,6 @@ TESTS_START:
         TEST_EXPECT 2, "DUP 2"
         TEST_EXPECT 2, "DUP 2"
 
-        CLEAR_BUFFER
         TEST_SET_TEXT "X123"
         TEST_PUSH 123
         TEST_WORD CONSTANT
@@ -1832,23 +1820,19 @@ TESTS_START:
         TEST_WORD INTERP
         TEST_EXPECT 123, "CONSTANT X123 = 123"
 
-        CLEAR_BUFFER
         TEST_SET_TEXT "V1"
         TEST_WORD VARIABLE
 
         TEST_PUSH 123
-        CLEAR_BUFFER
         TEST_SET_TEXT "V1"
         TEST_WORD INTERP
         TEST_WORD STORE
 
-        CLEAR_BUFFER
         TEST_SET_TEXT "V1"
         TEST_WORD INTERP
         TEST_WORD FETCH
         TEST_EXPECT 123, "VARIABLE V1 = 123"
 
-        CLEAR_BUFFER
         TEST_SET_TEXT ": DBL DUP + ;"
         TEST_WORD INTERP
         TEST_PUSH 2
@@ -1858,14 +1842,12 @@ TESTS_START:
 
         TEST_WORD CR
 
-        CLEAR_BUFFER
         TEST_SET_TEXT "a xyz"
         TEST_WORD TOKEN
         TEST_EXPECT 1, "TOKEN 'a xyz'"
         TEST_WORD TOKEN
         TEST_EXPECT 3, "TOKEN 'a xyz'"
 
-        CLEAR_BUFFER
         TEST_SET_TEXT "100 100 +"
         TEST_WORD INTERP
         TEST_EXPECT 200, "TOKEN '100 100 + = 200'"
@@ -1877,26 +1859,21 @@ TESTS_START:
         ld C, A
         TEST_EXPECT 2, "DIV 11 / 10 = 1 1"
 
-        CLEAR_BUFFER
         TEST_SET_TEXT "100 10 + ."
         TEST_WORD INTERP
 
-        CLEAR_BUFFER
         TEST_SET_TEXT "16 BASE ! 20"
         TEST_WORD INTERP
         TEST_EXPECT 32, "expect $20 to be 32"
 
-        CLEAR_BUFFER
         TEST_SET_TEXT "0A BASE ! 20"
         TEST_WORD INTERP
         TEST_EXPECT 20, "expect DECIMAL 20 to be 32"
 
-        CLEAR_BUFFER
         TEST_SET_TEXT "-10 ABS"
         TEST_WORD INTERP
         TEST_EXPECT 10, "expect abs -10 to be 10"
 
-        CLEAR_BUFFER
         TEST_SET_TEXT "10 ABS"
         TEST_WORD INTERP
         TEST_EXPECT 10, "expect abs 10 to be 10"
@@ -1916,7 +1893,6 @@ TESTS_START:
         TEST_WORD MUL
         TEST_EXPECT -200, "expect -10 * -20 to be 200"
 
-        CLEAR_BUFFER
         TEST_SET_TEXT ": TESTIF2 IF 100 THEN ;"
 
         TEST_WORD INTERP
@@ -1924,45 +1900,38 @@ TESTS_START:
         TEST_PUSH 200
         TEST_PUSH 1
 
-        CLEAR_BUFFER
         TEST_SET_TEXT "TESTIF2"
         TEST_WORD INTERP
         TEST_EXPECT 100, "1 IF 100 THEN --> 100"
 
         TEST_PUSH 0
 
-        CLEAR_BUFFER
         TEST_SET_TEXT "TESTIF2"
         TEST_WORD INTERP
         TEST_EXPECT 200, "0 IF 100 THEN --> 200"
 
-        CLEAR_BUFFER
         TEST_SET_TEXT ": TESTIF3 IF 100 ELSE 200 THEN ;"
 
         TEST_WORD INTERP
 
         TEST_PUSH 0
 
-        CLEAR_BUFFER
         TEST_SET_TEXT "TESTIF3"
         TEST_WORD INTERP
         TEST_EXPECT 200, "0 --> 200"
 
         TEST_PUSH 1
 
-        CLEAR_BUFFER
         TEST_SET_TEXT "TESTIF3"
         TEST_WORD INTERP
         TEST_EXPECT 100, "1 --> 100"
 
-        CLEAR_BUFFER
         TEST_SET_TEXT ": TESTLOOP BEGIN DUP 5 < WHILE DUP . 1+ REPEAT ;"
 
         TEST_WORD INTERP
 
         TEST_PUSH 0
 
-        CLEAR_BUFFER
         TEST_SET_TEXT "TESTLOOP"
         TEST_WORD INTERP
         TEST_EXPECT 5, "Loop until limit < 5"
