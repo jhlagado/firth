@@ -81,6 +81,13 @@ var_label:
         DW initial
 .endm
 
+.macro defvar1, name, namelen, flags, label
+	defcode name,namelen,flags,label
+	    push BC
+	    ld BC, VAR_label
+    NEXT
+.endm
+
 .macro defconst, name, namelen, flags, label, value
 	defcode name,namelen,flags,label
     	push BC
@@ -1610,17 +1617,12 @@ defcode ".",1,0,DOT                 ; print top of stack in BASE
         pop BC
         NEXT
 
-defvar "HERE",4,0,HERE,START_USER
-defvar "INTERP_STOP",12,0,INTERP_STOP,0
-defvar "STATE",5,0,STATE,0
-defvar "S0",2,0,SZ,RET_STACK
-defvar "BASE",4,0,BASE,10
-defvar "LATEST",6,0,LATEST,HEADER_LATEST,0
-
-
-
-
-
+defvar1 "HERE",4,0,HERE
+defvar1 "INTERP_STOP",12,0,INTERP_STOP
+defvar1 "STATE",5,0,STATE
+defvar1 "S0",2,0,SZ
+defvar1 "BASE",4,0,BASE
+defvar1 "LATEST",6,0,LATEST
 
 ; HL = data, DE = ptr to buffer, C = base
 ; DE = ptr to string, BC = length
@@ -1710,21 +1712,17 @@ L3:
 COLD:
         DW QUIT                     ; headerless word which never terminates
 
-TXT_NEWLINE:
-    	.pstr "\r\n"
-TXT_PROMPT:
-    	.pstr "> "
-TXT_INTRO:
-    	.pstr "John's Z80 Forth\r\n\r\n"
-TXT_ERROR:
-        .pstr "PARSE ERROR: "
+TXT_NEWLINE:    .pstr "\r\n"
+TXT_PROMPT:     .pstr "> "
+TXT_INTRO:      .pstr "John's Z80 Forth\r\n\r\n"
+TXT_ERROR:      .pstr "PARSE ERROR: "
 TXT_STACK_UNDERFLOW:
         .pstr "Error: Stack underflow\r\n"
 
 .if TESTMODE
 
-DONE:   .pstr "\r\nDone! \r\n"
-FAILED: .pstr "Failed: \r\n"
+DONE:           .pstr "\r\nDone! \r\n"
+FAILED:         .pstr "Failed: \r\n"
 
 .endif
 
@@ -1734,25 +1732,17 @@ FAILED: .pstr "Failed: \r\n"
 
 ; used for mocking getc
 
-char_pointer:
-        dw 0
+char_pointer:   dw 0
 
 .endif
 
-serBuf:
-        ds SER_BUFSIZE
-serInPtr:
-        dw 0
-serRdPtr:
-        dw 0
-serBufUsed:
-        dw 0
-currkey:
-        dw buffer
-bufftop:
-        dw buffer
-buffer:
-        ds BUFFER_SIZE
+serBuf:         ds SER_BUFSIZE
+serInPtr:       dw 0
+serRdPtr:       dw 0
+serBufUsed:     dw 0
+currkey:        dw buffer
+bufftop:        dw buffer
+buffer:         ds BUFFER_SIZE
 
 ; A static buffer TOKEN fills.  Subsequent calls
 ; overwrite this buffer.  Maximum word length is 32 chars.
@@ -1761,7 +1751,20 @@ word_buffer:
     	ds 32
 
 IS_LITERAL:
-	    DB 0			;Flag used to record if reading a literal
+	    db 0			;Flag used to record if reading a literal
+
+VAR_HERE:
+        dw START_USER
+VAR_INTERP_STOP:
+        dw 0
+VAR_STATE:
+        dw 0
+VAR_SZ:
+        dw RET_STACK
+VAR_BASE:
+        dw 10
+VAR_LATEST:
+        dw HEADER_LATEST
 
 START_USER:         ; user allocated data starts here
 
