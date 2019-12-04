@@ -373,12 +373,12 @@ START:
         NEXT
 .endif
 
-defconst "VERSION",7,,VERSION,1
-defconst "R0",2,,RZ, RET_STACK
-defconst "DO_COLON",5,, __DOCOL,DO_COLON
-defconst "MSK_IMMED",7,,__MSK_IMMED,MSK_IMMED
-defconst "MSK_HIDDEN",8,,__MSK_HIDDEN,MSK_HIDDEN
-defconst "MSK_LENGTH",9,,__MSK_LENGTH,MSK_LENGTH
+defconst "VERSION",7,0,VERSION,1
+defconst "R0",2,0,RZ, RET_STACK
+defconst "DO_COLON",5,0, __DOCOL,DO_COLON
+defconst "MSK_IMMED",7,0,__MSK_IMMED,MSK_IMMED
+defconst "MSK_HIDDEN",8,0,__MSK_HIDDEN,MSK_HIDDEN
+defconst "MSK_LENGTH",9,0,__MSK_LENGTH,MSK_LENGTH
 
 DO_COLON:
     	PUSH_RET D,E		; push IP on to the return stack
@@ -877,11 +877,11 @@ sdiff:
         ret
 
 
-defcode "EXIT",4,,EXIT
+defcode "EXIT",4,0,EXIT
     	POP_RET H,L		            ; pop return stack into IP
         NEXT_1
 
-defword "INTERP",6,,INTERP
+defword "INTERP",6,0,INTERP
     	DW LIT, 0
     	DW INTERP_STOP, STORE
     	DW INTERPRET		; interpret the next word
@@ -889,11 +889,11 @@ defword "INTERP",6,,INTERP
     	DW ZBRANCH,-8		; and loop (indefinitely)
         DW EXIT
 
-defword "QUIT",4,,QUIT
+defword "QUIT",4,0,QUIT
     	DW RZ,RSPSTORE	    ; reset the return stack R0 RSP!
     	DW INTERP		; interpret the next word
 
-defcode "INTERPRET",9,,INTERPRET
+defcode "INTERPRET",9,0,INTERPRET
         exx
 
     	call getToken		            ; Returns BC = length, DE = pointer to word.
@@ -988,7 +988,7 @@ INTERPRET_DONE:
         NEXT
 
 
-defcode "TOKEN",5,,TOKEN                ; -- c-addr length  ; NOT STANDARD
+defcode "TOKEN",5,0,TOKEN                ; -- c-addr length  ; NOT STANDARD
         push BC                         ; save TOS
         exx
         call getToken
@@ -996,7 +996,7 @@ defcode "TOKEN",5,,TOKEN                ; -- c-addr length  ; NOT STANDARD
         RESTORE_REGS BC     ; HL = length
         NEXT
 
-defcode "+!",2,,ADDSTORE            ; (n addr -- )
+defcode "+!",2,0,ADDSTORE            ; (n addr -- )
     	POP_PAR H, L		        ; HL = address, TOS = amount to add
     	ld A,(HL)
     	add A,C                     ; add TOS at (HL),
@@ -1009,7 +1009,7 @@ defcode "+!",2,,ADDSTORE            ; (n addr -- )
         NEXT
 
 ; ALLOT                             ( n -- addr ) allocate n bytes of memory
-defword "ALLOT",5,,ALLOT
+defword "ALLOT",5,0,ALLOT
     	DW HERE, FETCH, SWAP	    ; here n
     	DW HERE, ADDSTORE		            ; adds n to HERE, old value of HERE left on stack
         DW EXIT
@@ -1019,12 +1019,12 @@ defcode "[",1,MSK_IMMED,LBRAC
     	ld (VAR_STATE), HL	; Set STATE to 0.
         NEXT
 
-defcode "]",1,,RBRAC
+defcode "]",1,0,RBRAC
     	ld HL, 1
     	ld (VAR_STATE), HL	; Set STATE to 1.
         NEXT
 
-defcode "HIDDEN",6,,HIDDEN
+defcode "HIDDEN",6,0,HIDDEN
         POP_PAR H,L		            ; HL = Dictionary entry.
         inc HL
         inc HL                      ; Point to name/flags byte.
@@ -1035,21 +1035,21 @@ defcode "HIDDEN",6,,HIDDEN
         NEXT
 
 ; 1+      n1/u1 -- n2/u2            add 1 to TOS
-defcode "1+",2,,ONEPLUS
+defcode "1+",2,0,ONEPLUS
         inc BC
         NEXT
 
 ; 2+      n1/u1 -- n2/u2            add 2 to TOS
-defcode "2+",2,,TWOPLUS
+defcode "2+",2,0,TWOPLUS
         inc BC
         inc BC
         NEXT
 
 ; 1*      n1/u1 -- n2/u2            do nothing
-defcode "NOOP",4,,noop
+defcode "NOOP",4,0,noop
         NEXT
 
-defcode "BRANCH",6,,BRANCH          ; relative branching
+defcode "BRANCH",6,0,BRANCH          ; relative branching
         ex DE, HL                   ; add the offset to the instruction pointer
         ld E, (HL)
         inc HL
@@ -1059,7 +1059,7 @@ defcode "BRANCH",6,,BRANCH          ; relative branching
         NEXT_1
 
 ; ?branch   x --              branch if TOS zero
-defcode "0BRANCH",7,,ZBRANCH
+defcode "0BRANCH",7,0,ZBRANCH
         ISZERO16 B,C        ; test old TOS
         pop BC              ; pop new TOS
         jr z,BRANCH         ; if old TOS=0, branch
@@ -1068,7 +1068,7 @@ defcode "0BRANCH",7,,ZBRANCH
         NEXT
 
 ; U*   u1 u2 -- ud   unsigned mutliply
-defcode "U*",2,,UMUL  ; u1 u2 -- ud
+defcode "U*",2,0,UMUL  ; u1 u2 -- ud
         SAVE_REGS BC    ; u2 in BC
         pop DE          ; u1 in DE
     	call DO_UMUL
@@ -1077,7 +1077,7 @@ defcode "U*",2,,UMUL  ; u1 u2 -- ud
         NEXT
 
 ;C 0<     n -- flag      true if TOS negative
-defcode "0<",2,,ZEROLESS
+defcode "0<",2,0,ZEROLESS
         sla b           ; sign bit -> cy flag
         sbc a,a         ;
         and 1            ; <0 = -1, >0 = 0
@@ -1086,20 +1086,20 @@ defcode "0<",2,,ZEROLESS
         NEXT
 
 ; NEGATE  n1 -- n2                        negate n1
-defword "NEGATE",1,,NEGATE
+defword "NEGATE",1,0,NEGATE
         DW INVERT
         DW ONEPLUS
         DW EXIT
 
 ; ABS   n -- u                      absolute value
-defword "ABS",3,,ABS
+defword "ABS",3,0,ABS
         DW DUP                      ; copy arg
         DW ZEROLESS
         DW ZBRANCH, 4               ; if arg > 0 then skip
         DW NEGATE                   ; negeate -ve numbers
         DW EXIT
 
-defword "*",1,,MUL  ; u1 u2 -- ud
+defword "*",1,0,MUL  ; u1 u2 -- ud
         DW OVER, OVER           ; dupe both args
         DW ABS, SWAP, ABS       ; remove sign from both args
         DW UMUL, DROP           ; multiply, drop hi-word
@@ -1110,7 +1110,7 @@ defword "*",1,,MUL  ; u1 u2 -- ud
         DW NEGATE               ; if signs differ then negate answer
         DW EXIT
 
-defcode "LIT",3,,LIT
+defcode "LIT",3,0,LIT
 
     	; IP points to the next command, But in this case it points to the next
     	; literal 16 bit integer.  Get that literal increment IP.
@@ -1124,7 +1124,7 @@ defcode "LIT",3,,LIT
         NEXT_1
 
 ;z RSP!  a-addr --                  set return stack pointer
-defcode "RSP!",4,,RSPSTORE
+defcode "RSP!",4,0,RSPSTORE
     	push BC
     	pop IX                      ; RSP = TOS
     	pop BC                      ; pop TOS
@@ -1137,7 +1137,7 @@ defcode "RSP!",4,,RSPSTORE
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; !        x a-addr --   store cell in memory
-defcode "!",1,,STORE
+defcode "!",1,0,STORE
         POP_PAR H,L
         ld (HL),C
         inc HL
@@ -1145,12 +1145,12 @@ defcode "!",1,,STORE
         pop BC          ; pop new TOS
         NEXT
 
-defcode ",",1,,COMMA
+defcode ",",1,0,COMMA
     	call DO_COMMA        ; TOS = BC = 16-bit value to store.
     	pop BC		        ; cleanup TOS
         NEXT
 
-defcode "@",1,,FETCH
+defcode "@",1,0,FETCH
         LOAD16 H,L, B,C ; HL = TOS
     	ld C, (HL)      ; TOS = (HL)
     	inc HL
@@ -1158,21 +1158,21 @@ defcode "@",1,,FETCH
         NEXT
 
 ; CELL+    c-addr1 -- c-addr2   add cell size to addr
-defcode "CELL+",5,,CELLPLUS
+defcode "CELL+",5,0,CELLPLUS
         jp twoplus
 
 ; CELLS   ( n1 -- n2 ) n2 is the size in address units of n1 cells.
-defcode "CELLS",5,,CELLS
+defcode "CELLS",5,0,CELLS
         jp twostar
 
 ; C!      char c-addr --    store char in memory
-defcode "C!",2,,CSTORE
+defcode "C!",2,0,CSTORE
         POP_PAR H,L
         ld (HL),C
         pop BC          ; pop new TOS
         NEXT
 
-defcode "C,",1,,CCOMMA
+defcode "C,",1,0,CCOMMA
         push HL
     	ld HL, (VAR_HERE)	; HERE
     	ld (HL), C          ; Store DE at memory pointed to by VAR_HERE
@@ -1183,18 +1183,18 @@ defcode "C,",1,,CCOMMA
         NEXT
 
 ; C@     c-addr -- char   fetch char from memory
-defcode "C@",2,,CFETCH
+defcode "C@",2,0,CFETCH
         ld A,(BC)
         ld C,A
         ld B,0
         NEXT
 
 ; CHAR+    c-addr1 -- c-addr2   add char size to addr
-defcode "CHAR+",5,,CHARPLUS
+defcode "CHAR+",5,0,CHARPLUS
         jp oneplus
 
 ; CELLS   ( n1 -- n2 ) n2 is the size in address units of n1 cells.
-defcode "CHARS",5,,CHARS
+defcode "CHARS",5,0,CHARS
         jp noop
 
 
@@ -1207,19 +1207,19 @@ defcode "CHARS",5,,CHARS
 ; */MOD star-slash-mod
 
 ; +       n1/u1 n2/u2 -- n3/u3     add n1+n2
-defcode "+",1,,PLUS
+defcode "+",1,0,PLUS
         pop HL
         add HL,BC
         LOAD16 B,C, H,L
         NEXT
 
 ; 2*      n1/u1 -- n2/u2            arithmetic left shift
-defcode "2*",2,,TWOSTAR
+defcode "2*",2,0,TWOSTAR
         sla C
         rl B
         NEXT
 
-defcode "-",1,,MINUS
+defcode "-",1,0,MINUS
         pop HL
         or A
         sbc HL,BC
@@ -1227,7 +1227,7 @@ defcode "-",1,,MINUS
         NEXT
 
 ; U/MOD   ud u1 -- u2 u3   unsigned 32/16->16
-defcode "U/MOD",5,,USLASHMOD
+defcode "U/MOD",5,0,USLASHMOD
         SAVE_REGS BC    ; BC = divisor
         pop HL      ; HLDE = dividend
         pop DE
@@ -1237,7 +1237,7 @@ defcode "U/MOD",5,,USLASHMOD
         NEXT
 
 ; 2/      x1 -- x2                  arithmetic right shift
-defcode "2/",2,,TWOSLASH
+defcode "2/",2,0,TWOSLASH
         sra B
         rr C
         NEXT
@@ -1249,7 +1249,7 @@ defcode "2/",2,,TWOSLASH
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; 0= zero-equals
-defcode "0=",2,,ZEROEQUAL
+defcode "0=",2,0,ZEROEQUAL
         ISZERO16 B,C            ; result=0 if bc was 0
         jr z, ZE1
         ld BC, -1
@@ -1258,7 +1258,7 @@ ZE1:
         NEXT
 
 ; <      n1 n2 -- flag          test n1<n2
-defcode "<",1,,LESSTHAN	        ; less than
+defcode "<",1,0,LESSTHAN	        ; less than
         pop HL
         or A
         sbc HL,BC       ; n1-n2 in HL, SZVC valid
@@ -1275,7 +1275,7 @@ revsense:
         jr tostrue      ;     if +ve, result true
 
 ; and    x1 x2 -- x3            logical and
-defcode "AND",3,,and	        ; bitwise and
+defcode "AND",3,0,and	        ; bitwise and
         pop HL
         ld A,b
         and H
@@ -1286,7 +1286,7 @@ defcode "AND",3,,and	        ; bitwise and
         NEXT
 
 ; INVERT x1 -- x2               ; bitwise complement
-defcode "INVERT",6,,INVERT
+defcode "INVERT",6,0,INVERT
         ld A,B
         cpl
         ld B,A
@@ -1296,13 +1296,13 @@ defcode "INVERT",6,,INVERT
         NEXT
 
 ; TRUE
-defcode "TRUE",4,,TRUE
+defcode "TRUE",4,0,TRUE
         push BC
         ld BC,1
         NEXT
 
 ; LSHIFT  x1 u -- x2       logical L shift u places
-defcode "LSHIFT",6,,LSHIFT
+defcode "LSHIFT",6,0,LSHIFT
         pop HL              ;   NB: hi 8 bits ignored!
         ld B,C              ; b = loop counter
         inc B               ; test for counter=0 case
@@ -1314,7 +1314,7 @@ LSHIFT2:   djnz LSHIFT1
         NEXT
 
 ; =      x1 x2 -- flag         test x1=x2
-defcode "=",1,,EQUALS
+defcode "=",1,0,EQUALS
         pop HL
         or A
         sbc HL,BC       ; x1-x2 in HL, SZVC valid
@@ -1325,13 +1325,13 @@ EQ1:
         NEXT
 
 ; >      n1 n2 -- flag          test n1 > n2
-defcode ">",1,,GREATERTHAN	        ; less than
+defcode ">",1,0,GREATERTHAN	        ; less than
         pop HL                  ; swap operands
         PUSH_PAR H,L
         jr LESSTHAN
 
 ; OR    x1 x2 -- x3             logical OR
-defcode "OR",2,,OR	            ; bitwise OR
+defcode "OR",2,0,OR	            ; bitwise OR
         pop HL
         ld A,B
         or H
@@ -1342,7 +1342,7 @@ defcode "OR",2,,OR	            ; bitwise OR
         NEXT
 
 ; xor    x1 x2 -- x3            logical xor
-defcode "XOR",3,,xor	        ; bitwise xor
+defcode "XOR",3,0,xor	        ; bitwise xor
         pop HL
         ld A,B
         xor H
@@ -1353,13 +1353,13 @@ defcode "XOR",3,,xor	        ; bitwise xor
         NEXT
 
 ; FALSE
-defcode "FALSE",5,,FALSE
+defcode "FALSE",5,0,FALSE
         push BC
         ld BC,0
         NEXT
 
 ;RSHIFT  x1 u -- x2    logical R shift u places
-defcode "RSHIFT",6,,RSHIFT
+defcode "RSHIFT",6,0,RSHIFT
         pop HL        ;   NB: hi 8 bits ignored!
         ld B,C        ; b = loop counter
         inc B         ; test for counter=0 case
@@ -1377,42 +1377,42 @@ RSHIFT2:   djnz RSHIFT1
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-defcode "DUP",3,,DUP        ; x -- x x
+defcode "DUP",3,0,DUP        ; x -- x x
         push BC
         NEXT
 
 ; SWAP     x1 x2 -- x2 x1    swap top two items
-defcode "SWAP",4,,SWAP      ; x1 x2 -- x2 x1
+defcode "SWAP",4,0,SWAP      ; x1 x2 -- x2 x1
         pop hl
         PUSH_PAR H,L
         NEXT
 
 ; >R    ( x -- ) ( R: -- x )  Move  x from TOS to the return stack.
-defcode ">R",2,,TO_R
+defcode ">R",2,0,TO_R
 	    PUSH_RET B,C
         pop BC
         NEXT
 
 ; R@ r-fetch
 
-defcode "DROP",4,,DROP      ; x --
+defcode "DROP",4,0,DROP      ; x --
         pop BC		    ; drop top of stack
         NEXT
 
 ; OVER    x1 x2 -- x1 x2 x1
-defcode "OVER",4,,OVER
+defcode "OVER",4,0,OVER
         pop hl
         push hl
         PUSH_PAR H,L
         NEXT
 
 ; R>    ( -- x ) ( R: x -- )  Move x from the return stack to TOS
-defcode "R>",2,,R_FROM
+defcode "R>",2,0,R_FROM
         push BC
         POP_RET B,C
         NEXT
 
-defcode "ROT",3,,ROT        ; x1 x2 x3 -- x2 x3 x1
+defcode "ROT",3,0,ROT        ; x1 x2 x3 -- x2 x3 x1
         pop HL              ; x2 in HL
         ex (sp),HL          ; x2 on stack, x1 in HL
         PUSH_PAR H, L       ; push x1
@@ -1472,7 +1472,7 @@ defword "REPEAT",6,MSK_IMMED,REPEAT
 ; EXECUTE
 ; UNTIL
 
-defcode "'",1,,TICK                 ; ( -- addr ) push code word ptr of following word
+defcode "'",1,0,TICK                 ; ( -- addr ) push code word ptr of following word
         jp LIT
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1481,7 +1481,7 @@ defcode "'",1,,TICK                 ; ( -- addr ) push code word ptr of followin
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-defword ":",1,,COLON
+defword ":",1,0,COLON
     	DW TOKEN		            ; Get the name of the new word
     	DW CREATE		            ; CREATE the dictionary entry / header
         DW LIT, JP_OPCODE, CCOMMA                ; write Z80 jp OPCODE to word
@@ -1494,7 +1494,7 @@ defword ":",1,,COLON
 ;   CREATE
 ;   ,
 ;   DOES> (machine code fragment)
-defword "CONSTANT",8,,CONSTANT              ; ( n -- ) get name from input
+defword "CONSTANT",8,0,CONSTANT              ; ( n -- ) get name from input
         DW TOKEN                            ; read name
         DW CREATE                           ; create header
         DW LIT, JP_OPCODE, CCOMMA                ; write Z80 jp OPCODE to word
@@ -1505,7 +1505,7 @@ defword "CONSTANT",8,,CONSTANT              ; ( n -- ) get name from input
         DW EXIT
 
 ; CREATE     addr len --       create new header from name
-defcode "CREATE",6,,CREATE  ; addr len --
+defcode "CREATE",6,0,CREATE  ; addr len --
 
         SAVE_REGS BC
         pop HL
@@ -1538,7 +1538,7 @@ defword ";",1,MSK_IMMED,SEMICOLON
     	DW LBRAC		            ; Go back to IMMEDIATE mode.
     	DW EXIT		                ; Return from the function.
 
-defword "VARIABLE",8,,VARIABLE              ; ( n -- ) get name from input
+defword "VARIABLE",8,0,VARIABLE              ; ( n -- ) get name from input
         DW LIT, 1, CELLS, ALLOT                    ; allocate 1 word, push addr
         DW TOKEN                            ; read name
         DW CREATE                           ; create header
@@ -1567,26 +1567,26 @@ defcode "IMMEDIATE",9,MSK_IMMED,IMMEDIATE
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-defcode "ACCEPT",6,,ACCEPT              ; ( addr max -- len )
+defcode "ACCEPT",6,0,ACCEPT              ; ( addr max -- len )
         SAVE_REGS DE                    ; max - up to 255
     	pop HL                          ; addr
         call getline
         RESTORE_REGS BC                 ; TOS = len
         NEXT
 
-defcode "KEY",3,,KEY                ; ( -- c )
+defcode "KEY",3,0,KEY                ; ( -- c )
     	call getKey
         ld b, 0
         ld c, a
         NEXT
 
-defcode "EMIT",4,,EMIT              ; print the character on the stack
+defcode "EMIT",4,0,EMIT              ; print the character on the stack
     	ld A, C                     ; (c -- )
     	call putc
         pop BC                      ; clear stack
         NEXT
 
-defword "CR",2,,CR                  ; ( -- )
+defword "CR",2,0,CR                  ; ( -- )
         DW LIT                      ; emit cr lf
         DB "\n", 0
         DW LIT
@@ -1595,7 +1595,7 @@ defword "CR",2,,CR                  ; ( -- )
         DW EMIT
         DW EXIT
 
-defcode "KEY?",4,,QKEY              ; ( -- c )
+defcode "KEY?",4,0,QKEY              ; ( -- c )
     	push BC		                ; save TOS
     ; 	call getrdy
     	call inputReady
@@ -1605,17 +1605,17 @@ defcode "KEY?",4,,QKEY              ; ( -- c )
 QKEY_DONE:
         NEXT
 
-defcode ".",1,,DOT                 ; print top of stack in BASE
+defcode ".",1,0,DOT                 ; print top of stack in BASE
         call PRINT_NUM
         pop BC
         NEXT
 
-defvar "HERE",4,,HERE,START_USER
-defvar "INTERP_STOP",12,,INTERP_STOP,0
-defvar "STATE",5,,STATE,0
-defvar "S0",2,,SZ,RET_STACK
-defvar "BASE",4,,BASE,10
-defvar "LATEST",6,,LATEST,HEADER_LATEST,0
+defvar "HERE",4,0,HERE,START_USER
+defvar "INTERP_STOP",12,0,INTERP_STOP,0
+defvar "STATE",5,0,STATE,0
+defvar "S0",2,0,SZ,RET_STACK
+defvar "BASE",4,0,BASE,10
+defvar "LATEST",6,0,LATEST,HEADER_LATEST,0
 
 
 
