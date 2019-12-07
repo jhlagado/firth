@@ -875,9 +875,6 @@ defword "INTP",4,0,INTP                 ; we can't use control structures
         DW TOKEN                        ; ( -- ptr len)
         DW DUP, ZJUMP, INTP_STOP        ; token length = 0
                                         ; ( len ptr )
-        DW LIT, 0
-        DW LIT, IS_LITERAL, STORE       ; IS_LITERAL = 0
-
         DW OVER, OVER, FIND                 ; ( ptr len -- ptr len headPtrOrZero )
         DW DUP, ZJUMP, INTP_NOTFOUND
 
@@ -895,9 +892,6 @@ INTP_COMPILE_WORD:
 
 INTP_NOTFOUND:
         DW DROP                         ; ( ptr len zero -- ptr len ), not found
-
-        DW LIT, 1
-        DW LIT, IS_LITERAL, STORE       ; IS_LITERAL = 1
 
         DW NUMBER                       ; ( ptr len -- val err )
         DW ZJUMP, INTP_NUMERIC
