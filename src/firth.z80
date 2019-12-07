@@ -870,29 +870,6 @@ INTERPRET_DONE:
         NEXT
 
 
-defword "EXECUTE",7,0,EXECUTE
-        POP_PAR H,L
-        jp (hl)         ; go do Forth word
-
-defword ">CFA",4,0,TCFA
-        DW LIT, 2, PLUS
-        DW COUNT
-        DW LIT, MSK_LENGTH, AND
-        DW PLUS
-        DW EXIT
-
-; COUNT extract string length from pascal string  ( ptr -- ptr+1 len )
-defword "COUNT",5,0,COUNT
-        DW DUP, 1, PLUS                         ; ( ptr -- ptr ptr+1)
-        DW SWAP, CFETCH                         ; ( ptr ptr+1 -- ptr+1 len)
-        DW EXIT
-
-defword "NUMBER",6,0,NUMBER
-        DW EXIT
-
-defword "PRINT",5,0,PRINT
-        DW EXIT
-
 defword "INTP",4,0,INTP
         DW TOKEN                                ; ( -- ptr len )
         DW IF
@@ -936,6 +913,38 @@ defword "INTP",4,0,INTP
         DW THEN
         DW EXIT
 
+defword "EXECUTE",7,0,EXECUTE
+        POP_PAR H,L                             ; pop TOS into HL
+        jp (hl)                                 ; go do Forth word
+
+defword ">CFA",4,0,TCFA
+        DW LIT, 2, PLUS
+        DW COUNT
+        DW LIT, MSK_LENGTH, AND
+        DW PLUS
+        DW EXIT
+
+; COUNT extract string length from pascal string  ( ptr -- ptr+1 len )
+defword "COUNT",5,0,COUNT
+        DW DUP, 1, PLUS                         ; ( ptr -- ptr ptr+1)
+        DW SWAP, CFETCH                         ; ( ptr ptr+1 -- ptr+1 len)
+        DW EXIT
+
+defcode "NUMBER",6,0,NUMBER
+        SAVE_REGS B,C
+        pop HL
+    	call toNumber                           ; params: HL = string address, BC = string length
+    			                                ; Returns the parsed number in DE,
+    	                                        ; BC = 0, success
+        push DE
+        RESTORE_REGS B,C
+        NEXT
+
+defcode "PRINT",5,0,PRINT
+        SAVE_REGS D,E
+        call printPStr
+        RESTORE_REGS0
+        NEXT
 
 defcode "TOKEN",5,0,TOKEN                ; -- c-addr length  ; NOT STANDARD
         push BC                         ; save TOS
