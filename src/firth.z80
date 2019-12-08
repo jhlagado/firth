@@ -442,8 +442,8 @@ getToken:
 	    push HL
 	    push AF
 gtk1:
-    	call getKey		            ; get next key, returned in HL
-        bit 7, A
+    	call getKey		            ; get next key, returned in A
+        bit 7, A                    ; check end of input
         jr z, gtk1a
         ld BC, 0
         jr gtk_RETURN
@@ -755,11 +755,11 @@ defword "INTERPRET",4,0,INTERPRET                 ; we can't use control structu
         DW ZJUMP, INTP_EXECUTE_WORD
 
         DW TCFA, COMMA                        ; compile headPtr
-        DW JUMP, INTP_EXIT
+        DW EXIT
 
 INTP_EXECUTE_WORD:
         DW TCFA, EXECUTE                ; execute headPtr
-        DW JUMP, INTP_EXIT
+        DW EXIT
 
 INTP_NOTFOUND:
         DW DROP                         ; ( ptr len zero -- ptr len ), not found
@@ -770,7 +770,7 @@ INTP_NOTFOUND:
         DW DROP                         ; ( ptr len zero -- ptr len ), not found
         DW LIT, TXT_ERROR               ; err != 0, parse error
         DW PRINT
-        DW JUMP, INTP_EXIT
+        DW EXIT
 
 INTP_NUMERIC:
         DW LIT, VAR_STATE, FETCH        ; (val -- val state)
@@ -778,15 +778,14 @@ INTP_NUMERIC:
 
         DW LIT, LIT                     ; (val -- val "LIT" )
         DW COMMA, COMMA                 ; compile "LIT" val
-        DW JUMP, INTP_EXIT
+
+INTP_EXIT:
+        DW EXIT
 
 INTP_STOP:
         DW DROP, DROP                   ; (ptr len -- )
         DW LIT, 1
         DW LIT, VAR_INTERP_STOP, STORE  ; VAR_INTERP_STOP = 1
-        DW JUMP, INTP_EXIT
-
-INTP_EXIT:
         DW EXIT
 
 ; FIND                                  ( ptr len -- headPtr )
@@ -1495,8 +1494,8 @@ COLD:
         DW QUIT                     ; headerless word which never terminates
 
 TXT_NEWLINE:    .pstr "\r\n"
-TXT_PROMPT:     .pstr "> "
-TXT_INTRO:      .pstr "John's Z80 Forth\r\n\r\n"
+TXT_PROMPT:     .pstr "\r\n> "
+TXT_INTRO:      .pstr "Firth of Forth Z80\r\n\r\n"
 TXT_ERROR:      .pstr "PARSE ERROR: "
 TXT_STACK_UNDERFLOW:
         .pstr "Error: Stack underflow\r\n"
