@@ -1,6 +1,6 @@
 .engine mycomputer
 
-TESTMODE        equ     2
+TESTMODE        equ     1
 
 ROM_SIZE        equ     $1000
 RAM_SIZE        equ     $10000 - ROM_SIZE
@@ -764,13 +764,13 @@ defcode "EXIT",4,0,EXIT
     	POP_RET H,L		            ; pop return stack into IP
         NEXT_1
 
-defword "INTERP",6,0,INTERP
-    	DW LIT, 0
-    	DW INTERP_STOP, STORE
-    	DW INTERPRET		; interpret the next word
-    	DW INTERP_STOP, FETCH
-    	DW ZBRANCH,-8		; and loop (indefinitely)
-        DW EXIT
+; defword "INTERP",6,0,INTERP
+;     	DW LIT, 0
+;     	DW INTERP_STOP, STORE
+;     	DW INTERPRET		; interpret the next word
+;     	DW INTERP_STOP, FETCH
+;     	DW ZBRANCH,-8		; and loop (indefinitely)
+;         DW EXIT
 
 defword "QUIT",4,0,QUIT
     	DW RZ,RSPSTORE	    ; reset the return stack R0 RSP!
@@ -870,7 +870,7 @@ INTERPRET_DONE:
         exx
         NEXT
 
-defword "INTPL",6,0,INTPL
+defword "INTERP",6,0,INTERP
     	DW LIT, 0
     	DW INTERP_STOP, STORE
     	DW INTP		                    ; interpret the next word
@@ -895,7 +895,7 @@ defword "INTP",4,0,INTP                 ; we can't use control structures
         DW LIT, VAR_STATE, FETCH        ; (headPtr -- headPtr state), if state = 1 compile
         DW ZJUMP, INTP_EXECUTE_WORD
 
-        DW COMMA                        ; compile headPtr
+        DW TCFA, COMMA                        ; compile headPtr
         DW JUMP, INTP_EXIT
 
 INTP_EXECUTE_WORD:
@@ -908,6 +908,7 @@ INTP_NOTFOUND:
         DW NUMBER                       ; ( ptr len -- val err )
         DW ZJUMP, INTP_NUMERIC
 
+        DW DROP                         ; ( ptr len zero -- ptr len ), not found
         DW LIT, TXT_ERROR               ; err != 0, parse error
         DW PRINT
         DW JUMP, INTP_EXIT
@@ -1469,7 +1470,6 @@ defword "REPEAT",6,MSK_IMMED,REPEAT
 ; AGAIN
 ; LOOP
 ; J
-; EXECUTE
 ; UNTIL
 
 defcode "'",1,0,TICK                 ; ( -- addr ) push code word ptr of following word
@@ -1636,6 +1636,8 @@ TXT_INTRO:      .pstr "John's Z80 Forth\r\n\r\n"
 TXT_ERROR:      .pstr "PARSE ERROR: "
 TXT_STACK_UNDERFLOW:
         .pstr "Error: Stack underflow\r\n"
+
+        org START_RAM
 
 .if TESTMODE
 
@@ -1871,31 +1873,18 @@ TESTS_START:
         TEST_EXPECT 10, "expect base to be 10"
 
         TEST_SET_TEXT "3 2 +"
-        TEST_WORD INTPL
+        TEST_WORD INTERP
         TEST_EXPECT 5, "3 + 2 = 5"
-
-.endif
-
-.if TESTMODE=2
-; /////////////////////////////////////////////////////////////////////////////////
-        ; TEST_SET_TEXT ": DBL DUP + ;"
-        ; TEST_WORD INTPL
-        ; TEST_PUSH 2
-        ; TEST_SET_TEXT "DBL"
-        ; TEST_WORD INTPL
-        ; TEST_EXPECT 4, "COLON DBL 2 = 4"
-
-        ; TEST_SET_TEXT ": ADD + ;"
-        ; TEST_WORD INTERP
-        ; TEST_PUSH 2
-        ; TEST_PUSH 2
-        ; TEST_SET_TEXT "ADD"
-        ; TEST_WORD INTPL
-        ; TEST_EXPECT 4, "2 2 ADD = 4"
-
 
         TEST_SET_TEXT ": ADD + ;"
         TEST_WORD INTERP
+
+        TEST_PUSH 2
+        TEST_PUSH 2
+        TEST_SET_TEXT "ADD"
+        TEST_WORD INTERP
+        TEST_EXPECT 4, "2 2 ADD = 4"
+
 
         TEST_SET_TEXT ": DUMP 16 BASE ! OVER + SWAP BEGIN OVER OVER SWAP < WHILE DUP 7 AND 0= IF CR DUP . THEN DUP C@ . 1+ REPEAT CR 10 BASE ! ;"
 
@@ -1908,7 +1897,87 @@ TESTS_START:
 
         TEST_SET_TEXT "DUMP"
         TEST_WORD INTERP
+.endif
 
+.if TESTMODE=2
+; /////////////////////////////////////////////////////////////////////////////////
+        TEST_SET_TEXT "hello\r\n"
+        TEST_WORD KEY
+        TEST_EXPECT $68, "KEY 'h'"
+        TEST_WORD KEY
+        TEST_EXPECT $65, "KEY 'e'"
+
+        TEST_SET_TEXT "x"
+        TEST_WORD TOKEN
+        TEST_EXPECT 1, "TOKEN 'x'"
+        TEST_POP
+
+        TEST_SET_TEXT "xyz"
+        TEST_WORD TOKEN
+        TEST_EXPECT 3, "TOKEN 'xyz'"
+        TEST_POP
+
+        TEST_SET_TEXT "a xyz "
+        TEST_WORD TOKEN
+        TEST_EXPECT 1, "TOKEN 'a xyz'"
+        TEST_WORD TOKEN
+        TEST_EXPECT 3, "TOKEN 'a xyz'"
+        TEST_POP
+
+        TEST_WORD HERE
+        TEST_WORD FETCH
+        TEST_EXPECT START_USER, "HERE"
+
+        TEST_PUSH_TEXT "XYZ"
+        TEST_PUSH 3
+        TEST_WORD CREATE
+        TEST_WORD LATEST
+        TEST_WORD FETCH
+        TEST_EXPECT START_USER, "CREATE XYZ LATEST"
+        TEST_WORD HERE
+        TEST_WORD FETCH
+        TEST_EXPECT START_USER + 6, "CREATE XYZ HERE"
+
+        TEST_SET_TEXT "DUP"
+        TEST_PUSH 1
+        TEST_WORD INTERP
+        TEST_EXPECT 1, "1 INTERPRET DUP"
+        TEST_EXPECT 1, "1 INTERPRET DUP 2"
+
+        TEST_SET_TEXT "123"
+        TEST_WORD INTERP
+        TEST_EXPECT 123, "INTERPRET 123"
+
+        TEST_PUSH 999
+        TEST_SET_TEXT "$$123"
+        TEST_WORD INTERP
+        TEST_EXPECT 999, "INTERPRET $$123"
+
+        TEST_PUSH 1
+        TEST_PUSH 2
+        TEST_WORD DUP
+        TEST_EXPECT 2, "DUP 2"
+        TEST_EXPECT 2, "DUP 2"
+
+        TEST_SET_TEXT "X123"
+        TEST_PUSH 123
+        TEST_WORD CONSTANT
+        TEST_SET_TEXT "X123"
+        TEST_WORD INTERP
+        TEST_EXPECT 123, "CONSTANT X123 = 123"
+
+        TEST_SET_TEXT "V1"
+        TEST_WORD VARIABLE
+
+        TEST_PUSH 123
+        TEST_SET_TEXT "V1"
+        TEST_WORD INTERP
+        TEST_WORD STORE
+
+        TEST_SET_TEXT "V1"
+        TEST_WORD INTERP
+        TEST_WORD FETCH
+        TEST_EXPECT 123, "VARIABLE V1 = 123"
 
 
 .endif
@@ -1921,8 +1990,6 @@ TESTS_START:
 .endif
 
 
-
-        org START_RAM
 
 .if TESTMODE
 
