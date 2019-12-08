@@ -183,12 +183,12 @@ inputReady:
 
 defconst "VERSION",7,0,VERSION,1
 defconst "R0",2,0,RZ, RET_STACK
-defconst "DO_COLON",5,0, __DOCOL,DO_COLON
+defconst "DOCOLON",5,0, __DOCOL,DOCOLON
 defconst "MSK_IMMED",7,0,__MSK_IMMED,MSK_IMMED
 defconst "MSK_HIDDEN",8,0,__MSK_HIDDEN,MSK_HIDDEN
 defconst "MSK_LENGTH",9,0,__MSK_LENGTH,MSK_LENGTH
 
-DO_COLON:
+DOCOLON:
     	PUSH_RET D,E		; push IP on to the return stack
     	inc HL		        ; HL = W which points to codeword, so make
     	inc HL		        ; IP point to first data word
@@ -721,154 +721,13 @@ sdiff:
         or 1            ; a = ff if carry, 1 if no carry
         ret
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; DO_TCFA - convert header ptr to CFA pointer
-;;
-;; params: DE = ptr to header
-;; returns: HL = ptr to CFA
-;; destroys: AF
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-DO_TCFA:
-        LOAD16 H,L, D,E
-    	inc HL              ; Skip link pointer.
-    	inc HL
-
-    	ld A,(HL)	    	; Load flags+len into A
-    	inc HL		        ; Skip flags+len byte.
-    	and MSK_LENGTH	    ; Just the length, not the flags.
-    	add A, L       		; Skip the name.
-    	ld L, A
-    	ld A, 0
-    	adc A, H
-    	ld H, A
-    	ret
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; DO_COMMA - stores a 16 bit number at memory pointer by VAR_HERE
-;;
-;; params: BC = data
-;; returns: nothing, updates vars
-;; destroys: AF, HL
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-DO_COMMA:
-    	ld HL, (VAR_HERE)	; HERE
-    	ld (HL), C          ; Store DE at memory pointed to by VAR_HERE
-    	inc HL
-    	ld (HL), B
-    	inc HL
-    	ld (VAR_HERE), HL	; Update HERE (incremented)
-    	ret
-
 defcode "EXIT",4,0,EXIT
     	POP_RET H,L		            ; pop return stack into IP
         NEXT_1
 
-; defword "INTERP",6,0,INTERP
-;     	DW LIT, 0
-;     	DW INTERP_STOP, STORE
-;     	DW INTERPRET		; interpret the next word
-;     	DW INTERP_STOP, FETCH
-;     	DW ZBRANCH,-8		; and loop (indefinitely)
-;         DW EXIT
-
 defword "QUIT",4,0,QUIT
     	DW RZ,RSPSTORE	    ; reset the return stack R0 RSP!
     	DW INTERP		; interpret the next word
-
-; defcode "INTERPRET",9,0,INTERPRET
-;         exx
-
-;     	call getToken		            ; Returns BC = length, DE = pointer to word.
-;     	ISZERO16 B,C
-;     	jr z, INTERPRET_STOPPING
-
-;     	ld A, 0
-;     	ld (IS_LITERAL), A              ; Not a literal number (not yet anyway ...)
-;     	ex DE, HL                       ; word ptr in HL
-;     	call lookup		                ; Returns DE = ptr to header or 0 if not found.
-;         ISZERO16 D,E                    ; Found?
-;     	jr z, INTERPRET_NOTFOUND
-;         LOAD16 H,L, D,E                 ; Found. Is it an IMMEDIATE codeword?
-;     	inc HL
-;     	inc HL
-;     	ld A, (HL)                      ; Get name+flags.
-;     	push AF		                    ; Just save it for now.
-;     	call DO_TCFA		            ; DE = dictionary entry
-;                                         ; HL = code addr
-;     	pop AF
-;     	and MSK_IMMED	                ; Is IMMED flag set?
-;     	jr nz, INTERPRET_EXECUTE	    ; If IMMED, jump straight to executing.
-
-;         			                    ; Copy code ptr
-;         LOAD16 B,C, H,L
-;         jr INTERPRET_FOUND
-
-; INTERPRET_NOTFOUND:                     ; Not found (not a word) so assume
-; 	                                    ; it's a literal number.
-;         ld A, 1
-;     	ld (IS_LITERAL), A              ; set to true
-;     	call toNumber                  ; params: HL = string address,
-;     	                                ; BC = string length
-;     			                        ; Returns the parsed number in DE,
-;     	                                ; BC = 0, success
-;         ISZERO16 B,C
-;     	ld A, 0
-;      	jr nz, INTERPRET_ERROR          ; if nz, parse error
-
-;     	ld BC, LIT		                ; BC = LIT code ptr
-
-; INTERPRET_FOUND:	                    ; Are we compiling or executing?
-
-;     	ld A, (VAR_STATE)
-;     	or A
-;     	jr z, INTERPRET_EXECUTE			; Jump if executing.
-
-;     	; Compiling - just append the word to the current dictionary definition.
-
-;     	call DO_COMMA                   ; write code ptr to word
-
-;     	ld A, (IS_LITERAL)              ; Was it a literal?
-;     	or A
-;     	jr z, INTERPRET_DONE
-
-;         LOAD16 B,C, D,E                 ; write literal value to word
-;     	call DO_COMMA
-
-;         jr INTERPRET_DONE
-
-; INTERPRET_EXECUTE:
-;     	ld A, (IS_LITERAL)              ; is literal ?
-;     	or A
-;     	jr nz, INTERPRET_LITERAL
-
-;         push HL                         ; no, execute code ptr
-;         exx
-;         pop HL
-;         jp (HL)
-
-; INTERPRET_LITERAL:
-
-;         push DE                         ; yes, push literal value
-;         exx
-;         pop HL
-;         PUSH_PAR H,L
-;         NEXT
-
-; INTERPRET_ERROR:
-;         ld DE, TXT_ERROR
-;         call printPStr
-;         ex DE, HL                       ; DE = word ptr
-;         call printStr
-;         call printCR
-;     	jr INTERPRET_DONE
-
-; INTERPRET_STOPPING:
-;         ld HL, 1
-;         ld (VAR_INTERP_STOP), HL
-; INTERPRET_DONE:
-;         exx
-;         NEXT
 
 defword "INTERP",6,0,INTERP
     	DW LIT, 0
@@ -1147,7 +1006,12 @@ defcode "!",1,0,STORE
         NEXT
 
 defcode ",",1,0,COMMA
-    	call DO_COMMA        ; TOS = BC = 16-bit value to store.
+    	ld HL, (VAR_HERE)	; HERE
+    	ld (HL), C          ; Store DE at memory pointed to by VAR_HERE
+    	inc HL
+    	ld (HL), B
+    	inc HL
+    	ld (VAR_HERE), HL	; Update HERE (incremented)
     	pop BC		        ; cleanup TOS
         NEXT
 
@@ -1485,7 +1349,7 @@ defword ":",1,0,COLON
     	DW TOKEN		            ; Get the name of the new word
     	DW CREATE		            ; CREATE the dictionary entry / header
         DW LIT, JP_OPCODE, CCOMMA                ; write Z80 jp OPCODE to word
-    	DW LIT, DO_COLON, COMMA	    ; Append DO_COLON  (the codeword).
+    	DW LIT, DOCOLON, COMMA	    ; Append DOCOLON  (the codeword).
     	DW LATEST, FETCH, HIDDEN    ; Make the word hidden (see below for definition).
     	DW RBRAC		            ; Go into compile mode.
     	DW EXIT		                ; Return from the function.
@@ -1498,7 +1362,7 @@ defword "CONSTANT",8,0,CONSTANT              ; ( n -- ) get name from input
         DW TOKEN                            ; read name
         DW CREATE                           ; create header
         DW LIT, JP_OPCODE, CCOMMA                ; write Z80 jp OPCODE to word
-        DW LIT, DO_COLON, COMMA                ; write addr DO_COLON to word
+        DW LIT, DOCOLON, COMMA                ; write addr DOCOLON to word
         DW LIT, LIT, COMMA                  ; write addr of LIT to word
         DW COMMA                            ; write TOS to word
         DW LIT, EXIT, COMMA                  ; write addr of LIT to word
@@ -1543,7 +1407,7 @@ defword "VARIABLE",8,0,VARIABLE              ; ( n -- ) get name from input
         DW TOKEN                            ; read name
         DW CREATE                           ; create header
         DW LIT, JP_OPCODE, CCOMMA                ; write Z80 jp OPCODE to word
-        DW LIT, DO_COLON, COMMA             ; write addr DO_COLON to word
+        DW LIT, DOCOLON, COMMA             ; write addr DOCOLON to word
         DW LIT, LIT, COMMA                  ; write addr of LIT to word
         DW COMMA                            ; write addr of variable to word
         DW LIT, EXIT, COMMA                 ; write addr of LIT to word
@@ -1901,85 +1765,6 @@ TESTS_START:
 
 .if TESTMODE=2
 ; /////////////////////////////////////////////////////////////////////////////////
-        TEST_SET_TEXT "hello\r\n"
-        TEST_WORD KEY
-        TEST_EXPECT $68, "KEY 'h'"
-        TEST_WORD KEY
-        TEST_EXPECT $65, "KEY 'e'"
-
-        TEST_SET_TEXT "x"
-        TEST_WORD TOKEN
-        TEST_EXPECT 1, "TOKEN 'x'"
-        TEST_POP
-
-        TEST_SET_TEXT "xyz"
-        TEST_WORD TOKEN
-        TEST_EXPECT 3, "TOKEN 'xyz'"
-        TEST_POP
-
-        TEST_SET_TEXT "a xyz "
-        TEST_WORD TOKEN
-        TEST_EXPECT 1, "TOKEN 'a xyz'"
-        TEST_WORD TOKEN
-        TEST_EXPECT 3, "TOKEN 'a xyz'"
-        TEST_POP
-
-        TEST_WORD HERE
-        TEST_WORD FETCH
-        TEST_EXPECT START_USER, "HERE"
-
-        TEST_PUSH_TEXT "XYZ"
-        TEST_PUSH 3
-        TEST_WORD CREATE
-        TEST_WORD LATEST
-        TEST_WORD FETCH
-        TEST_EXPECT START_USER, "CREATE XYZ LATEST"
-        TEST_WORD HERE
-        TEST_WORD FETCH
-        TEST_EXPECT START_USER + 6, "CREATE XYZ HERE"
-
-        TEST_SET_TEXT "DUP"
-        TEST_PUSH 1
-        TEST_WORD INTERP
-        TEST_EXPECT 1, "1 INTERPRET DUP"
-        TEST_EXPECT 1, "1 INTERPRET DUP 2"
-
-        TEST_SET_TEXT "123"
-        TEST_WORD INTERP
-        TEST_EXPECT 123, "INTERPRET 123"
-
-        TEST_PUSH 999
-        TEST_SET_TEXT "$$123"
-        TEST_WORD INTERP
-        TEST_EXPECT 999, "INTERPRET $$123"
-
-        TEST_PUSH 1
-        TEST_PUSH 2
-        TEST_WORD DUP
-        TEST_EXPECT 2, "DUP 2"
-        TEST_EXPECT 2, "DUP 2"
-
-        TEST_SET_TEXT "X123"
-        TEST_PUSH 123
-        TEST_WORD CONSTANT
-        TEST_SET_TEXT "X123"
-        TEST_WORD INTERP
-        TEST_EXPECT 123, "CONSTANT X123 = 123"
-
-        TEST_SET_TEXT "V1"
-        TEST_WORD VARIABLE
-
-        TEST_PUSH 123
-        TEST_SET_TEXT "V1"
-        TEST_WORD INTERP
-        TEST_WORD STORE
-
-        TEST_SET_TEXT "V1"
-        TEST_WORD INTERP
-        TEST_WORD FETCH
-        TEST_EXPECT 123, "VARIABLE V1 = 123"
-
-
 .endif
 
 .if TESTMODE
@@ -2048,7 +1833,7 @@ link: .set HEADER_label
     	DB flags + namelen	    ; flags + length byte
     	DB name		            ; the name
 label:
-    	jp DO_COLON
+    	jp DOCOLON
     	; list of word pointers follow
 .endm
 
