@@ -7,7 +7,7 @@ RAM_SIZE        equ     $10000 - ROM_SIZE
 SER_BUFSIZE     equ     3FH
 SER_FULLSIZE    equ     30H
 SER_EMPTYSIZE   equ     5
-LINE_BUFSIZE     equ     128
+LINE_BUFSIZE    equ     128
 
 START_ROM       equ     0
 START_RAM       equ     START_ROM + ROM_SIZE
@@ -305,10 +305,11 @@ printNum:
         ld DE, wordBuf
         call formatNum
         call printStr
+        ld a, " "
+        call putc
         pop BC
         pop DE
         pop HL
-        call printCR
         ret
 
 ; HL = data, DE = ptr to lineBuf, C = base
@@ -869,6 +870,13 @@ INTERPRET_DONE:
         exx
         NEXT
 
+defword "INTPL",6,0,INTPL
+    	DW LIT, 0
+    	DW INTERP_STOP, STORE
+    	DW INTP		                    ; interpret the next word
+    	DW INTERP_STOP, FETCH
+    	DW ZBRANCH,-8		            ; and loop (indefinitely)
+        DW EXIT
 
 defword "INTP",4,0,INTP                 ; we can't use control structures
                                         ; because they only work in compile state
@@ -879,15 +887,19 @@ defword "INTP",4,0,INTP                 ; we can't use control structures
         DW DUP, ZJUMP, INTP_NOTFOUND
 
         DW SWAP, DROP, SWAP, DROP       ; ( ptr len headPtr -- headPtr ) found
-        DW DUP, LIT, 2, PLUS, FETCH     ; ( headPtr -- headPtr flags ) add 2 to headPtr
-        DW LIT, MSK_IMMED, AND          ; ( headPtr flags -- headPtr immedFlag )
-        DW ZJUMP, INTP_COMPILE_WORD
 
-        DW TCFA, EXECUTE                ; execute word immediately
+        DW DUP, LIT, 2, PLUS, CFETCH     ; ( headPtr -- headPtr flags ) add 2 to headPtr
+        DW LIT, MSK_IMMED, AND          ; ( headPtr flags -- headPtr immedFlag )
+        DW ZEQUAL, ZJUMP, INTP_EXECUTE_WORD
+
+        DW LIT, VAR_STATE, FETCH        ; (headPtr -- headPtr state), if state = 1 compile
+        DW ZJUMP, INTP_EXECUTE_WORD
+
+        DW COMMA                        ; compile headPtr
         DW JUMP, INTP_EXIT
 
-INTP_COMPILE_WORD:
-        DW COMMA                        ; compile headPtr
+INTP_EXECUTE_WORD:
+        DW TCFA, EXECUTE                ; execute headPtr
         DW JUMP, INTP_EXIT
 
 INTP_NOTFOUND:
@@ -1237,8 +1249,8 @@ defcode "2/",2,0,TWOSLASH
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; 0= zero-equals
-defcode "0=",2,0,ZEROEQUAL
-        ISZERO16 B,C            ; result=0 if bc was 0
+defcode "0=",2,0,ZEQUAL
+        ISZERO16 B,C            ; returns 0 if not equal, 1 if equal
         jr z, ZE1
         ld BC, -1
 ZE1:
@@ -1307,7 +1319,7 @@ defcode "=",1,0,EQUALS
         or A
         sbc HL,BC       ; x1-x2 in HL, SZVC valid
         jr z,EQ1
-        ld BC, -1       ;   if -ve, result true
+        ld BC, 1       ;   if -ve, result true
 EQ1:
         inc BC
         NEXT
@@ -1632,41 +1644,6 @@ TXT_STACK_UNDERFLOW:
 
 .endif
 
-        org START_RAM
-
-.if TESTMODE
-
-    ; used for mocking getc
-
-    char_pointer:   dw 0
-
-.endif
-
-serBuf:         ds SER_BUFSIZE
-serInPtr:       dw 0
-serRdPtr:       dw 0
-serBufUsed:     dw 0
-currkey:        dw lineBuf
-lineBufTop:     dw lineBuf
-lineBuf:        ds LINE_BUFSIZE
-
-; A static lineBuf TOKEN fills.  Subsequent calls
-; overwrite this lineBuf.  Maximum word length is 32 chars.
-
-wordBuf:    ds 32
-
-IS_LITERAL:     db 0			; Flag used to record if reading a literal
-
-VAR_HERE:       dw START_USER
-VAR_INTERP_STOP:
-                dw 0
-VAR_STATE:      dw 0
-VAR_SZ:         dw RET_STACK
-VAR_BASE:       dw 10
-VAR_LATEST:     dw HEADER_LATEST
-
-START_USER:                     ; user allocated data starts here
-
 .if TESTMODE
 
 TESTS_START:
@@ -1883,14 +1860,56 @@ TESTS_START:
         TEST_PUSH 6
         TEST_WORD FIND
         TEST_EXPECT HEADER_LATEST, "find header of LATEST"
-.endif
-
-.if TESTMODE=2
-; /////////////////////////////////////////////////////////////////////////////////
 
         TEST_SET_TEXT "100"
         TEST_WORD INTP
         TEST_EXPECT 100, "INTP parse 100"
+
+        TEST_SET_TEXT "BASE"
+        TEST_WORD INTP
+        TEST_WORD FETCH
+        TEST_EXPECT 10, "expect base to be 10"
+
+        TEST_SET_TEXT "3 2 +"
+        TEST_WORD INTPL
+        TEST_EXPECT 5, "3 + 2 = 5"
+
+.endif
+
+.if TESTMODE=2
+; /////////////////////////////////////////////////////////////////////////////////
+        ; TEST_SET_TEXT ": DBL DUP + ;"
+        ; TEST_WORD INTPL
+        ; TEST_PUSH 2
+        ; TEST_SET_TEXT "DBL"
+        ; TEST_WORD INTPL
+        ; TEST_EXPECT 4, "COLON DBL 2 = 4"
+
+        ; TEST_SET_TEXT ": ADD + ;"
+        ; TEST_WORD INTERP
+        ; TEST_PUSH 2
+        ; TEST_PUSH 2
+        ; TEST_SET_TEXT "ADD"
+        ; TEST_WORD INTPL
+        ; TEST_EXPECT 4, "2 2 ADD = 4"
+
+
+        TEST_SET_TEXT ": ADD + ;"
+        TEST_WORD INTERP
+
+        TEST_SET_TEXT ": DUMP 16 BASE ! OVER + SWAP BEGIN OVER OVER SWAP < WHILE DUP DUP . C@ . CR 1+ REPEAT 10 BASE ! ;"
+
+        TEST_WORD INTERP
+
+        TEST_PUSH_TEXT "ADD"
+        TEST_PUSH 3
+        TEST_WORD FIND
+        TEST_PUSH 30
+
+        TEST_SET_TEXT "DUMP"
+        TEST_WORD INTERP
+
+
 
 .endif
 
@@ -1900,6 +1919,45 @@ TESTS_START:
         halt
 
 .endif
+
+
+
+        org START_RAM
+
+.if TESTMODE
+
+    ; used for mocking getc
+
+    char_pointer:   dw 0
+
+.endif
+
+serBuf:         ds SER_BUFSIZE
+serInPtr:       dw 0
+serRdPtr:       dw 0
+serBufUsed:     dw 0
+currkey:        dw lineBuf
+lineBufTop:     dw lineBuf
+lineBuf:        ds LINE_BUFSIZE
+
+; A static lineBuf TOKEN fills.  Subsequent calls
+; overwrite this lineBuf.  Maximum word length is 32 chars.
+
+wordBuf:    ds 32
+
+IS_LITERAL:     db 0			; Flag used to record if reading a literal
+
+VAR_HERE:       dw START_USER
+VAR_INTERP_STOP:
+                dw 0
+VAR_STATE:      dw 0
+VAR_SZ:         dw RET_STACK
+VAR_BASE:       dw 10
+VAR_LATEST:     dw HEADER_LATEST
+
+START_USER:                     ; user allocated data starts here
+
+
 
 .macro NEXT
         ex DE,HL
