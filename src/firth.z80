@@ -727,21 +727,28 @@ defcode "EXIT",4,0,EXIT
 
 defword "QUIT",4,0,QUIT
     	DW RZ,RSPSTORE	    ; reset the return stack R0 RSP!
-    	DW INTERP		; interpret the next word
+    	DW INTERPRET		; interpret the next word
 
-defword "INTERP",6,0,INTERP
+defword "INTERPRET",6,0,INTERPRET
     	DW LIT, 0
-    	DW INTERP_STOP, STORE
-    	DW INTERPRET		                    ; interpret the next word
-    	DW INTERP_STOP, FETCH
+    	DW INTP_STOP, STORE
+    	DW interp		                    ; interpret the next word
+    	DW INTP_STOP, FETCH
     	DW ZBRANCH,-8		            ; and loop (indefinitely)
         DW EXIT
 
-defword "INTERPRET",4,0,INTERPRET                 ; we can't use control structures
-                                        ; because they only work in compile state
-        DW TOKEN                        ; ( -- ptr len)
-        DW DUP, ZJUMP, INTP_STOP        ; token length = 0
-                                        ; ( len ptr )
+defword "interp",4,0,interp
+
+    	DW TOKEN                        ; ( -- ptr len)
+        DW DUP, ZEQUAL,ZJUMP,INTP_FIND  ; token length = 0
+
+                                        ; INTP_STOPPING:
+        DW DROP, DROP                   ; (ptr len -- )
+        DW LIT, 1
+        DW LIT, VAR_INTP_STOP, STORE    ; VAR_INTP_STOP = 1
+        DW EXIT
+
+INTP_FIND:                                        ; ( len ptr )
         DW OVER, OVER, FIND                 ; ( ptr len -- ptr len headPtrOrZero )
         DW DUP, ZJUMP, INTP_NOTFOUND
 
@@ -782,11 +789,6 @@ INTP_NUMERIC:
 INTP_EXIT:
         DW EXIT
 
-INTP_STOP:
-        DW DROP, DROP                   ; (ptr len -- )
-        DW LIT, 1
-        DW LIT, VAR_INTERP_STOP, STORE  ; VAR_INTERP_STOP = 1
-        DW EXIT
 
 ; FIND                                  ( ptr len -- headPtr )
 defcode "FIND",4,0,FIND
@@ -1474,7 +1476,7 @@ defcode ".",1,0,DOT                 ; print top of stack in BASE
         NEXT
 
 defvar "HERE",4,0,HERE, VAR_HERE
-defvar "INTERP_STOP",12,0,INTERP_STOP, VAR_INTERP_STOP
+defvar "INTP_STOP",12,0,INTP_STOP, VAR_INTP_STOP
 defvar "STATE",5,0,STATE, VAR_STATE
 defvar "S0",2,0,SZ, VAR_SZ
 defvar "BASE",4,0,BASE, VAR_BASE
@@ -1556,17 +1558,17 @@ TESTS_START:
 
         TEST_SET_TEXT "DUP"
         TEST_PUSH 1
-        TEST_WORD INTERP
+        TEST_WORD INTERPRET
         TEST_EXPECT 1, "1 INTERPRET DUP"
         TEST_EXPECT 1, "1 INTERPRET DUP 2"
 
         TEST_SET_TEXT "123"
-        TEST_WORD INTERP
+        TEST_WORD INTERPRET
         TEST_EXPECT 123, "INTERPRET 123"
 
         TEST_PUSH 999
         TEST_SET_TEXT "$$123"
-        TEST_WORD INTERP
+        TEST_WORD INTERPRET
         TEST_EXPECT 999, "INTERPRET $$123"
 
         TEST_PUSH 1
@@ -1579,7 +1581,7 @@ TESTS_START:
         TEST_PUSH 123
         TEST_WORD CONSTANT
         TEST_SET_TEXT "X123"
-        TEST_WORD INTERP
+        TEST_WORD INTERPRET
         TEST_EXPECT 123, "CONSTANT X123 = 123"
 
         TEST_SET_TEXT "V1"
@@ -1587,19 +1589,19 @@ TESTS_START:
 
         TEST_PUSH 123
         TEST_SET_TEXT "V1"
-        TEST_WORD INTERP
+        TEST_WORD INTERPRET
         TEST_WORD STORE
 
         TEST_SET_TEXT "V1"
-        TEST_WORD INTERP
+        TEST_WORD INTERPRET
         TEST_WORD FETCH
         TEST_EXPECT 123, "VARIABLE V1 = 123"
 
         TEST_SET_TEXT ": DBL DUP + ;"
-        TEST_WORD INTERP
+        TEST_WORD INTERPRET
         TEST_PUSH 2
         TEST_SET_TEXT "DBL"
-        TEST_WORD INTERP
+        TEST_WORD INTERPRET
         TEST_EXPECT 4, "COLON DBL 2 = 4"
 
         TEST_WORD CR
@@ -1611,7 +1613,7 @@ TESTS_START:
         TEST_EXPECT 3, "TOKEN 'a xyz'"
 
         TEST_SET_TEXT "100 100 +"
-        TEST_WORD INTERP
+        TEST_WORD INTERPRET
         TEST_EXPECT 200, "TOKEN '100 100 + = 200'"
 
         ld HL, 12
@@ -1622,22 +1624,22 @@ TESTS_START:
         TEST_EXPECT 2, "DIV 11 / 10 = 1 1"
 
         TEST_SET_TEXT "100 10 + ."
-        TEST_WORD INTERP
+        TEST_WORD INTERPRET
 
         TEST_SET_TEXT "16 BASE ! 20"
-        TEST_WORD INTERP
+        TEST_WORD INTERPRET
         TEST_EXPECT 32, "expect $20 to be 32"
 
         TEST_SET_TEXT "0A BASE ! 20"
-        TEST_WORD INTERP
+        TEST_WORD INTERPRET
         TEST_EXPECT 20, "expect DECIMAL 20 to be 32"
 
         TEST_SET_TEXT "-10 ABS"
-        TEST_WORD INTERP
+        TEST_WORD INTERPRET
         TEST_EXPECT 10, "expect abs -10 to be 10"
 
         TEST_SET_TEXT "10 ABS"
-        TEST_WORD INTERP
+        TEST_WORD INTERPRET
         TEST_EXPECT 10, "expect abs 10 to be 10"
 
         TEST_PUSH -10
@@ -1657,45 +1659,45 @@ TESTS_START:
 
         TEST_SET_TEXT ": TESTIF2 IF 100 THEN ;"
 
-        TEST_WORD INTERP
+        TEST_WORD INTERPRET
 
         TEST_PUSH 200
         TEST_PUSH 1
 
         TEST_SET_TEXT "TESTIF2"
-        TEST_WORD INTERP
+        TEST_WORD INTERPRET
         TEST_EXPECT 100, "1 IF 100 THEN --> 100"
 
         TEST_PUSH 0
 
         TEST_SET_TEXT "TESTIF2"
-        TEST_WORD INTERP
+        TEST_WORD INTERPRET
         TEST_EXPECT 200, "0 IF 100 THEN --> 200"
 
         TEST_SET_TEXT ": TESTIF3 IF 100 ELSE 200 THEN ;"
 
-        TEST_WORD INTERP
+        TEST_WORD INTERPRET
 
         TEST_PUSH 0
 
         TEST_SET_TEXT "TESTIF3"
-        TEST_WORD INTERP
+        TEST_WORD INTERPRET
         TEST_EXPECT 200, "0 --> 200"
 
         TEST_PUSH 1
 
         TEST_SET_TEXT "TESTIF3"
-        TEST_WORD INTERP
+        TEST_WORD INTERPRET
         TEST_EXPECT 100, "1 --> 100"
 
         TEST_SET_TEXT ": TESTLOOP BEGIN DUP 5 < WHILE DUP . 1+ REPEAT ;"
 
-        TEST_WORD INTERP
+        TEST_WORD INTERPRET
 
         TEST_PUSH 0
 
         TEST_SET_TEXT "TESTLOOP"
-        TEST_WORD INTERP
+        TEST_WORD INTERPRET
         TEST_EXPECT 5, "Loop until limit < 5"
 
         TEST_PUSH_PTEXT "XYZ"
@@ -1736,22 +1738,22 @@ TESTS_START:
         TEST_EXPECT 10, "expect base to be 10"
 
         TEST_SET_TEXT "3 2 +"
-        TEST_WORD INTERP
+        TEST_WORD INTERPRET
         TEST_EXPECT 5, "3 + 2 = 5"
 
         TEST_SET_TEXT ": ADD + ;"
-        TEST_WORD INTERP
+        TEST_WORD INTERPRET
 
         TEST_PUSH 2
         TEST_PUSH 2
         TEST_SET_TEXT "ADD"
-        TEST_WORD INTERP
+        TEST_WORD INTERPRET
         TEST_EXPECT 4, "2 2 ADD = 4"
 
 
         TEST_SET_TEXT ": DUMP 16 BASE ! OVER + SWAP BEGIN OVER OVER SWAP < WHILE DUP 7 AND 0= IF CR DUP . THEN DUP C@ . 1+ REPEAT CR 10 BASE ! ;"
 
-        TEST_WORD INTERP
+        TEST_WORD INTERPRET
 
         TEST_PUSH_TEXT "ADD"
         TEST_PUSH 3
@@ -1759,7 +1761,7 @@ TESTS_START:
         TEST_PUSH 64
 
         TEST_SET_TEXT "DUMP"
-        TEST_WORD INTERP
+        TEST_WORD INTERPRET
 .endif
 
 .if TESTMODE=2
@@ -1799,7 +1801,7 @@ wordBuf:    ds 32
 IS_LITERAL:     db 0			; Flag used to record if reading a literal
 
 VAR_HERE:       dw START_USER
-VAR_INTERP_STOP:
+VAR_INTP_STOP:
                 dw 0
 VAR_STATE:      dw 0
 VAR_SZ:         dw RET_STACK
