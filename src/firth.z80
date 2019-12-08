@@ -776,109 +776,109 @@ defword "QUIT",4,0,QUIT
     	DW RZ,RSPSTORE	    ; reset the return stack R0 RSP!
     	DW INTERP		; interpret the next word
 
-defcode "INTERPRET",9,0,INTERPRET
-        exx
+; defcode "INTERPRET",9,0,INTERPRET
+;         exx
 
-    	call getToken		            ; Returns BC = length, DE = pointer to word.
-    	ISZERO16 B,C
-    	jr z, INTERPRET_STOPPING
+;     	call getToken		            ; Returns BC = length, DE = pointer to word.
+;     	ISZERO16 B,C
+;     	jr z, INTERPRET_STOPPING
 
-    	ld A, 0
-    	ld (IS_LITERAL), A              ; Not a literal number (not yet anyway ...)
-    	ex DE, HL                       ; word ptr in HL
-    	call lookup		                ; Returns DE = ptr to header or 0 if not found.
-        ISZERO16 D,E                    ; Found?
-    	jr z, INTERPRET_NOTFOUND
-        LOAD16 H,L, D,E                 ; Found. Is it an IMMEDIATE codeword?
-    	inc HL
-    	inc HL
-    	ld A, (HL)                      ; Get name+flags.
-    	push AF		                    ; Just save it for now.
-    	call DO_TCFA		            ; DE = dictionary entry
-                                        ; HL = code addr
-    	pop AF
-    	and MSK_IMMED	                ; Is IMMED flag set?
-    	jr nz, INTERPRET_EXECUTE	    ; If IMMED, jump straight to executing.
+;     	ld A, 0
+;     	ld (IS_LITERAL), A              ; Not a literal number (not yet anyway ...)
+;     	ex DE, HL                       ; word ptr in HL
+;     	call lookup		                ; Returns DE = ptr to header or 0 if not found.
+;         ISZERO16 D,E                    ; Found?
+;     	jr z, INTERPRET_NOTFOUND
+;         LOAD16 H,L, D,E                 ; Found. Is it an IMMEDIATE codeword?
+;     	inc HL
+;     	inc HL
+;     	ld A, (HL)                      ; Get name+flags.
+;     	push AF		                    ; Just save it for now.
+;     	call DO_TCFA		            ; DE = dictionary entry
+;                                         ; HL = code addr
+;     	pop AF
+;     	and MSK_IMMED	                ; Is IMMED flag set?
+;     	jr nz, INTERPRET_EXECUTE	    ; If IMMED, jump straight to executing.
 
-        			                    ; Copy code ptr
-        LOAD16 B,C, H,L
-        jr INTERPRET_FOUND
+;         			                    ; Copy code ptr
+;         LOAD16 B,C, H,L
+;         jr INTERPRET_FOUND
 
-INTERPRET_NOTFOUND:                     ; Not found (not a word) so assume
-	                                    ; it's a literal number.
-        ld A, 1
-    	ld (IS_LITERAL), A              ; set to true
-    	call toNumber                  ; params: HL = string address,
-    	                                ; BC = string length
-    			                        ; Returns the parsed number in DE,
-    	                                ; BC = 0, success
-        ISZERO16 B,C
-    	ld A, 0
-     	jr nz, INTERPRET_ERROR          ; if nz, parse error
+; INTERPRET_NOTFOUND:                     ; Not found (not a word) so assume
+; 	                                    ; it's a literal number.
+;         ld A, 1
+;     	ld (IS_LITERAL), A              ; set to true
+;     	call toNumber                  ; params: HL = string address,
+;     	                                ; BC = string length
+;     			                        ; Returns the parsed number in DE,
+;     	                                ; BC = 0, success
+;         ISZERO16 B,C
+;     	ld A, 0
+;      	jr nz, INTERPRET_ERROR          ; if nz, parse error
 
-    	ld BC, LIT		                ; BC = LIT code ptr
+;     	ld BC, LIT		                ; BC = LIT code ptr
 
-INTERPRET_FOUND:	                    ; Are we compiling or executing?
+; INTERPRET_FOUND:	                    ; Are we compiling or executing?
 
-    	ld A, (VAR_STATE)
-    	or A
-    	jr z, INTERPRET_EXECUTE			; Jump if executing.
+;     	ld A, (VAR_STATE)
+;     	or A
+;     	jr z, INTERPRET_EXECUTE			; Jump if executing.
 
-    	; Compiling - just append the word to the current dictionary definition.
+;     	; Compiling - just append the word to the current dictionary definition.
 
-    	call DO_COMMA                   ; write code ptr to word
+;     	call DO_COMMA                   ; write code ptr to word
 
-    	ld A, (IS_LITERAL)              ; Was it a literal?
-    	or A
-    	jr z, INTERPRET_DONE
+;     	ld A, (IS_LITERAL)              ; Was it a literal?
+;     	or A
+;     	jr z, INTERPRET_DONE
 
-        LOAD16 B,C, D,E                 ; write literal value to word
-    	call DO_COMMA
+;         LOAD16 B,C, D,E                 ; write literal value to word
+;     	call DO_COMMA
 
-        jr INTERPRET_DONE
+;         jr INTERPRET_DONE
 
-INTERPRET_EXECUTE:
-    	ld A, (IS_LITERAL)              ; is literal ?
-    	or A
-    	jr nz, INTERPRET_LITERAL
+; INTERPRET_EXECUTE:
+;     	ld A, (IS_LITERAL)              ; is literal ?
+;     	or A
+;     	jr nz, INTERPRET_LITERAL
 
-        push HL                         ; no, execute code ptr
-        exx
-        pop HL
-        jp (HL)
+;         push HL                         ; no, execute code ptr
+;         exx
+;         pop HL
+;         jp (HL)
 
-INTERPRET_LITERAL:
+; INTERPRET_LITERAL:
 
-        push DE                         ; yes, push literal value
-        exx
-        pop HL
-        PUSH_PAR H,L
-        NEXT
+;         push DE                         ; yes, push literal value
+;         exx
+;         pop HL
+;         PUSH_PAR H,L
+;         NEXT
 
-INTERPRET_ERROR:
-        ld DE, TXT_ERROR
-        call printPStr
-        ex DE, HL                       ; DE = word ptr
-        call printStr
-        call printCR
-    	jr INTERPRET_DONE
+; INTERPRET_ERROR:
+;         ld DE, TXT_ERROR
+;         call printPStr
+;         ex DE, HL                       ; DE = word ptr
+;         call printStr
+;         call printCR
+;     	jr INTERPRET_DONE
 
-INTERPRET_STOPPING:
-        ld HL, 1
-        ld (VAR_INTERP_STOP), HL
-INTERPRET_DONE:
-        exx
-        NEXT
+; INTERPRET_STOPPING:
+;         ld HL, 1
+;         ld (VAR_INTERP_STOP), HL
+; INTERPRET_DONE:
+;         exx
+;         NEXT
 
 defword "INTERP",6,0,INTERP
     	DW LIT, 0
     	DW INTERP_STOP, STORE
-    	DW INTP		                    ; interpret the next word
+    	DW INTERPRET		                    ; interpret the next word
     	DW INTERP_STOP, FETCH
     	DW ZBRANCH,-8		            ; and loop (indefinitely)
         DW EXIT
 
-defword "INTP",4,0,INTP                 ; we can't use control structures
+defword "INTERPRET",4,0,INTERPRET                 ; we can't use control structures
                                         ; because they only work in compile state
         DW TOKEN                        ; ( -- ptr len)
         DW DUP, ZJUMP, INTP_STOP        ; token length = 0
@@ -1864,11 +1864,11 @@ TESTS_START:
         TEST_EXPECT HEADER_LATEST, "find header of LATEST"
 
         TEST_SET_TEXT "100"
-        TEST_WORD INTP
-        TEST_EXPECT 100, "INTP parse 100"
+        TEST_WORD INTERPRET
+        TEST_EXPECT 100, "INTERPRET parse 100"
 
         TEST_SET_TEXT "BASE"
-        TEST_WORD INTP
+        TEST_WORD INTERPRET
         TEST_WORD FETCH
         TEST_EXPECT 10, "expect base to be 10"
 
