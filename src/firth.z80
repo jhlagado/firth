@@ -1,6 +1,6 @@
 .engine mycomputer
 
-TESTMODE        equ     1
+TESTMODE        equ     0
 
 ROM_SIZE        equ     $1000
 RAM_SIZE        equ     $10000 - ROM_SIZE
@@ -28,43 +28,43 @@ RTS_HIGH        equ     0D6H                ; 11010110
 RTS_LOW         equ     096H                ; 10010110
 
         .org START_ROM
-RST00:                          ; Reset
-        di                      ; Disable interrupts
+RST00:                                      ; Reset
+        di                                  ; Disable interrupts
         jp      START
 
         .org    0008H
-RST08:                                  ; TX a character over RS232
+RST08:                                      ; TX a character over RS232
         jp      putc
 
         .org    0010H
-RST10:                                  ; RX a character over RS232 Channel A [Console], hold here until char ready.
+RST10:                                      ; RX a character over RS232 Channel A [Console], hold here until char ready.
         jp      getc
 
         .org    0018H
-RST18:                                  ; Check serial status
+RST18:                                      ; Check serial status
         jp      inputReady
 
         .org    0038H
-RST38:                                  ; rst 38 - INTERRUPT VECTOR [ for IM 1 ]
+RST38:                                      ; rst 38 - INTERRUPT VECTOR [ for IM 1 ]
         jr      serialIn
 
-        .org    0066H                   ; rst 66 - NON-MASKABLE INTERRUPT
+        .org    0066H                       ; rst 66 - NON-MASKABLE INTERRUPT
 RST66:
-        retn                   ; do nothing
+        retn                                ; do nothing
 
 START:
 
-        ld IX, RET_STACK            ; Initialise the return stack.
-        ld SP, PAR_STACK            ; Initialise the param stack.
-        ld BC, 0                    ; TOS
-        ld IY, DO_NEXT_1            ; fast way to jump to NEXT_1
+        ld IX, RET_STACK                    ; Initialise the return stack.
+        ld SP, PAR_STACK                    ; Initialise the param stack.
+        ld BC, 0                            ; TOS
+        ld IY, DO_NEXT_1                    ; fast way to jump to NEXT_1
         ld HL,serBuf
         ld (serInPtr),HL
         ld (serRdPtr),HL
-        xor A               ;0 to accumulator
+        xor A                               ; 0 to accumulator
         ld (serBufUsed),A
         ld A,RTS_LOW
-        out ($80),A         ; Initialise ACIA
+        out ($80),A                         ; Initialise ACIA
         im 1
         ei
 
@@ -73,7 +73,7 @@ START:
 
 .else
         PRINT_STR TXT_INTRO
-        ld DE, COLD                 ; Initialise interpreter.
+        ld DE, COLD                         ; Initialise interpreter.
         NEXT
 .endif
 
@@ -140,7 +140,7 @@ waitForChar:
         push HL
         ld HL,(serRdPtr)
         inc HL
-        ld A,L             ; Only need to check low byte becasuse lineBuf<256 bytes
+        ld A,L             ; Only need to check low byte because lineBuf<256 bytes
         cp (serBuf + SER_BUFSIZE) & $FF
         jr nz, notRdWrap
         ld HL,serBuf
@@ -388,7 +388,7 @@ L3:
         ret
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; getKey -  inputs a lineBufed character
+;; getKey -  inputs a line buffered character
 ;; params: none
 ;; returns: A = character,
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -748,20 +748,20 @@ defword "interp",4,0,interp
         DW LIT, VAR_INTP_STOP, STORE    ; VAR_INTP_STOP = 1
         DW EXIT
 
-INTP_FIND:                                        ; ( len ptr )
-        DW OVER, OVER, FIND                 ; ( ptr len -- ptr len headPtrOrZero )
+INTP_FIND:                              ; ( len ptr )
+        DW OVER, OVER, FIND             ; ( ptr len -- ptr len headPtrOrZero )
         DW DUP, ZJUMP, INTP_NOTFOUND
 
         DW SWAP, DROP, SWAP, DROP       ; ( ptr len headPtr -- headPtr ) found
 
-        DW DUP, LIT, 2, PLUS, CFETCH     ; ( headPtr -- headPtr flags ) add 2 to headPtr
+        DW DUP, LIT, 2, PLUS, CFETCH    ; ( headPtr -- headPtr flags ) add 2 to headPtr
         DW LIT, MSK_IMMED, AND          ; ( headPtr flags -- headPtr immedFlag )
         DW ZEQUAL, ZJUMP, INTP_EXECUTE_WORD
 
         DW LIT, VAR_STATE, FETCH        ; (headPtr -- headPtr state), if state = 1 compile
         DW ZJUMP, INTP_EXECUTE_WORD
 
-        DW TCFA, COMMA                        ; compile headPtr
+        DW TCFA, COMMA                  ; compile headPtr
         DW EXIT
 
 INTP_EXECUTE_WORD:
@@ -1253,6 +1253,18 @@ defcode "SWAP",4,0,SWAP      ; x1 x2 -- x2 x1
         PUSH_PAR H,L
         NEXT
 
+defcode "ROT",3,0,ROT        ; x1 x2 x3 -- x2 x3 x1
+        pop HL              ; x2 in HL
+        ex (SP),HL          ; x2 on stack, x1 in HL
+        PUSH_PAR H, L       ; push x1
+        NEXT
+
+defcode "-ROT",4,0,NROT     ; x1 x2 x3 -- x3 x1 x2
+        POP_PAR H, L        ; x3 in HL, x2 in BC
+        ex (SP),HL          ; x3 on stack, x1 in HL
+        push HL             ; x3 x1 on stack, BC = x2
+        NEXT
+
 ; >R    ( x -- ) ( R: -- x )  Move  x from TOS to the return stack.
 defcode ">R",2,0,TO_R
 	    PUSH_RET B,C
@@ -1276,12 +1288,6 @@ defcode "OVER",4,0,OVER
 defcode "R>",2,0,R_FROM
         push BC
         POP_RET B,C
-        NEXT
-
-defcode "ROT",3,0,ROT        ; x1 x2 x3 -- x2 x3 x1
-        pop HL              ; x2 in HL
-        ex (sp),HL          ; x2 on stack, x1 in HL
-        PUSH_PAR H, L       ; push x1
         NEXT
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
