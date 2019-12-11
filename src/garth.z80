@@ -1,74 +1,116 @@
-STACK_CS_10: .set  0
-STACK_CS_9:  .set  0
-STACK_CS_8:  .set  0
-STACK_CS_7:  .set  0
-STACK_CS_6:  .set  0
-STACK_CS_5:  .set  0
-STACK_CS_4:  .set  0
-STACK_CS_3:  .set  0
-STACK_CS_2:  .set  0   
-STACK_CS_1:  .set  0
 
-.macro PUSH_CS, TOS
-    STACK_CS_10: .set  STACK_CS_9
-    STACK_CS_9:  .set  STACK_CS_8
-    STACK_CS_8:  .set  STACK_CS_7
-    STACK_CS_7:  .set  STACK_CS_6
-    STACK_CS_6:  .set  STACK_CS_5
-    STACK_CS_5:  .set  STACK_CS_4
-    STACK_CS_4:  .set  STACK_CS_3
-    STACK_CS_3:  .set  STACK_CS_2
-    STACK_CS_2:  .set  STACK_CS_1   
-    STACK_CS_1:  .set  TOS   
+CS_10:  .set  0
+CS_9:   .set  0
+CS_8:   .set  0
+CS_7:   .set  0
+CS_6:   .set  0
+CS_5:   .set  0
+CS_4:   .set  0
+CS_3:   .set  0
+CS_2:   .set  0
+CS_TOP: .set  0
+
+.macro _CS_PUSH, arg
+    CS_10:  .set CS_9
+    CS_9:   .set CS_8
+    CS_8:   .set CS_7
+    CS_7:   .set CS_6
+    CS_6:   .set CS_5
+    CS_5:   .set CS_4
+    CS_4:   .set CS_3
+    CS_3:   .set CS_2
+    CS_2:   .set CS_TOP
+    CS_TOP: .set arg
 .endm
 
-.macro POP_CS
-    STACK_CS_10: .set  0
-    STACK_CS_9:  .set  STACK_CS_10
-    STACK_CS_8:  .set  STACK_CS_9
-    STACK_CS_7:  .set  STACK_CS_8
-    STACK_CS_6:  .set  STACK_CS_7
-    STACK_CS_5:  .set  STACK_CS_6
-    STACK_CS_4:  .set  STACK_CS_5
-    STACK_CS_3:  .set  STACK_CS_4
-    STACK_CS_2:  .set  STACK_CS_3   
-    STACK_CS_1:  .set  STACK_CS_2   
+.macro _CS_POP
+    CS_10:  .set 0
+    CS_9:   .set CS_10
+    CS_8:   .set CS_9
+    CS_7:   .set CS_8
+    CS_6:   .set CS_7
+    CS_5:   .set CS_6
+    CS_4:   .set CS_5
+    CS_3:   .set CS_4
+    CS_2:   .set CS_3
+    CS_TOP: .set CS_2
 .endm
 
-.macro IF_Z
-            jr nz, 0                
-            PUSH_CS $
-.endm                               
+.macro _CS_SWAP
+    CS_TOP  .set CS_TOP ^ CS_2
+    CS_2    .set CS_TOP ^ _CS_2
+    CS_TOP  .set CS_TOP ^ _CS_2
+.endm
 
-.macro ELSE_
 
-    jr  0                 
-    ; Lay down the BRA op code plus a placekeeper for the operand.
- CUR_ADR:   .set $                 
-    org  STACK_CS_1 - 1     
-    db  CUR_ADR - STACK_CS_1 
-    org  CUR_ADR           
- STACK_CS_1: .set $                 
-.endm                               
+; _IF ... _ELSE ... _ENDIF
 
-.macro END_IF
+.macro _IF, cond
+    jr cond, IF_%%M
+    jr 0
+    _CS_PUSH $
+IF_%%M:
 
-CUR_ADR:    .set $                 
-    org  STACK_CS_1 - 1     
-    db  CUR_ADR - STACK_CS_1
-    POP_CS
-    org  CUR_ADR           
-.endm                               
+.endm
 
-    ld A,1
-    or a
-    IF_Z  
-        nop
-        nop
-    ELSE_
-        nop
-        nop
-        nop
-    END_IF
+.macro _ELSE
+    jr  0
+    CUR_ADR: .set $
+    org CS_TOP - 1
+    db  CUR_ADR - CS_TOP
+    org CUR_ADR
+    CS_TOP: .set $
+.endm
+
+.macro _ENDIF
+
+    CUR_ADR: .set $
+    org CS_TOP - 1
+    db CUR_ADR - CS_TOP
+    _CS_POP
+    org  CUR_ADR
+.endm
+
+; _BEGIN ... _WHILE ... _REPEAT
+
+.macro _BEGIN
+    _CS_PUSH $
+    CS_TOP: .set $
+.endm
+
+.macro _WHILE, cond
+    jr cond, WHILE_%%M
+    jr 0
+    _CS_PUSH $
+    CS_TOP: .set $
+WHILE_%%M:
+.endm
+
+.macro _REPEAT
+    jr CS_2
+    CUR_ADR: .set  $
+    org STK_LVL_1 - 1
+    db CUR_ADR - C_TOP
+    org CUR_ADR
+    _CS_POP
+.endm
+
+
+
+
+; ------------------------------------------------------------------------
+
+ld A,1
+or a
+
+_IF z
     nop
+    nop
+_ELSE
+    nop
+    nop
+    nop
+_ENDIF
+
+nop
 
