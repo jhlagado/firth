@@ -1,0 +1,74 @@
+STACK_CS_10: .set  0
+STACK_CS_9:  .set  0
+STACK_CS_8:  .set  0
+STACK_CS_7:  .set  0
+STACK_CS_6:  .set  0
+STACK_CS_5:  .set  0
+STACK_CS_4:  .set  0
+STACK_CS_3:  .set  0
+STACK_CS_2:  .set  0   
+STACK_CS_1:  .set  0
+
+.macro PUSH_CS, TOS
+    STACK_CS_10: .set  STACK_CS_9
+    STACK_CS_9:  .set  STACK_CS_8
+    STACK_CS_8:  .set  STACK_CS_7
+    STACK_CS_7:  .set  STACK_CS_6
+    STACK_CS_6:  .set  STACK_CS_5
+    STACK_CS_5:  .set  STACK_CS_4
+    STACK_CS_4:  .set  STACK_CS_3
+    STACK_CS_3:  .set  STACK_CS_2
+    STACK_CS_2:  .set  STACK_CS_1   
+    STACK_CS_1:  .set  TOS   
+.endm
+
+.macro POP_CS
+    STACK_CS_10: .set  0
+    STACK_CS_9:  .set  STACK_CS_10
+    STACK_CS_8:  .set  STACK_CS_9
+    STACK_CS_7:  .set  STACK_CS_8
+    STACK_CS_6:  .set  STACK_CS_7
+    STACK_CS_5:  .set  STACK_CS_6
+    STACK_CS_4:  .set  STACK_CS_5
+    STACK_CS_3:  .set  STACK_CS_4
+    STACK_CS_2:  .set  STACK_CS_3   
+    STACK_CS_1:  .set  STACK_CS_2   
+.endm
+
+.macro IF_Z
+            jr nz, 0                
+            PUSH_CS $
+.endm                               
+
+.macro ELSE_
+
+    jr  0                 
+    ; Lay down the BRA op code plus a placekeeper for the operand.
+ CUR_ADR:   .set $                 
+    org  STACK_CS_1 - 1     
+    db  CUR_ADR - STACK_CS_1 
+    org  CUR_ADR           
+ STACK_CS_1: .set $                 
+.endm                               
+
+.macro END_IF
+
+CUR_ADR:    .set $                 
+    org  STACK_CS_1 - 1     
+    db  CUR_ADR - STACK_CS_1
+    POP_CS
+    org  CUR_ADR           
+.endm                               
+
+    ld A,1
+    or a
+    IF_Z  
+        nop
+        nop
+    ELSE_
+        nop
+        nop
+        nop
+    END_IF
+    nop
+
