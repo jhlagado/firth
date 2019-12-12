@@ -1,4 +1,4 @@
-.include "structure.z80"
+.include "scfm-macros.z80"
 
 ld A,1
 or a
@@ -34,4 +34,4 @@ _UNTIL Z
 
 nop
 
-CS_CHECK
+SCFM_CHECK

@@ -1,0 +1,117 @@
+;-------------------------------------------------------------------------------
+; Assembler Structured Control-flow Macros
+; Based on the work of Dave Keenan and Garth Wilson
+; http://dkeenan.com/AddingStructuredControlFlowToAnyAssembler.htm
+; http://wilsonminesco.com/StructureMacros/
+;-------------------------------------------------------------------------------
+
+SCFM_COUNT:   .set 0
+
+SCFM_10:  .set  0
+SCFM_9:   .set  0
+SCFM_8:   .set  0
+SCFM_7:   .set  0
+SCFM_6:   .set  0
+SCFM_5:   .set  0
+SCFM_4:   .set  0
+SCFM_3:   .set  0
+SCFM_2:   .set  0
+SCFM_TOP: .set  0
+
+.macro SCFM_PUSH, arg
+    SCFM_COUNT:   .set SCFM_COUNT + 1
+
+    SCFM_10:  .set SCFM_9
+    SCFM_9:   .set SCFM_8
+    SCFM_8:   .set SCFM_7
+    SCFM_7:   .set SCFM_6
+    SCFM_6:   .set SCFM_5
+    SCFM_5:   .set SCFM_4
+    SCFM_4:   .set SCFM_3
+    SCFM_3:   .set SCFM_2
+    SCFM_2:   .set SCFM_TOP
+    SCFM_TOP: .set arg
+.endm
+
+.macro SCFM_POP
+    SCFM_COUNT:   .set    SCFM_COUNT - 1
+
+    SCFM_10:  .set 0
+    SCFM_9:   .set SCFM_10
+    SCFM_8:   .set SCFM_9
+    SCFM_7:   .set SCFM_8
+    SCFM_6:   .set SCFM_7
+    SCFM_5:   .set SCFM_6
+    SCFM_4:   .set SCFM_5
+    SCFM_3:   .set SCFM_4
+    SCFM_2:   .set SCFM_3
+    SCFM_TOP: .set SCFM_2
+.endm
+
+.macro SCFM_CHECK
+
+    .if	SCFM_COUNT ?> 10
+	    .pstr "Control-flow stack overflow"
+	.endif
+    .if	SCFM_COUNT ?< 0
+	    .pstr "Control-flow stack underflow"
+	.endif
+	.if	SCFM_COUNT != 0
+		.pstr "Control-flow stack is unbalanced"
+	.endif
+.endm
+
+; _IF ... _ELSE ... _ENDIF
+
+.macro _IF, cond
+    jr cond, IF_%%M
+    jr 0
+    SCFM_PUSH $
+IF_%%M:
+
+.endm
+
+.macro _ELSE
+    jr  0
+    _JR_FORWARD
+    SCFM_TOP: .set $          ;reuse TOS
+.endm
+
+.macro _ENDIF
+    _JR_FORWARD
+    SCFM_POP
+.endm
+
+.macro _JR_FORWARD
+    CUR_ADR: .set $
+    org SCFM_TOP - 1
+    db CUR_ADR - SCFM_TOP
+    org CUR_ADR
+.endm
+
+; _DO ...<test> _WHILE ... _WEND
+
+.macro _DO
+    SCFM_PUSH $
+.endm
+
+.macro _WHILE, cond
+    jr cond, WHILE_%%M
+    jr 0
+    SCFM_PUSH $
+WHILE_%%M:
+.endm
+
+.macro _WEND
+    jr SCFM_2
+    _JR_FORWARD
+    SCFM_POP
+    SCFM_POP
+.endm
+
+.macro _UNTIL, cond
+    jr cond, UNTIL_%%M
+    jr SCFM_TOP
+    SCFM_POP
+UNTIL_%%M:
+.endm
