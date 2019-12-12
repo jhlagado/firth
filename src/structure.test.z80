@@ -13,7 +13,7 @@ _ELSE
 _ENDIF
 
 ld B, 3
-_BEGIN
+_DO
 
     dec B
 
@@ -21,7 +21,9 @@ _WHILE nz
 
     nop
 
-_REPEAT
+_WEND
 
-X:
     nop
+
+
+CS_CHECK

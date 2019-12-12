@@ -1,3 +1,5 @@
+CS_COUNT:   .set 0
+
 CS_10:  .set  0
 CS_9:   .set  0
 CS_8:   .set  0
@@ -9,7 +11,10 @@ CS_3:   .set  0
 CS_2:   .set  0
 CS_TOP: .set  0
 
-.macro _CS_PUSH, arg
+.macro CS_PUSH, arg
+    CS_COUNT:   .set    CS_COUNT + 1
+
+
     CS_10:  .set CS_9
     CS_9:   .set CS_8
     CS_8:   .set CS_7
@@ -22,7 +27,9 @@ CS_TOP: .set  0
     CS_TOP: .set arg
 .endm
 
-.macro _CS_POP
+.macro CS_POP
+    CS_COUNT:   .set    CS_COUNT - 1
+
     CS_10:  .set 0
     CS_9:   .set CS_10
     CS_8:   .set CS_9
@@ -35,19 +42,19 @@ CS_TOP: .set  0
     CS_TOP: .set CS_2
 .endm
 
-.macro _CS_SWAP
-    CS_TOP  .set CS_TOP ^ CS_2
-    CS_2    .set CS_TOP ^ _CS_2
-    CS_TOP  .set CS_TOP ^ _CS_2
+.macro CS_CHECK
+	.if	CS_COUNT != 0
+	    db CS_COUNT
+		.pstr "Control-flow stack is unbalanced"
+	.endif
 .endm
-
 
 ; _IF ... _ELSE ... _ENDIF
 
 .macro _IF, cond
     jr cond, IF_%%M
     jr 0
-    _CS_PUSH $
+    CS_PUSH $
 IF_%%M:
 
 .endm
@@ -66,33 +73,30 @@ IF_%%M:
     CUR_ADR: .set $
     org CS_TOP - 1
     db CUR_ADR - CS_TOP
-    _CS_POP
+    CS_POP
     org  CUR_ADR
 .endm
 
-; _BEGIN ... _WHILE ... _REPEAT
+; _DO ...<test> _WHILE ... _WEND
 
-.macro _BEGIN
-    _CS_PUSH $
+.macro _DO
+    CS_PUSH $
 .endm
 
 .macro _WHILE, cond
     jr cond, WHILE_%%M
     jr 0
-    _CS_PUSH $
+    CS_PUSH $
 WHILE_%%M:
 .endm
 
-.macro _REPEAT
+.macro _WEND
     jr CS_2
     CUR_ADR: .set  $
     org CS_TOP - 1
     db CUR_ADR - CS_TOP
+    CS_POP
+    CS_POP
     org CUR_ADR
-    _CS_POP
 .endm
-
-
-
-; ------------------------------------------------------------------------
 

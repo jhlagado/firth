@@ -1,0 +1,280 @@
+.if TESTMODE
+
+    DONE:           .pstr "\r\nDone! \r\n"
+    FAILED:         .pstr "Failed: \r\n"
+
+.endif
+
+.if TESTMODE
+
+TESTS_START:
+
+.endif
+
+.if TESTMODE=1
+
+        TEST_SET_TEXT "hello\r\n"
+        TEST_WORD KEY
+        TEST_EXPECT $68, "KEY 'h'"
+        TEST_WORD KEY
+        TEST_EXPECT $65, "KEY 'e'"
+
+        TEST_SET_TEXT "x"
+        TEST_WORD TOKEN
+        TEST_EXPECT 1, "TOKEN 'x'"
+        TEST_POP
+
+        TEST_SET_TEXT "xyz"
+        TEST_WORD TOKEN
+        TEST_EXPECT 3, "TOKEN 'xyz'"
+        TEST_POP
+
+        TEST_SET_TEXT "a xyz "
+        TEST_WORD TOKEN
+        TEST_EXPECT 1, "TOKEN 'a xyz'"
+        TEST_WORD TOKEN
+        TEST_EXPECT 3, "TOKEN 'a xyz'"
+        TEST_POP
+
+        TEST_WORD HERE
+        TEST_WORD FETCH
+        TEST_EXPECT START_USER, "HERE"
+
+        TEST_PUSH_TEXT "XYZ"
+        TEST_PUSH 3
+        TEST_WORD CREATE
+        TEST_WORD LATEST
+        TEST_WORD FETCH
+        TEST_EXPECT START_USER, "CREATE XYZ LATEST"
+        TEST_WORD HERE
+        TEST_WORD FETCH
+        TEST_EXPECT START_USER + 6, "CREATE XYZ HERE"
+
+        TEST_SET_TEXT "DUP"
+        TEST_PUSH 1
+        TEST_WORD INTERPRET
+        TEST_EXPECT 1, "1 INTERPRET DUP"
+        TEST_EXPECT 1, "1 INTERPRET DUP 2"
+
+        TEST_SET_TEXT "123"
+        TEST_WORD INTERPRET
+        TEST_EXPECT 123, "INTERPRET 123"
+
+        TEST_PUSH 999
+        TEST_SET_TEXT "$$123"
+        TEST_WORD INTERPRET
+        TEST_EXPECT 999, "INTERPRET $$123"
+
+        TEST_PUSH 1
+        TEST_PUSH 2
+        TEST_WORD DUP
+        TEST_EXPECT 2, "DUP 2"
+        TEST_EXPECT 2, "DUP 2"
+
+        TEST_SET_TEXT "X123"
+        TEST_PUSH 123
+        TEST_WORD CONSTANT
+        TEST_SET_TEXT "X123"
+        TEST_WORD INTERPRET
+        TEST_EXPECT 123, "CONSTANT X123 = 123"
+
+        TEST_SET_TEXT "V1"
+        TEST_WORD VARIABLE
+
+        TEST_PUSH 123
+        TEST_SET_TEXT "V1"
+        TEST_WORD INTERPRET
+        TEST_WORD STORE
+
+        TEST_SET_TEXT "V1"
+        TEST_WORD INTERPRET
+        TEST_WORD FETCH
+        TEST_EXPECT 123, "VARIABLE V1 = 123"
+
+        TEST_SET_TEXT ": DBL DUP + ;"
+        TEST_WORD INTERPRET
+        TEST_PUSH 2
+        TEST_SET_TEXT "DBL"
+        TEST_WORD INTERPRET
+        TEST_EXPECT 4, "COLON DBL 2 = 4"
+
+        TEST_WORD CR
+
+        TEST_SET_TEXT "a xyz"
+        TEST_WORD TOKEN
+        TEST_EXPECT 1, "TOKEN 'a xyz'"
+        TEST_WORD TOKEN
+        TEST_EXPECT 3, "TOKEN 'a xyz'"
+
+        TEST_SET_TEXT "100 100 +"
+        TEST_WORD INTERPRET
+        TEST_EXPECT 200, "TOKEN '100 100 + = 200'"
+
+        ld HL, 12
+        ld C, 10
+        call divideWordByByte
+        ld B, 0
+        ld C, A
+        TEST_EXPECT 2, "DIV 11 / 10 = 1 1"
+
+        TEST_SET_TEXT "100 10 + ."
+        TEST_WORD INTERPRET
+
+        TEST_SET_TEXT "16 BASE ! 20"
+        TEST_WORD INTERPRET
+        TEST_EXPECT 32, "expect $20 to be 32"
+
+        TEST_SET_TEXT "0A BASE ! 20"
+        TEST_WORD INTERPRET
+        TEST_EXPECT 20, "expect DECIMAL 20 to be 32"
+
+        TEST_SET_TEXT "-10 ABS"
+        TEST_WORD INTERPRET
+        TEST_EXPECT 10, "expect abs -10 to be 10"
+
+        TEST_SET_TEXT "10 ABS"
+        TEST_WORD INTERPRET
+        TEST_EXPECT 10, "expect abs 10 to be 10"
+
+        TEST_PUSH -10
+        TEST_PUSH 10
+        TEST_WORD MUL
+        TEST_EXPECT -100, "expect -10 * 10 to be -100"
+
+        TEST_PUSH -10
+        TEST_PUSH -20
+        TEST_WORD MUL
+        TEST_EXPECT 200, "expect -10 * -20 to be 200"
+
+        TEST_PUSH 10
+        TEST_PUSH -20
+        TEST_WORD MUL
+        TEST_EXPECT -200, "expect -10 * -20 to be 200"
+
+        TEST_SET_TEXT ": TESTIF2 IF 100 THEN ;"
+
+        TEST_WORD INTERPRET
+
+        TEST_PUSH 200
+        TEST_PUSH 1
+
+        TEST_SET_TEXT "TESTIF2"
+        TEST_WORD INTERPRET
+        TEST_EXPECT 100, "1 IF 100 THEN --> 100"
+
+        TEST_PUSH 0
+
+        TEST_SET_TEXT "TESTIF2"
+        TEST_WORD INTERPRET
+        TEST_EXPECT 200, "0 IF 100 THEN --> 200"
+
+        TEST_SET_TEXT ": TESTIF3 IF 100 ELSE 200 THEN ;"
+
+        TEST_WORD INTERPRET
+
+        TEST_PUSH 0
+
+        TEST_SET_TEXT "TESTIF3"
+        TEST_WORD INTERPRET
+        TEST_EXPECT 200, "0 --> 200"
+
+        TEST_PUSH 1
+
+        TEST_SET_TEXT "TESTIF3"
+        TEST_WORD INTERPRET
+        TEST_EXPECT 100, "1 --> 100"
+
+        TEST_SET_TEXT ": TESTLOOP BEGIN DUP 5 < WHILE DUP . 1+ REPEAT ;"
+
+        TEST_WORD INTERPRET
+
+        TEST_PUSH 0
+
+        TEST_SET_TEXT "TESTLOOP"
+        TEST_WORD INTERPRET
+        TEST_EXPECT 5, "Loop until limit < 5"
+
+        TEST_PUSH_PTEXT "XYZ"
+        TEST_WORD COUNT
+        TEST_EXPECT 3, "XYZ length 3"
+        TEST_WORD CFETCH
+        TEST_EXPECT "X" + 0, "XYZ --> X"
+
+        TEST_PUSH HEADER_LATEST
+        TEST_WORD TCFA
+        TEST_EXPECT HEADER_LATEST + 3 + 6, "CFA 3 bytes plus length of name"
+
+        TEST_PUSH 1
+        TEST_PUSH 2
+        TEST_PUSH HEADER_PLUS
+        TEST_WORD TCFA
+        TEST_WORD EXECUTE
+        TEST_EXPECT 3, "1 2 PLUS = 3"
+
+        TEST_PUSH_TEXT "100"
+        TEST_PUSH 3
+        TEST_WORD NUMBER
+        TEST_EXPECT 0, "0 = no parse err"
+        TEST_EXPECT 100, "parse 100"
+
+        TEST_PUSH_TEXT "LATEST"
+        TEST_PUSH 6
+        TEST_WORD FIND
+        TEST_EXPECT HEADER_LATEST, "find header of LATEST"
+
+        TEST_SET_TEXT "100"
+        TEST_WORD INTERPRET
+        TEST_EXPECT 100, "INTERPRET parse 100"
+
+        TEST_SET_TEXT "BASE"
+        TEST_WORD INTERPRET
+        TEST_WORD FETCH
+        TEST_EXPECT 10, "expect base to be 10"
+
+        TEST_SET_TEXT "3 2 +"
+        TEST_WORD INTERPRET
+        TEST_EXPECT 5, "3 + 2 = 5"
+
+        TEST_SET_TEXT ": ADD + ;"
+        TEST_WORD INTERPRET
+
+        TEST_PUSH 2
+        TEST_PUSH 2
+        TEST_SET_TEXT "ADD"
+        TEST_WORD INTERPRET
+        TEST_EXPECT 4, "2 2 ADD = 4"
+
+
+        TEST_SET_TEXT ": DUMP 16 BASE ! OVER + SWAP BEGIN OVER OVER SWAP < WHILE DUP 7 AND 0= IF CR DUP . THEN DUP C@ . 1+ REPEAT CR 10 BASE ! ;"
+
+        TEST_WORD INTERPRET
+
+        TEST_PUSH_TEXT "ADD"
+        TEST_PUSH 3
+        TEST_WORD FIND
+        TEST_PUSH 64
+
+        TEST_SET_TEXT "DUMP"
+        TEST_WORD INTERPRET
+.endif
+
+.if TESTMODE=2
+; /////////////////////////////////////////////////////////////////////////////////
+.endif
+
+.if TESTMODE
+
+        PRINT_STR DONE
+        halt
+
+.endif
+
+
+
+.if TESTMODE
+
+    ; used for mocking getc
+
+    char_pointer:   dw 0
+
+.endif

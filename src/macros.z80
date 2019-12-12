@@ -1,0 +1,188 @@
+.macro NEXT
+        ex DE,HL
+        jp (IY)
+.endm
+
+.macro NEXT_1
+        jp (IY)
+.endm
+
+; Store the chain of links.
+link: .set 0
+
+.macro defword, name, namelen, flags, label
+
+HEADER_label:
+	    DW link		            ; link
+
+link: .set HEADER_label
+
+    	DB flags + namelen	    ; flags + length byte
+    	DB name		            ; the name
+label:
+    	jp DOCOLON
+    	; list of word pointers follow
+.endm
+
+.macro defcode, name, namelen, flags, label
+
+HEADER_label:
+	    DW link		            ; link
+
+link: .set HEADER_label
+
+	    DB flags + namelen	; flags + length byte
+	    DB name		    ; the name
+label:
+.endm
+
+.macro defvar, name, namelen, flags, label, var_label
+	defcode name,namelen,flags,label
+	    push BC
+	    ld BC, var_label
+    NEXT
+.endm
+
+.macro defconst, name, namelen, flags, label, value
+	defcode name,namelen,flags,label
+    	push BC
+    	ld BC, value
+    NEXT
+.endm
+
+; Macros to deal with the param stack.
+.macro PUSH_PAR, regHI, regLO
+        push BC             ; push TOS reg pair
+        ld B, regHI         ; move register pair into TOS reg pair
+        ld C, regLO
+.endm
+
+.macro POP_PAR, regHI, regLO
+        ld regHI, B         ; move TOS reg pair into register pair
+        ld regLO, c
+        pop BC
+.endm
+
+; Macros to deal with the return stack.
+.macro PUSH_RET, regHI, regLO
+        dec IX              ; push register pair on ret stack
+        ld (IX+0),regHI
+        dec IX
+        ld (IX+0),regLO
+.endm
+
+.macro POP_RET, regHI, regLO
+        ld regLO,(IX+0)     ; pop register pair from ret stk
+        inc IX
+        ld regHI,(IX+0)
+        inc IX
+.endm
+
+.macro SAVE_REGS, regTOS    ; Swap register bank and transfer TOS to regTOS
+        push BC             ; only use if word doesn't execute other words
+        exx
+        pop regTOS
+.endm
+
+.macro RESTORE_REGS, regTOS ; Swap register bank and transfer regTOS to TOS
+        push regTOS         ; only use if word doesn't execute other words
+        exx
+        pop BC
+.endm
+
+.macro RESTORE_REGS0    ; Swap register bank and clear TOS
+                                ; only use if word doesn't execute other words
+        exx
+        pop BC
+.endm
+
+.macro LOAD16, destHI, destLO, srcHI, srcLO    ; transfer from src reg pair to dest reg pair
+        ld destLO, srcLO
+        ld destHI, srcHI
+.endm
+
+.macro ISZERO16, regHI, regLO    ; check if reg pair is zero
+        ld a, regLO              ; NOTE: A is destroyed
+        or regHI
+.endm
+
+.macro PRINT_STR, addr
+        push DE
+        ld DE, addr
+        call printPStr
+        pop DE
+.endm
+
+.macro CMP16, val
+        ld DE, val
+        or A
+        sbc HL, DE
+        ISZERO16 H,L
+.endm
+
+.macro TEST_PUSH, val
+        push BC
+        ld BC, val
+.endm
+
+.macro TEST_POP
+        LOAD16 H,L, B,C
+        pop BC
+.endm
+
+.macro TEST_SET_TEXT, s1
+        ld HL, lineBuf
+        ld (lineBufTop),HL
+        ld (currkey),HL
+        ld HL, tst_text%%M
+        ld (char_pointer), HL
+        jp tst_done%%M
+tst_text%%M:
+        db s1,"\r\n",-1,"\r\n"
+tst_done%%M:
+.endm
+
+.macro TEST_PUSH_TEXT, s1
+        push BC
+        ld BC, tpt_text%%M
+        jp tpt_done%%M
+tpt_text%%M:
+        db s1
+tpt_done%%M:
+.endm
+
+.macro TEST_PUSH_PTEXT, s1
+        push BC
+        ld BC, tpt_text%%M
+        jp tpt_done%%M
+tpt_text%%M:
+        .pstr s1
+tpt_done%%M:
+.endm
+
+.macro TEST_WORD, name
+        ld DE, tf_nextword%%M
+        ld HL, name
+        jp (HL)
+tf_nextword%%M:
+        DW $ + 2
+tf_done%%M:
+.endm
+
+.macro TEST_EXPECT, expect, failtxt
+        call printNum
+        LOAD16 H,L, B,C
+        ld L, C
+        pop BC
+        CMP16 expect
+        jp z, tf_done%%M
+        ld DE, FAILED
+        call printPStr
+        ld DE, te_fail%%M
+        call printPStr
+        halt
+te_fail%%M:
+        .pstr failtxt
+tf_done%%M:
+.endm
+
