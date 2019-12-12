@@ -61,20 +61,36 @@ IF_%%M:
 
 .macro _ELSE
     jr  0
-    CUR_ADR: .set $
-    org CS_TOP - 1
-    db  CUR_ADR - CS_TOP
-    org CUR_ADR
-    CS_TOP: .set $
+    _JR_FORWARD
+
+    ; CUR_ADR: .set $
+    ; org CS_TOP - 1
+    ; db CUR_ADR - CS_TOP
+    ; org CUR_ADR
+
+
+
+    CS_TOP: .set $          ;reuse TOS
 .endm
 
 .macro _ENDIF
+    _JR_FORWARD
 
+
+    ; CUR_ADR: .set $
+    ; org CS_TOP - 1
+    ; db CUR_ADR - CS_TOP
+    ; org CUR_ADR
+
+
+    CS_POP
+.endm
+
+.macro _JR_FORWARD
     CUR_ADR: .set $
     org CS_TOP - 1
     db CUR_ADR - CS_TOP
-    CS_POP
-    org  CUR_ADR
+    org CUR_ADR
 .endm
 
 ; _DO ...<test> _WHILE ... _WEND
@@ -92,11 +108,21 @@ WHILE_%%M:
 
 .macro _WEND
     jr CS_2
-    CUR_ADR: .set  $
-    org CS_TOP - 1
-    db CUR_ADR - CS_TOP
+    _JR_FORWARD
+
+    ; CUR_ADR: .set $
+    ; org CS_TOP - 1
+    ; db CUR_ADR - CS_TOP
+    ; org CUR_ADR
+
+
     CS_POP
     CS_POP
-    org CUR_ADR
 .endm
 
+.macro _UNTIL, cond
+    jr cond, UNTIL_%%M
+    jr CS_TOP
+    CS_POP
+UNTIL_%%M:
+.endm

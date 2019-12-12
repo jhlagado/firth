@@ -26,4 +26,12 @@ _WEND
     nop
 
 
+ld B, 5
+_DO
+    nop
+    dec B
+_UNTIL Z
+
+nop
+
 CS_CHECK
