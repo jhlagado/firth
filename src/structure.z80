@@ -1,4 +1,3 @@
-
 CS_10:  .set  0
 CS_9:   .set  0
 CS_8:   .set  0
@@ -75,42 +74,25 @@ IF_%%M:
 
 .macro _BEGIN
     _CS_PUSH $
-    CS_TOP: .set $
 .endm
 
 .macro _WHILE, cond
     jr cond, WHILE_%%M
     jr 0
     _CS_PUSH $
-    CS_TOP: .set $
 WHILE_%%M:
 .endm
 
 .macro _REPEAT
     jr CS_2
     CUR_ADR: .set  $
-    org STK_LVL_1 - 1
-    db CUR_ADR - C_TOP
+    org CS_TOP - 1
+    db CUR_ADR - CS_TOP
     org CUR_ADR
     _CS_POP
 .endm
 
 
 
-
 ; ------------------------------------------------------------------------
-
-ld A,1
-or a
-
-_IF z
-    nop
-    nop
-_ELSE
-    nop
-    nop
-    nop
-_ENDIF
-
-nop
 
