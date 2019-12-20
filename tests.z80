@@ -1,3 +1,5 @@
+.include "test-macros.z80"
+
 .if TESTMODE
 
     DONE:           .pstr "\r\nDone! \r\n"

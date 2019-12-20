@@ -1,0 +1,66 @@
+.macro TEST_PUSH, val
+        push BC
+        ld BC, val
+.endm
+
+.macro TEST_POP
+        LOAD16 H,L, B,C
+        pop BC
+.endm
+
+.macro TEST_SET_TEXT, s1
+        ld HL, lineBuf
+        ld (lineBufTop),HL
+        ld (currkey),HL
+        ld HL, tst_text%%M
+        ld (char_pointer), HL
+        jp tst_done%%M
+tst_text%%M:
+        db s1,"\r\n",-1,"\r\n"
+tst_done%%M:
+.endm
+
+.macro TEST_PUSH_TEXT, s1
+        push BC
+        ld BC, tpt_text%%M
+        jp tpt_done%%M
+tpt_text%%M:
+        db s1
+tpt_done%%M:
+.endm
+
+.macro TEST_PUSH_PTEXT, s1
+        push BC
+        ld BC, tpt_text%%M
+        jp tpt_done%%M
+tpt_text%%M:
+        .pstr s1
+tpt_done%%M:
+.endm
+
+.macro TEST_WORD, name
+        ld DE, tf_nextword%%M
+        ld HL, name
+        jp (HL)
+tf_nextword%%M:
+        DW $ + 2
+tf_done%%M:
+.endm
+
+.macro TEST_EXPECT, expect, failtxt
+        call printNum
+        LOAD16 H,L, B,C
+        ld L, C
+        pop BC
+        CMP16 expect
+        jp z, tf_done%%M
+        ld DE, FAILED
+        call printPStr
+        ld DE, te_fail%%M
+        call printPStr
+        halt
+te_fail%%M:
+        .pstr failtxt
+tf_done%%M:
+.endm
+
