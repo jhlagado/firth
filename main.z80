@@ -1505,7 +1505,7 @@ COLD:
 
 TXT_NEWLINE:    .pstr "\r\n"
 TXT_PROMPT:     .pstr "\r\n> "
-TXT_INTRO:      .pstr "Firth of Forth Z80\r\n\r\n"
+TXT_INTRO:      .pstr "Firth of Forth Z80\r\nby John Hardy (c) 2019\r\n"
 TXT_ERROR:      .pstr "PARSE ERROR: "
 TXT_STACK_UNDERFLOW:
         .pstr "Error: Stack underflow\r\n"
@@ -1539,6 +1539,5 @@ VAR_BASE:       dw 10
 VAR_LATEST:     dw HEADER_LATEST
 
 START_USER:                     ; user allocated data starts here
-
 
 
