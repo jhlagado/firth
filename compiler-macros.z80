@@ -77,29 +77,29 @@ CPL_TOP .set 0
     org CUR_ADR
 .endm
 
-; .macro cDO
-;     CPL_PUSH $
-; .endm
+.macro cDO
+    CPL_PUSH $
+.endm
 
-; .macro cWHILE
-;     jr $
-;     CPL_PUSH $
-; .endm
+.macro cWHILE
+    DW ZBRANCH, 0
+    CPL_PUSH $
+.endm
 
-; .macro cWEND
-;     jr CPL_2
-;     BRANCH_FWD
-;     CPL_POP
-;     CPL_POP
-; .endm
+.macro cWEND
+    DW ZBRANCH, CPL_2 - $ - 2
+    BRANCH_FWD
+    CPL_POP
+    CPL_POP
+.endm
 
-; .macro cUNTIL
-;     jp CPL_TOP
-;     CPL_POP
-; .endm
+.macro cUNTIL
+    DW ZBRANCH, CPL_TOP - $ - 2
+    CPL_POP
+.endm
 
-; .macro cFOREVER
-;     jp CPL_TOP
-;     CPL_POP
-; .endm
+.macro cFOREVER
+    DW ZBRANCH, CPL_TOP - $ - 2
+    CPL_POP
+.endm
 
