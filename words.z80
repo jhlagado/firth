@@ -198,22 +198,22 @@ defcode "0BRANCH",7,0,ZBRANCH
         inc DE
         NEXT
 
-defcode "JUMP",4,0,JUMP          ; absolute branching
-        ex DE, HL                ; replace the instruction pointer
-        ld E, (HL)
-        inc HL
-        ld D, (HL)
-        LOAD16 H,L, D,E
-        NEXT_1
+; defcode "JUMP",4,0,JUMP          ; absolute branching
+;         ex DE, HL                ; replace the instruction pointer
+;         ld E, (HL)
+;         inc HL
+;         ld D, (HL)
+;         LOAD16 H,L, D,E
+;         NEXT_1
 
-; ?JUMP   x --              jump if TOS zero
-defcode "ZJUMP",5,0,ZJUMP
-        ISZERO16 B,C        ; test old TOS
-        pop BC              ; pop new TOS
-        jr z, JUMP          ; if old TOS=0, branch
-        inc DE              ; else skip inline value
-        inc DE
-        NEXT
+; ; ?JUMP   x --              jump if TOS zero
+; defcode "ZJUMP",5,0,ZJUMP
+;         ISZERO16 B,C        ; test old TOS
+;         pop BC              ; pop new TOS
+;         jr z, JUMP          ; if old TOS=0, branch
+;         inc DE              ; else skip inline value
+;         inc DE
+;         NEXT
 
 ; U*   u1 u2 -- ud   unsigned mutliply
 defcode "U*",2,0,UMUL  ; u1 u2 -- ud
@@ -757,7 +757,6 @@ defword "CR",2,0,CR                  ; ( -- )
 
 defcode "KEY?",4,0,QKEY              ; ( -- c )
     	push BC		                ; save TOS
-    ; 	call getrdy
     	call inputReady
         ld BC, 1                    ; TOS = true
         jr nz, QKEY_DONE
