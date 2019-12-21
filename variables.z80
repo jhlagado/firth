@@ -1,3 +1,9 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; variables
+;;
+;; storage locations declared in RAM
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 serBuf:         ds SER_BUFSIZE
 serInPtr:       dw 0
 serRdPtr:       dw 0

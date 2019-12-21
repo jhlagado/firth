@@ -1,3 +1,9 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; constant
+;;
+;; constamts decalred in assembly lanaguage
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 ROM_SIZE        equ     $1000
 RAM_SIZE        equ     $10000 - ROM_SIZE
 SER_BUFSIZE     equ     3FH

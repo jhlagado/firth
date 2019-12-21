@@ -1,11 +1,11 @@
-;-------------------------------------------------------------------------------
-; Compiler Macros
-; Macros for defining Forth control structures in Assembly
-; these tasks are normally performed by immediately executing words
-; in compiler mode but here we need to define them early using the assembler.
-; We use DW to define Forth words and these macros to calculate
-; branches between them.
-;-------------------------------------------------------------------------------
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; compiler-macros
+;; Macros for defining Forth control structures in Assembly
+;; these tasks are normally performed by immediately executing words
+;; in compiler mode but here we need to define them early using the assembler.
+;; We use DW to define Forth words and these macros to calculate
+;; branches between them.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 CPL_COUNT .set 0
 
