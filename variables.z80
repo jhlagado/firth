@@ -21,3 +21,10 @@ VAR_SZ:         dw RET_STACK
 VAR_BASE:       dw 10
 VAR_LATEST:     dw HEADER_LATEST
 
+.if TESTMODE
+
+    ; used for mocking getc
+
+    char_pointer:   dw 0
+
+.endif
