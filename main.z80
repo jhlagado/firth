@@ -73,7 +73,12 @@ TESTS_START:
 .endif
 
 .if TESTMODE = 2
-;     ; ////////////////////////////////////
+    ; ////////////////////////////////////
+    TEST_PUSH 2
+    TEST_PUSH 2
+    TEST_SET_TEXT "ADD"
+    TEST_WORD INTERPRET
+    TEST_EXPECT 4, "2 2 ADD = 4"
 .endif
 
 .if TESTMODE
