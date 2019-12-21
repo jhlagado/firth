@@ -1,0 +1,105 @@
+;-------------------------------------------------------------------------------
+; Compiler Macros
+; Macros for defining Forth control structures in Assembly
+; these tasks are normally performed by immediately executing words
+; in compiler mode but here we need to define them early using the assembler.
+; We use DW to define Forth words and these macros to calculate
+; branches between them.
+;-------------------------------------------------------------------------------
+
+CPL_COUNT .set 0
+
+CPL_10 .set 0
+CPL_9 .set 0
+CPL_8 .set 0
+CPL_7 .set 0
+CPL_6 .set 0
+CPL_5 .set 0
+CPL_4 .set 0
+CPL_3 .set 0
+CPL_2 .set 0
+CPL_TOP .set 0
+
+.macro line, label, index
+    label_index: db index
+.endm
+
+.macro CPL_PUSH, arg
+    CPL_COUNT .set CPL_COUNT + 1
+
+    CPL_10 .set CPL_9
+    CPL_9 .set CPL_8
+    CPL_8 .set CPL_7
+    CPL_7 .set CPL_6
+    CPL_6 .set CPL_5
+    CPL_5 .set CPL_4
+    CPL_4 .set CPL_3
+    CPL_3 .set CPL_2
+    CPL_2 .set CPL_TOP
+    CPL_TOP .set arg
+.endm
+
+.macro CPL_POP
+    CPL_COUNT .set CPL_COUNT - 1
+
+    CPL_TOP .set CPL_2
+    CPL_2 .set CPL_3
+    CPL_3 .set CPL_4
+    CPL_4 .set CPL_5
+    CPL_5 .set CPL_6
+    CPL_6 .set CPL_7
+    CPL_7 .set CPL_8
+    CPL_8 .set CPL_9
+    CPL_9 .set CPL_10
+    CPL_10 .set 0
+.endm
+
+.macro cIF
+    DW ZBRANCH, 0
+    CPL_PUSH $
+.endm
+
+.macro cELSE
+    DW BRANCH, 0
+    BRANCH_FWD
+    CPL_TOP .set $          ;reuse TOS
+.endm
+
+.macro cENDIF
+    BRANCH_FWD
+    CPL_POP
+.endm
+
+.macro BRANCH_FWD
+    CUR_ADR .set $
+    org CPL_TOP - 2
+    DW CUR_ADR - CPL_TOP + 2
+    org CUR_ADR
+.endm
+
+; .macro cDO
+;     CPL_PUSH $
+; .endm
+
+; .macro cWHILE
+;     jr $
+;     CPL_PUSH $
+; .endm
+
+; .macro cWEND
+;     jr CPL_2
+;     BRANCH_FWD
+;     CPL_POP
+;     CPL_POP
+; .endm
+
+; .macro cUNTIL
+;     jp CPL_TOP
+;     CPL_POP
+; .endm
+
+; .macro cFOREVER
+;     jp CPL_TOP
+;     CPL_POP
+; .endm
+
