@@ -444,29 +444,30 @@ toNumber:
     	inc IY
     	push DE		        ; push 0 on stack
     	cp '-'		        ; negative number?
-    	jr nz, toNumber2
-    	pop DE
-        ld HL, 1
-    	push HL		        ; push <> 0 on stack, indicating negative
-    	dec BC
-    	ISZERO16 B,C
-    	jr nz, toNumber1
-    	pop HL		        ; error: string is only '-'.
-    	ld BC, 1
-        pop HL
-        pop IY
-        ret                 ; de = number, BC = err
+    	_if z
+        	pop DE
+            ld HL, 1
+        	push HL		        ; push <> 0 on stack, indicating negative
+        	dec BC
+        	ISZERO16 B,C
+        	jr nz, toNumber1
+        	pop HL		        ; error: string is only '-'.
+        	ld BC, 1
+            pop HL
+            pop IY
+            ret                 ; de = number, BC = err
 
-	    ; Loop reading digits.
-toNumber1:
-        push BC
-    	ld BC, (VAR_BASE)	; get BASE (in %dl)
-        call unsignedMultiply 	        ; de *= BASE, HL is destroyed
-    	pop BC
+    	    ; Loop reading digits.
+    toNumber1:
+            push BC
+        	ld BC, (VAR_BASE)	; get BASE (in %dl)
+            call unsignedMultiply 	        ; de *= BASE, HL is destroyed
+        	pop BC
 
-    	ld A, (IY)		    ; a = next character in string
-    	inc IY
-        jr toNumber2
+        	ld A, (IY)		    ; a = next character in string
+        	inc IY
+            jr toNumber2
+        _endif
 	                        ; Convert 0-9, A-z to a number 0-35.
 toNumber2:
         sub '0'		        ; < '0'?
