@@ -481,12 +481,9 @@ toNumber:
             add a, 10
         _endif
 
-        ld HL, (VAR_BASE)    ; get BASE (in %dl)
-        cp L                ; >= BASE?
-        _if nc               ; then invalid char, end of number
-            jr toNumber4
-        _endif
-                            ; OK, so add it to de and loop.
+        ld HL, (VAR_BASE)       ; get BASE (in %dl)
+        cp L                    ; >= BASE? then invalid char, end of number
+        jr nc, toNumber4        ; OK, so add it to de and loop.
         add A, E
         ld E, A
         ld A, 0
@@ -494,10 +491,7 @@ toNumber:
         ld D, A
         dec BC              ; dec char count
         ISZERO16 B,C
-        ; jr nz, toNumber1
-        _if z
-            jr toNumber4
-        _endif
+        jr z, toNumber4
         push BC
         ld BC, (VAR_BASE)    ; get BASE (in %dl)
         call unsignedMultiply             ; de *= BASE, HL is destroyed
