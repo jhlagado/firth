@@ -484,13 +484,15 @@ toNumber:
         cp 10                ; <= '9'?
         _if nc
             sub 17                ; < 'A'? (17 is 'A'-'0')
-            jr c, toNumberExit
+            ; jr c, toNumberExit
+            _break c
             add a, 10
         _endif
 
         ld HL, (VAR_BASE)       ; get BASE (in %dl)
         cp L                    ; >= BASE? then invalid char, end of number
-        jr nc, toNumberExit        ; OK, so add it to de and loop.
+        ; jr nc, toNumberExit        ; OK, so add it to de and loop.
+        _break nc
         add A, E
         ld E, A
         ld A, 0
@@ -498,7 +500,8 @@ toNumber:
         ld D, A
         dec BC              ; dec char count
         ISZERO16 B,C
-        jr z, toNumberExit
+        ; jr z, toNumberExit
+        _break z
         push BC
         ld BC, (VAR_BASE)    ; get BASE (in %dl)
         call unsignedMultiply             ; de *= BASE, HL is destroyed
