@@ -118,9 +118,9 @@ inputReady:
         ret
 
 DOCOLON:
-    	PUSH_RET D,E		; push IP on to the return stack
-    	inc HL		        ; HL = W which points to codeword, so make
-    	inc HL		        ; IP point to first data word
+        PUSH_RET D,E        ; push IP on to the return stack
+        inc HL                ; HL = W which points to codeword, so make
+        inc HL                ; IP point to first data word
         inc HL
 
 DO_NEXT_1:
@@ -302,18 +302,18 @@ negateNum:
 ; HL / C remainder in A
 divideWordByByte:
         ld B, 16
-        xor	A
+        xor    A
 DIV_LOOP:
-        add	HL, HL
+        add    HL, HL
         rla
-        jr	c, L2
-        cp	C
-        jr	c, L3
+        jr    c, L2
+        cp    C
+        jr    c, L3
 L2:
-        sub	C
-        inc	L
+        sub    C
+        inc    L
 L3:
-        djnz	DIV_LOOP
+        djnz    DIV_LOOP
         ret
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -327,34 +327,34 @@ getKey:
         push DE
         push BC
 getKey1:
-    	ld HL, (currkey)
-    	ld DE, (lineBufTop)
-    	or A
-    	sbc HL, DE
-    	jr nc, getKey2			    ; exhausted the input lineBuf?
+        ld HL, (currkey)
+        ld DE, (lineBufTop)
+        or A
+        sbc HL, DE
+        jr nc, getKey2                ; exhausted the input lineBuf?
 
-    	ld HL, (currkey)
-    	ld A,(HL)		            ; get next key from input lineBuf
-    	inc HL
-    	ld (currkey),HL	        ; increment currkey
+        ld HL, (currkey)
+        ld A,(HL)                    ; get next key from input lineBuf
+        inc HL
+        ld (currkey),HL            ; increment currkey
         jr getKey3
 
-getKey2:	; Out of input get a line
+getKey2:    ; Out of input get a line
         ld HL, lineBuf
         ld DE, LINE_BUFSIZE
         call getline
         ld HL, lineBuf
-    	ld (currkey), HL
+        ld (currkey), HL
         or A
-    	adc HL, BC		            ; lineBuf+DE = lineBufTop
-    	ld (lineBufTop),HL
+        adc HL, BC                    ; lineBuf+DE = lineBufTop
+        ld (lineBufTop),HL
         jr getKey1
 
 getKey3:
         pop BC
         pop DE
         pop HL
-    	ret
+        ret
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; getToken -  returns a word string as delimited by spaces
@@ -366,58 +366,58 @@ getKey3:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 getToken:
-	    ; Search for first non-blank character.
-	    ; Also skip \ comments.
-	    push HL
-	    push AF
+        ; Search for first non-blank character.
+        ; Also skip \ comments.
+        push HL
+        push AF
 gtk1:
-    	call getKey		            ; get next key, returned in A
+        call getKey                    ; get next key, returned in A
         bit 7, A                    ; check end of input
         jr z, gtk1a
         ld BC, 0
         jr gtk_RETURN
 
 gtk1a:
-    	cp " " + 1                  ; <= space?
-    	jr c, gtk1             ; if so, keep looking
-    	cp $5C                     ; \ start of a comment?
-    	jr nz, gtk2	        ; if so, skip the comment
-    	; Code to skip \ comments to end of the current line.
+        cp " " + 1                  ; <= space?
+        jr c, gtk1             ; if so, keep looking
+        cp $5C                     ; \ start of a comment?
+        jr nz, gtk2            ; if so, skip the comment
+        ; Code to skip \ comments to end of the current line.
 gtk_COMMENT:
-    	call getKey
-    	cp "\r"		                ; end of line yet?
-    	jr z, gtk_COMMENT_EXIT
-    	cp "\n"		                ; end of line yet?
-    	jr z, gtk_COMMENT_EXIT
-    	jr gtk_COMMENT
+        call getKey
+        cp "\r"                        ; end of line yet?
+        jr z, gtk_COMMENT_EXIT
+        cp "\n"                        ; end of line yet?
+        jr z, gtk_COMMENT_EXIT
+        jr gtk_COMMENT
 gtk_COMMENT_EXIT:
         jr gtk1
 
-    	; Search for the end of the word, storing chars as we go.
+        ; Search for the end of the word, storing chars as we go.
 gtk2:
         ld E,31
-    	ld HL, wordBuf      ; pointer to return lineBuf
+        ld HL, wordBuf      ; pointer to return lineBuf
 gtk_LOOP:
-    	ld (HL), A          ; add character to return lineBuf
-    	inc HL
-    	call getKey		    ; get next key
-    	cp ' ' + 1		    ; <= space?
-    	jr c, gtk_END
-    	dec E
-    	jr z, gtk_END
-    	jr gtk_LOOP
+        ld (HL), A          ; add character to return lineBuf
+        inc HL
+        call getKey            ; get next key
+        cp ' ' + 1            ; <= space?
+        jr c, gtk_END
+        dec E
+        jr z, gtk_END
+        jr gtk_LOOP
 gtk_END:
 
-    	; Return the word (well, the static lineBuf) and length.
-    	ld DE, wordBuf
-    	or A
-    	sbc HL, DE     ; return length of the word
+        ; Return the word (well, the static lineBuf) and length.
+        ld DE, wordBuf
+        or A
+        sbc HL, DE     ; return length of the word
         LOAD16 B,C, H,L
 
 gtk_RETURN:
         pop AF
         pop HL
-    	ret
+        ret
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; toNumber -  converts string to number in the
@@ -435,61 +435,72 @@ toNumber:
     push HL             ; IY = HL
     pop IY
 
-	ld DE, 0            ; 16 bit accum
-	ld HL, 0            ; 8 bit char
+    ld DE, 0            ; 16 bit accum
+    ld HL, 0            ; 8 bit char
     ISZERO16 B,C        ; if BC == 0 exit de = 0, BC = 0 (no error)
-	_if nz          	; trying to parse a zero-length string is an error, But will return 0.
-    	                    ; Check if first character is '-'.
-    	ld A, (IY)		    ; l = first character in string
-    	inc IY
-    	push DE		        ; push 0 on stack
-    	cp '-'		        ; negative number?
-    	_if z
-        	pop DE
+    _if nz              ; trying to parse a zero-length string is an error, But will return 0.
+                            ; Check if first character is '-'.
+        ld A, (IY)            ; l = first character in string
+        inc IY
+        push DE                ; push 0 on stack
+        cp '-'                ; negative number?
+        _if z
+            pop DE
             ld HL, 1
-        	push HL		        ; push <> 0 on stack, indicating negative
-        	dec BC
-        	ISZERO16 B,C
-        	_if z
-            	pop HL		        ; error: string is only '-'.
-            	ld BC, 1
+            push HL                ; push <> 0 on stack, indicating negative
+            dec BC
+            ISZERO16 B,C
+            _if z
+                pop HL                ; error: string is only '-'.
+                ld BC, 1
                 pop HL
                 pop IY
                 ret                 ; de = number, BC = err
             _endif
-    	    ; Loop reading digits.
-    toNumber1:
+            ; Loop reading digits.
             push BC
-        	ld BC, (VAR_BASE)	; get BASE (in %dl)
-            call unsignedMultiply 	        ; de *= BASE, HL is destroyed
-        	pop BC
+            ld BC, (VAR_BASE)    ; get BASE (in %dl)
+            call unsignedMultiply             ; de *= BASE, HL is destroyed
+            pop BC
 
-        	ld A, (IY)		    ; a = next character in string
-        	inc IY
+            ld A, (IY)            ; a = next character in string
+            inc IY
         _endif
-	                        ; Convert 0-9, A-z to a number 0-35.
+                            ; Convert 0-9, A-z to a number 0-35.
+    toNumber1:
 
-        sub '0'		        ; < '0'?
-    	jr c, toNumber4     ; invalid char, end of number
-    	cp 10		        ; <= '9'?
-    	_if nc
-        	sub 17		        ; < 'A'? (17 is 'A'-'0')
-        	jr c, toNumber4
-        	add a, 10
+        sub '0'                ; < '0'?
+        jr c, toNumber4     ; invalid char, end of number
+        cp 10                ; <= '9'?
+        _if nc
+            sub 17                ; < 'A'? (17 is 'A'-'0')
+            jr c, toNumber4
+            add a, 10
         _endif
 
-    	ld HL, (VAR_BASE)	; get BASE (in %dl)
-        cp l		        ; >= BASE?
-        _if c               ; then invalid char, end of number
-    	                    ; OK, so add it to de and loop.
-        	add A, E
-        	ld E, A
-        	ld A, 0
-        	adc a, d
-        	ld D, A
-        	dec BC              ; dec char count
-            ISZERO16 B,C
-            jr nz, toNumber1
+        ld HL, (VAR_BASE)    ; get BASE (in %dl)
+        cp L                ; >= BASE?
+        _if nc               ; then invalid char, end of number
+            jr toNumber4
+        _endif
+                            ; OK, so add it to de and loop.
+        add A, E
+        ld E, A
+        ld A, 0
+        adc a, d
+        ld D, A
+        dec BC              ; dec char count
+        ISZERO16 B,C
+        ; jr nz, toNumber1
+        _if nz
+            push BC
+            ld BC, (VAR_BASE)    ; get BASE (in %dl)
+            call unsignedMultiply             ; de *= BASE, HL is destroyed
+            pop BC
+
+            ld A, (IY)            ; a = next character in string
+            inc IY
+            jp toNumber1
         _endif
         jr toNumber4
 
@@ -583,32 +594,32 @@ unsignedSlashMod:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 lookup:
-	; Now we start searching backwards through the dictionary for this word.
+    ; Now we start searching backwards through the dictionary for this word.
 
-	ld DE, (VAR_LATEST)     ; LATEST points to name header of the latest word in the dictionary
+    ld DE, (VAR_LATEST)     ; LATEST points to name header of the latest word in the dictionary
 
     _do
         ISZERO16 D,E            ; NULL pointer?  (end of the linked list)
-    	ret z
+        ret z
 
-    	; Compare the length expected and the length of the word.
-    	; Note that if the MSK_HIDDEN flag is set on the word, then by a bit of trickery
-    	; this won't pick the word (the length will appear to be wrong).
+        ; Compare the length expected and the length of the word.
+        ; Note that if the MSK_HIDDEN flag is set on the word, then by a bit of trickery
+        ; this won't pick the word (the length will appear to be wrong).
 
         push DE                     ; save ptr to header
 
         inc DE                      ; skip over first field
         inc DE
-    	ld A, (DE)	                ; a = flags+length field
-    	and MSK_HIDDEN | MSK_LENGTH    ; %al = name length
-    	cp C		                ; Length is the same?
+        ld A, (DE)                    ; a = flags+length field
+        and MSK_HIDDEN | MSK_LENGTH    ; %al = name length
+        cp C                        ; Length is the same?
         _if z
-        	; Compare the strings in detail.
+            ; Compare the strings in detail.
             inc DE                  ; DE = Dictionary string we are checking against.
 
             push HL                 ; save HL, BC
             push BC
-        	call compareStr           ; Compare the strings. BC = len
+            call compareStr           ; Compare the strings. BC = len
             pop BC
             pop HL
 
@@ -654,4 +665,3 @@ compareStr:
     ; count exhausted & no mismatch found
     ld A,0          ; a=0 (s1=s2)
     ret
-    
