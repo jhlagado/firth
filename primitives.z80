@@ -492,16 +492,18 @@ toNumber:
         dec BC              ; dec char count
         ISZERO16 B,C
         ; jr nz, toNumber1
-        _if nz
-            push BC
-            ld BC, (VAR_BASE)    ; get BASE (in %dl)
-            call unsignedMultiply             ; de *= BASE, HL is destroyed
-            pop BC
-
-            ld A, (IY)            ; a = next character in string
-            inc IY
-            jp toNumber1
+        _if z
+            jr toNumber4
         _endif
+        push BC
+        ld BC, (VAR_BASE)    ; get BASE (in %dl)
+        call unsignedMultiply             ; de *= BASE, HL is destroyed
+        pop BC
+
+        ld A, (IY)            ; a = next character in string
+        inc IY
+        jp toNumber1
+
         jr toNumber4
 
 
