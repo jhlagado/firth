@@ -438,63 +438,30 @@ toNumber:
     ld DE, 0            ; 16 bit accum
     ld HL, 0            ; 8 bit char
     ISZERO16 B,C        ; if BC == 0 exit de = 0, BC = 0 (no error)
-    _if nz              ; trying to parse a zero-length string is an error, But will return 0.
+    _if z              ; trying to parse a zero-length string is an error, But will return 0.
+        pop HL
+        pop IY
+        ret                 ; de = number, BC = err
+    _endif
                             ; Check if first character is '-'.
-        ld A, (IY)            ; l = first character in string
-        inc IY
-        push DE                ; push 0 on stack
-        cp '-'                ; negative number?
-        _if z
-            pop DE
-            ld HL, 1
-            push HL                ; push <> 0 on stack, indicating negative
-            dec BC
-            ISZERO16 B,C
-            _if z
-                pop HL                ; error: string is only '-'.
-                ld BC, 1
-                pop HL
-                pop IY
-                ret                 ; de = number, BC = err
-            _endif
-            ; Loop reading digits.
-            push BC
-            ld BC, (VAR_BASE)    ; get BASE (in %dl)
-            call unsignedMultiply             ; de *= BASE, HL is destroyed
-            pop BC
-
-            ld A, (IY)            ; a = next character in string
-            inc IY
-        _endif
-                            ; Convert 0-9, A-z to a number 0-35.
-    toNumber1:
-
-        sub '0'                ; < '0'?
-        jr c, toNumber4     ; invalid char, end of number
-        cp 10                ; <= '9'?
-        _if nc
-            sub 17                ; < 'A'? (17 is 'A'-'0')
-            jr c, toNumber4
-            add a, 10
-        _endif
-
-        ld HL, (VAR_BASE)    ; get BASE (in %dl)
-        cp L                ; >= BASE?
-        _if nc               ; then invalid char, end of number
-            jr toNumber4
-        _endif
-                            ; OK, so add it to de and loop.
-        add A, E
-        ld E, A
-        ld A, 0
-        adc a, d
-        ld D, A
-        dec BC              ; dec char count
+    ld A, (IY)            ; l = first character in string
+    inc IY
+    push DE                ; push 0 on stack
+    cp '-'                ; negative number?
+    _if z
+        pop DE
+        ld HL, 1
+        push HL                ; push <> 0 on stack, indicating negative
+        dec BC
         ISZERO16 B,C
-        ; jr nz, toNumber1
         _if z
-            jr toNumber4
+            pop HL                ; error: string is only '-'.
+            ld BC, 1
+            pop HL
+            pop IY
+            ret                 ; de = number, BC = err
         _endif
+        ; Loop reading digits.
         push BC
         ld BC, (VAR_BASE)    ; get BASE (in %dl)
         call unsignedMultiply             ; de *= BASE, HL is destroyed
@@ -502,19 +469,55 @@ toNumber:
 
         ld A, (IY)            ; a = next character in string
         inc IY
-        jp toNumber1
+    _endif
+                        ; Convert 0-9, A-z to a number 0-35.
+toNumber1:
 
+    sub '0'                ; < '0'?
+    jr c, toNumber4     ; invalid char, end of number
+    cp 10                ; <= '9'?
+    _if nc
+        sub 17                ; < 'A'? (17 is 'A'-'0')
+        jr c, toNumber4
+        add a, 10
+    _endif
+
+    ld HL, (VAR_BASE)    ; get BASE (in %dl)
+    cp L                ; >= BASE?
+    _if nc               ; then invalid char, end of number
         jr toNumber4
+    _endif
+                        ; OK, so add it to de and loop.
+    add A, E
+    ld E, A
+    ld A, 0
+    adc a, d
+    ld D, A
+    dec BC              ; dec char count
+    ISZERO16 B,C
+    ; jr nz, toNumber1
+    _if z
+        jr toNumber4
+    _endif
+    push BC
+    ld BC, (VAR_BASE)    ; get BASE (in %dl)
+    call unsignedMultiply             ; de *= BASE, HL is destroyed
+    pop BC
+
+    ld A, (IY)            ; a = next character in string
+    inc IY
+    jp toNumber1
+
+    jr toNumber4
 
 
 toNumber4:
-        pop HL
-        ISZERO16 H,L
-        _if nz              ; if not -ve then skip
-            ex DE,HL        ; negate de
-            call negateNum
-            ex DE,HL
-        _endif
+    pop HL
+    ISZERO16 H,L
+    _if nz              ; if not -ve then skip
+        ex DE,HL        ; negate de
+        call negateNum
+        ex DE,HL
     _endif
     pop HL
     pop IY
