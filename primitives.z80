@@ -373,51 +373,48 @@ getToken:
 gtk1:
         call getKey                    ; get next key, returned in A
         bit 7, A                    ; check end of input
-        jr z, gtk1a
-        ld BC, 0
-        jr gtk_RETURN
+        _if nz
+            ld BC, 0
+        _else
+            cp " " + 1                  ; <= space?
+            jr c, gtk1             ; if so, keep looking
+            cp $5C                     ; \ start of a comment?
+            jr nz, gtk2            ; if so, skip the comment
+            ; Code to skip \ comments to end of the current line.
+    gtk_COMMENT:
+            call getKey
+            cp "\r"                        ; end of line yet?
+            jr z, gtk_COMMENT_EXIT
+            cp "\n"                        ; end of line yet?
+            jr z, gtk_COMMENT_EXIT
+            jr gtk_COMMENT
+    gtk_COMMENT_EXIT:
+            jr gtk1
 
-gtk1a:
-        cp " " + 1                  ; <= space?
-        jr c, gtk1             ; if so, keep looking
-        cp $5C                     ; \ start of a comment?
-        jr nz, gtk2            ; if so, skip the comment
-        ; Code to skip \ comments to end of the current line.
-gtk_COMMENT:
-        call getKey
-        cp "\r"                        ; end of line yet?
-        jr z, gtk_COMMENT_EXIT
-        cp "\n"                        ; end of line yet?
-        jr z, gtk_COMMENT_EXIT
-        jr gtk_COMMENT
-gtk_COMMENT_EXIT:
-        jr gtk1
+            ; Search for the end of the word, storing chars as we go.
+    gtk2:
+            ld E,31
+            ld HL, wordBuf      ; pointer to return lineBuf
+    gtk_LOOP:
+        _do
+            ld (HL), A          ; add character to return lineBuf
+            inc HL
+            call getKey            ; get next key
+            cp ' ' + 1            ; <= space?
+            jr c, gtk_END
+            dec E
+        _until z
 
-        ; Search for the end of the word, storing chars as we go.
-gtk2:
-        ld E,31
-        ld HL, wordBuf      ; pointer to return lineBuf
-gtk_LOOP:
-        ld (HL), A          ; add character to return lineBuf
-        inc HL
-        call getKey            ; get next key
-        cp ' ' + 1            ; <= space?
-        jr c, gtk_END
-        dec E
-        jr z, gtk_END
-        jr gtk_LOOP
-gtk_END:
-
+    gtk_END:
         ; Return the word (well, the static lineBuf) and length.
         ld DE, wordBuf
         or A
         sbc HL, DE     ; return length of the word
         LOAD16 B,C, H,L
-
-gtk_RETURN:
-        pop AF
-        pop HL
-        ret
+    _endif
+    pop AF
+    pop HL
+    ret
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; toNumber -  converts string to number in the
@@ -473,17 +470,17 @@ toNumber:
                         ; Convert 0-9, A-z to a number 0-35.
     _do
         sub '0'                ; < '0'?
-        jr c, toNumber4     ; invalid char, end of number
+        jr c, toNumberExit     ; invalid char, end of number
         cp 10                ; <= '9'?
         _if nc
             sub 17                ; < 'A'? (17 is 'A'-'0')
-            jr c, toNumber4
+            jr c, toNumberExit
             add a, 10
         _endif
 
         ld HL, (VAR_BASE)       ; get BASE (in %dl)
         cp L                    ; >= BASE? then invalid char, end of number
-        jr nc, toNumber4        ; OK, so add it to de and loop.
+        jr nc, toNumberExit        ; OK, so add it to de and loop.
         add A, E
         ld E, A
         ld A, 0
@@ -491,7 +488,7 @@ toNumber:
         ld D, A
         dec BC              ; dec char count
         ISZERO16 B,C
-        jr z, toNumber4
+        jr z, toNumberExit
         push BC
         ld BC, (VAR_BASE)    ; get BASE (in %dl)
         call unsignedMultiply             ; de *= BASE, HL is destroyed
@@ -502,7 +499,7 @@ toNumber:
     _forever
 
 
-toNumber4:
+toNumberExit:
     pop HL
     ISZERO16 H,L
     _if nz              ; if not -ve then skip
