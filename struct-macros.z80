@@ -1,0 +1,184 @@
+;-------------------------------------------------------------------------------
+;
+; Assembler Structured Control-flow Macros
+; by John Hardy 2019
+;
+; Inspired by the work of Garth Wilson and Dave Keenan
+; http://wilsonminesco.com/StructureMacros/
+; http://dkeenan.com/AddingStructuredControlFlowToAnyAssembler.htm
+;
+;-------------------------------------------------------------------------------
+
+STRUC_COUNT .set 0
+
+STRUC_12 .set 0
+STRUC_11 .set 0
+STRUC_10 .set 0
+STRUC_9 .set 0
+STRUC_8 .set 0
+STRUC_7 .set 0
+STRUC_6 .set 0
+STRUC_5 .set 0
+STRUC_4 .set 0
+STRUC_3 .set 0
+STRUC_2 .set 0
+STRUC_TOP .set 0
+
+.macro STRUC_PUSH, arg
+    STRUC_COUNT .set STRUC_COUNT + 1
+
+    STRUC_12 .set STRUC_11
+    STRUC_11 .set STRUC_10
+    STRUC_10 .set STRUC_9
+    STRUC_9 .set STRUC_8
+    STRUC_8 .set STRUC_7
+    STRUC_7 .set STRUC_6
+    STRUC_6 .set STRUC_5
+    STRUC_5 .set STRUC_4
+    STRUC_4 .set STRUC_3
+    STRUC_3 .set STRUC_2
+    STRUC_2 .set STRUC_TOP
+    STRUC_TOP .set arg
+.endm
+
+.macro STRUC_POP
+    STRUC_COUNT .set STRUC_COUNT - 1
+
+    STRUC_TOP .set STRUC_2
+    STRUC_2 .set STRUC_3
+    STRUC_3 .set STRUC_4
+    STRUC_4 .set STRUC_5
+    STRUC_5 .set STRUC_6
+    STRUC_6 .set STRUC_7
+    STRUC_7 .set STRUC_8
+    STRUC_8 .set STRUC_9
+    STRUC_9 .set STRUC_10
+    STRUC_10 .set STRUC_11
+    STRUC_11 .set STRUC_12
+    STRUC_12 .set 0
+.endm
+
+.macro JUMP_FWD
+    CUR_ADR .set $
+    org STRUC_TOP - 2
+    dw CUR_ADR
+    org CUR_ADR
+.endm
+
+; _if flag
+;     ...
+; _else
+;     ...
+; _endif
+
+.macro _if, flag
+    jp flag, L_%%M
+    jp $              ; placeholder jump to _else or _endif
+    STRUC_PUSH $
+L_%%M:
+.endm
+
+.macro _else
+    jp $              ; placeholder jump to _endif
+    JUMP_FWD
+    STRUC_TOP .set $  ;reuse top of stack
+.endm
+
+.macro _endif
+    JUMP_FWD
+    STRUC_POP
+.endm
+
+; _switch
+;
+;     ...test
+;     _case flag
+;         ...
+;     _endcase
+;
+;     ...test
+;     _case flag
+;         ...
+;     _endcase
+;
+;     ...       ; default case
+;
+; _endswitch
+
+.macro _switch
+    jr L_%%M
+    jp $            ; placeholder jump to endswitch
+    STRUC_PUSH $
+L_%%M:
+.endm
+
+.macro _case, flag
+    jp flag, L_%%M
+    jp $            ; placeholder jump to endcase
+    STRUC_PUSH $
+L_%%M:
+.endm
+
+.macro _endcase
+    jp STRUC_2 - 3  ; jump to placeholder jump to endswitch
+    JUMP_FWD
+    STRUC_POP
+.endm
+
+.macro _endswitch
+    JUMP_FWD
+    STRUC_POP
+.endm
+
+; _do
+;     ...test
+;     _while flag
+;     ...
+; _enddo
+
+.macro _do
+    STRUC_PUSH $
+.endm
+
+.macro _while, flag
+    jp flag, L_%%M
+    jp $            ; placeholder jump to _enddo
+    STRUC_PUSH $
+L_%%M:
+.endm
+
+.macro _enddo
+    jr STRUC_2
+    JUMP_FWD
+    STRUC_POP
+    STRUC_POP
+.endm
+
+; _do
+;     ...test
+; _until flag
+
+.macro _until, flag
+    jp flag, L_%%M
+    jp STRUC_TOP
+    STRUC_POP
+L_%%M:
+.endm
+
+; _do
+;     ...test
+; _untilZero
+
+.macro _untilZero
+    djnz STRUC_TOP
+    STRUC_POP
+.endm
+
+; _do
+;     ...
+; _forever
+
+.macro _forever
+    jp STRUC_TOP
+    STRUC_POP
+.endm

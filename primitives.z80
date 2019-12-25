@@ -626,29 +626,27 @@ lookup_3:                       ; no match
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; compareStr - string equal
 ;; params: de = string1, HL = string2, BC = length
-;; returns: a = -1, 0, 1
+;; returns: a = -1, 0, 1, HL = mismatch char if a != 0
 ;; destroys: de, HL, BC
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 compareStr:
-        ISZERO16 B,C    ; test for Count=0
-        jr z,smatch     ; by definition, match!
-sloop:
-        ld A,(DE)
-        inc DE
-        cpi
-        jr nz,sdiff     ; char mismatch: exit
-        jp pe,sloop     ; count not exhausted
-smatch:
-        ; count exhausted & no mismatch found
-        ld A,0          ; a=0000  (s1=s2)
-        ret
-sdiff:
-        ; mismatch!  undo last 'cpi' increment
-        dec HL          ; point at mismatch char
-        cp (HL)         ; set cy if char1 < char2
-        sbc A,A
-        or 1            ; a = ff if carry, 1 if no carry
-        ret
 
-
-
+    ISZERO16 B,C    ; test for Count=0
+    _if nz          ; length zero = match
+        _do
+            ld A,(DE)
+            inc DE
+            cpi
+            _if nz          ; char mismatch: exit
+                dec HL      ; point at mismatch char
+                cp (HL)     ; set cy if char1 < char2
+                sbc A,A
+                or 1        ; a = ff if carry, 1 if no carry
+                ret
+            _endif
+        _until po
+    _endif
+    ; count exhausted & no mismatch found
+    ld A,0          ; a=0 (s1=s2)
+    ret
