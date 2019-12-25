@@ -370,7 +370,7 @@ getToken:
     ; Also skip \ comments.
     push HL
     push AF
-gtk1:
+
     _do
         call getKey                 ; get next key, returned in A
         bit 7, A                    ; check end of input
@@ -380,10 +380,10 @@ gtk1:
             pop HL
             ret
         _endif
-        cp " " + 1                  ; <= space?
+        cp " " + 1                      ; <= space?
         _if nc
-            cp $5C                     ; \ start of a comment?
-            _if z
+            cp $5C                      ; \ start of a comment?
+            _if z                       ; if yes skip to end of line
                 _do
                     call getKey
                     cp "\r"             ; end of line yet?
@@ -391,7 +391,7 @@ gtk1:
                         cp "\n"         ; end of line yet?
                     _endif
                 _until z
-            _else                   ; if so, skip the comment
+            _else
                 ld E,31
                 ld HL, wordBuf      ; pointer to return lineBuf
                 _do
@@ -399,23 +399,24 @@ gtk1:
                     inc HL
                     call getKey            ; get next key
                     cp ' ' + 1            ; <= space?
-                    jr c, gtkExit
+                    jr c, getTokenExit
                     dec E
                 _until z
-
-            gtkExit:
-                ; Return the word (well, the static lineBuf) and length.
-                ld DE, wordBuf
-                or A
-                sbc HL, DE     ; return length of the word
-                LOAD16 B,C, H,L
-                pop AF
-                pop HL
-                ret
 
             _endif
         _endif
     _forever
+
+getTokenExit:
+    ; Return the word (well, the static lineBuf) and length.
+    ld DE, wordBuf
+    or A
+    sbc HL, DE     ; return length of the word
+    LOAD16 B,C, H,L
+    pop AF
+    pop HL
+    ret
+
 
     ; Search for the end of the word, storing chars as we go.
 
