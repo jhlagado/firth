@@ -373,17 +373,19 @@ getToken:
 
     _do
         call getKey                 ; get next key, returned in A
-        bit 7, A                    ; check end of input
-        _if nz
-            ld BC, 0
-            pop AF
-            pop HL
-            ret
-        _endif
-        cp " " + 1                      ; <= space?
-        _if nc
+
+        _switch
+
+            bit 7, A                    ; check end of input
+            _if nz
+                ld BC, 0
+                pop AF
+                pop HL
+                ret
+            _endif
+
             cp $5C                      ; \ start of a comment?
-            _if z                       ; if yes skip to end of line
+            _case z                       ; if yes skip to end of line
                 _do
                     call getKey
                     cp "\r"             ; end of line yet?
@@ -391,7 +393,10 @@ getToken:
                         cp "\n"         ; end of line yet?
                     _endif
                 _until z
-            _else
+            _endcase
+
+            cp " " + 1                      ; <= space?
+            _case nc
                 ld E,31
                 ld HL, wordBuf      ; pointer to return lineBuf
                 _do
@@ -402,9 +407,10 @@ getToken:
                     jr c, getTokenExit
                     dec E
                 _until z
+            _endcase
 
-            _endif
-        _endif
+        _endswitch
+
     _forever
 
 getTokenExit:
