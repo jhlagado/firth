@@ -471,44 +471,41 @@ toNumber:
         inc IY
     _endif
                         ; Convert 0-9, A-z to a number 0-35.
-toNumber1:
+    _do
+        sub '0'                ; < '0'?
+        jr c, toNumber4     ; invalid char, end of number
+        cp 10                ; <= '9'?
+        _if nc
+            sub 17                ; < 'A'? (17 is 'A'-'0')
+            jr c, toNumber4
+            add a, 10
+        _endif
 
-    sub '0'                ; < '0'?
-    jr c, toNumber4     ; invalid char, end of number
-    cp 10                ; <= '9'?
-    _if nc
-        sub 17                ; < 'A'? (17 is 'A'-'0')
-        jr c, toNumber4
-        add a, 10
-    _endif
+        ld HL, (VAR_BASE)    ; get BASE (in %dl)
+        cp L                ; >= BASE?
+        _if nc               ; then invalid char, end of number
+            jr toNumber4
+        _endif
+                            ; OK, so add it to de and loop.
+        add A, E
+        ld E, A
+        ld A, 0
+        adc a, d
+        ld D, A
+        dec BC              ; dec char count
+        ISZERO16 B,C
+        ; jr nz, toNumber1
+        _if z
+            jr toNumber4
+        _endif
+        push BC
+        ld BC, (VAR_BASE)    ; get BASE (in %dl)
+        call unsignedMultiply             ; de *= BASE, HL is destroyed
+        pop BC
 
-    ld HL, (VAR_BASE)    ; get BASE (in %dl)
-    cp L                ; >= BASE?
-    _if nc               ; then invalid char, end of number
-        jr toNumber4
-    _endif
-                        ; OK, so add it to de and loop.
-    add A, E
-    ld E, A
-    ld A, 0
-    adc a, d
-    ld D, A
-    dec BC              ; dec char count
-    ISZERO16 B,C
-    ; jr nz, toNumber1
-    _if z
-        jr toNumber4
-    _endif
-    push BC
-    ld BC, (VAR_BASE)    ; get BASE (in %dl)
-    call unsignedMultiply             ; de *= BASE, HL is destroyed
-    pop BC
-
-    ld A, (IY)            ; a = next character in string
-    inc IY
-    jp toNumber1
-
-    jr toNumber4
+        ld A, (IY)            ; a = next character in string
+        inc IY
+    _forever
 
 
 toNumber4:
