@@ -429,17 +429,16 @@ gtk_RETURN:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 toNumber:
-        push IY             ; save regs
-        push HL
+    push IY             ; save regs
+    push HL
 
-        push HL             ; IY = HL
-        pop IY
+    push HL             ; IY = HL
+    pop IY
 
-    	ld DE, 0            ; 16 bit accum
-    	ld HL, 0            ; 8 bit char
-        ISZERO16 B,C        ; if BC == 0 exit de = 0, BC = 0 (no error)
-    	jr z, toNumber5	; trying to parse a zero-length string is an error, But will return 0.
-
+	ld DE, 0            ; 16 bit accum
+	ld HL, 0            ; 8 bit char
+    ISZERO16 B,C        ; if BC == 0 exit de = 0, BC = 0 (no error)
+	_if nz          	; trying to parse a zero-length string is an error, But will return 0.
     	                    ; Check if first character is '-'.
     	ld A, (IY)		    ; l = first character in string
     	inc IY
@@ -454,7 +453,9 @@ toNumber:
     	jr nz, toNumber1
     	pop HL		        ; error: string is only '-'.
     	ld BC, 1
-    	jr toNumber5
+        pop HL
+        pop IY
+        ret                 ; de = number, BC = err
 
 	    ; Loop reading digits.
 toNumber1:
@@ -465,46 +466,48 @@ toNumber1:
 
     	ld A, (IY)		    ; a = next character in string
     	inc IY
-
+        jr toNumber2
 	                        ; Convert 0-9, A-z to a number 0-35.
 toNumber2:
         sub '0'		        ; < '0'?
     	jr c, toNumber4     ; invalid char, end of number
     	cp 10		        ; <= '9'?
-    	jr c, toNumber3
-    	sub 17		        ; < 'A'? (17 is 'A'-'0')
-    	jr c, toNumber4
-    	add a, 10
+    	_if nc
+        	sub 17		        ; < 'A'? (17 is 'A'-'0')
+        	jr c, toNumber4
+        	add a, 10
+        _endif
+        jr toNumber3
 
 toNumber3:
     	ld HL, (VAR_BASE)	; get BASE (in %dl)
         cp l		        ; >= BASE?
-    	jr nc, toNumber4    ; then invalid char, end of number
-
+        _if c               ; then invalid char, end of number
     	                    ; OK, so add it to de and loop.
-    	add A, E
-    	ld E, A
-    	ld A, 0
-    	adc a, d
-    	ld D, A
-    	dec BC              ; dec char count
-        ISZERO16 B,C
-        jr nz, toNumber1
+        	add A, E
+        	ld E, A
+        	ld A, 0
+        	adc a, d
+        	ld D, A
+        	dec BC              ; dec char count
+            ISZERO16 B,C
+            jr nz, toNumber1
+        _endif
+        jr toNumber4
 
-	    ; Negate the result if first character was '-' (saved on the stack).
+
 toNumber4:
         pop HL
         ISZERO16 H,L
-    	jr z, toNumber5    ; if not -ve then skip
-
-        ex DE,HL            ; negate de
-        call negateNum
-        ex DE,HL
-
-toNumber5:
-        pop HL
-        pop IY
-        ret                 ; de = number, BC = err
+        _if nz              ; if not -ve then skip
+            ex DE,HL        ; negate de
+            call negateNum
+            ex DE,HL
+        _endif
+    _endif
+    pop HL
+    pop IY
+    ret                 ; de = number, BC = err
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; unsignedMultiply -  unsigned multiply
@@ -653,3 +656,4 @@ compareStr:
     ; count exhausted & no mismatch found
     ld A,0          ; a=0 (s1=s2)
     ret
+    
