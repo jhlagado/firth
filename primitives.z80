@@ -450,13 +450,13 @@ toNumber:
         	push HL		        ; push <> 0 on stack, indicating negative
         	dec BC
         	ISZERO16 B,C
-        	jr nz, toNumber1
-        	pop HL		        ; error: string is only '-'.
-        	ld BC, 1
-            pop HL
-            pop IY
-            ret                 ; de = number, BC = err
-
+        	_if z
+            	pop HL		        ; error: string is only '-'.
+            	ld BC, 1
+                pop HL
+                pop IY
+                ret                 ; de = number, BC = err
+            _endif
     	    ; Loop reading digits.
     toNumber1:
             push BC
