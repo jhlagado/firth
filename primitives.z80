@@ -404,24 +404,23 @@ getToken:
                     inc HL
                     call getKey            ; get next key
                     cp ' ' + 1            ; <= space?
-                    jr c, getTokenExit
+                    _break c
                     dec E
                 _until z
+                ; Return the word (well, the static lineBuf) and length.
+                ld DE, wordBuf
+                or A
+                sbc HL, DE     ; return length of the word
+                LOAD16 B,C, H,L
+                pop AF
+                pop HL
+                ret
             _endcase
 
         _endswitch
 
     _loop
 
-getTokenExit:
-    ; Return the word (well, the static lineBuf) and length.
-    ld DE, wordBuf
-    or A
-    sbc HL, DE     ; return length of the word
-    LOAD16 B,C, H,L
-    pop AF
-    pop HL
-    ret
 
 
     ; Search for the end of the word, storing chars as we go.
@@ -484,14 +483,12 @@ toNumber:
         cp 10                ; <= '9'?
         _if nc
             sub 17                ; < 'A'? (17 is 'A'-'0')
-            ; jr c, toNumberExit
             _break c
             add a, 10
         _endif
 
         ld HL, (VAR_BASE)       ; get BASE (in %dl)
         cp L                    ; >= BASE? then invalid char, end of number
-        ; jr nc, toNumberExit        ; OK, so add it to de and loop.
         _break nc
         add A, E
         ld E, A
@@ -500,7 +497,6 @@ toNumber:
         ld D, A
         dec BC              ; dec char count
         ISZERO16 B,C
-        ; jr z, toNumberExit
         _break z
         push BC
         ld BC, (VAR_BASE)    ; get BASE (in %dl)
