@@ -132,25 +132,25 @@ L_%%M:
 
 ; _do
 ;     ...test
-;     _while flag
+;     _break flag
 ;     ...
 ; _enddo
 
 .macro _do
-    STRUC_PUSH $
-.endm
-
-.macro _while, flag
-    jp flag, L_%%M
-    jp $            ; placeholder jump to _enddo
+    jr L_%%M
+    jp $                    ; placeholder jump to enddo
     STRUC_PUSH $
 L_%%M:
 .endm
 
-.macro _enddo
-    jr STRUC_2
+.macro _break, flag
+    jp flag, STRUC_TOP - 3  ; jump to jump to enddo
     JUMP_FWD
-    STRUC_POP
+.endm
+
+.macro _loop
+    jp STRUC_TOP
+    JUMP_FWD
     STRUC_POP
 .endm
 
@@ -160,7 +160,8 @@ L_%%M:
 
 .macro _until, flag
     jp flag, L_%%M
-    jp STRUC_TOP
+    jr STRUC_TOP
+    JUMP_FWD
     STRUC_POP
 L_%%M:
 .endm
@@ -171,14 +172,6 @@ L_%%M:
 
 .macro _untilZero
     djnz STRUC_TOP
-    STRUC_POP
-.endm
-
-; _do
-;     ...
-; _forever
-
-.macro _forever
-    jp STRUC_TOP
+    JUMP_FWD
     STRUC_POP
 .endm

@@ -411,7 +411,7 @@ getToken:
 
         _endswitch
 
-    _forever
+    _loop
 
 getTokenExit:
     ; Return the word (well, the static lineBuf) and length.
@@ -506,7 +506,7 @@ toNumber:
 
         ld A, (IY)            ; a = next character in string
         inc IY
-    _forever
+    _loop
 
 
 toNumberExit:
@@ -639,7 +639,7 @@ lookup:
         ld H,(HL)
         ld l,a
         ex DE, HL
-    _forever
+    _loop
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; compareStr - string equal
