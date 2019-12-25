@@ -383,40 +383,41 @@ gtk1:
         cp " " + 1                  ; <= space?
         _if nc
             cp $5C                     ; \ start of a comment?
-            jr nz, gtk2             ; if so, skip the comment
-                                    ; Code to skip \ comments to end of the current line.
-            _do
-                call getKey
-                cp "\r"             ; end of line yet?
-                _if nz
-                    cp "\n"         ; end of line yet?
-                _endif
-            _until z
+            _if z
+                _do
+                    call getKey
+                    cp "\r"             ; end of line yet?
+                    _if nz
+                        cp "\n"         ; end of line yet?
+                    _endif
+                _until z
+            _else                   ; if so, skip the comment
+                ld E,31
+                ld HL, wordBuf      ; pointer to return lineBuf
+                _do
+                    ld (HL), A          ; add character to return lineBuf
+                    inc HL
+                    call getKey            ; get next key
+                    cp ' ' + 1            ; <= space?
+                    jr c, gtkExit
+                    dec E
+                _until z
+
+            gtkExit:
+                ; Return the word (well, the static lineBuf) and length.
+                ld DE, wordBuf
+                or A
+                sbc HL, DE     ; return length of the word
+                LOAD16 B,C, H,L
+                pop AF
+                pop HL
+                ret
+
+            _endif
         _endif
     _forever
 
     ; Search for the end of the word, storing chars as we go.
-gtk2:
-    ld E,31
-    ld HL, wordBuf      ; pointer to return lineBuf
-    _do
-        ld (HL), A          ; add character to return lineBuf
-        inc HL
-        call getKey            ; get next key
-        cp ' ' + 1            ; <= space?
-        jr c, gtkExit
-        dec E
-    _until z
-
-gtkExit:
-    ; Return the word (well, the static lineBuf) and length.
-    ld DE, wordBuf
-    or A
-    sbc HL, DE     ; return length of the word
-    LOAD16 B,C, H,L
-    pop AF
-    pop HL
-    ret
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; toNumber -  converts string to number in the
