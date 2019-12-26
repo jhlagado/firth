@@ -163,9 +163,9 @@ L_%%M:
 
 ; _do
 ;     ...test
-; _untilZero
+; _djnz
 
-.macro _untilZero
+.macro _djnz
     djnz STRUC_TOP
     JUMP_FWD
     STRUC_POP
