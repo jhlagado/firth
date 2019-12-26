@@ -301,20 +301,23 @@ negateNum:
 
 ; HL / C remainder in A
 divideWordByByte:
-        ld B, 16
-        xor    A
-DIV_LOOP:
-        add    HL, HL
+    ld B, 16
+    xor A
+    _do
+        add HL, HL
         rla
-        jr    c, L2
-        cp    C
-        jr    c, L3
-L2:
-        sub    C
-        inc    L
-L3:
-        djnz    DIV_LOOP
-        ret
+        _if c
+            sub C
+            inc L
+        _else
+            cp C
+            _if nc
+                sub C
+                inc L
+            _endif
+        _endif
+    _djnz
+    ret
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; getKey -  inputs a line buffered character
