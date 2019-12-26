@@ -392,7 +392,8 @@ getToken:
                     _if nz
                         cp "\n"         ; end of line yet?
                     _endif
-                _until z
+                    _until z
+                _enddo
             _endcase
 
             cp " " + 1                      ; <= space?
@@ -404,9 +405,10 @@ getToken:
                     inc HL
                     call getKey            ; get next key
                     cp ' ' + 1            ; <= space?
-                    _break c
+                    _until c
                     dec E
-                _until z
+                    _until z
+                _enddo
                 ; Return the word (well, the static lineBuf) and length.
                 ld DE, wordBuf
                 or A
@@ -419,7 +421,7 @@ getToken:
 
         _endswitch
 
-    _loop
+    _enddo
 
 
 
@@ -483,13 +485,13 @@ toNumber:
         cp 10                ; <= '9'?
         _if nc
             sub 17                ; < 'A'? (17 is 'A'-'0')
-            _break c
+            _until c
             add a, 10
         _endif
 
         ld HL, (VAR_BASE)       ; get BASE (in %dl)
         cp L                    ; >= BASE? then invalid char, end of number
-        _break nc
+        _until nc
         add A, E
         ld E, A
         ld A, 0
@@ -497,7 +499,7 @@ toNumber:
         ld D, A
         dec BC              ; dec char count
         ISZERO16 B,C
-        _break z
+        _until z
         push BC
         ld BC, (VAR_BASE)    ; get BASE (in %dl)
         call unsignedMultiply             ; de *= BASE, HL is destroyed
@@ -505,7 +507,7 @@ toNumber:
 
         ld A, (IY)            ; a = next character in string
         inc IY
-    _loop
+    _enddo
 
 
 toNumberExit:
@@ -541,7 +543,8 @@ unsignedMultiply:
             add HL,BC
         _endif
         dec A
-    _until z
+        _until z
+    _enddo
     ret
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -575,7 +578,8 @@ unsignedSlashMod:
         rl E                ; rotate result bit into DE,
         rl D                ; and next bit of DE into carry
         dec A
-    _until z
+        _until z
+    _enddo
                             ; now have complemented quotient in DE,
                             ; and remainder in HL
     ld A,D
@@ -638,7 +642,7 @@ lookup:
         ld H,(HL)
         ld l,a
         ex DE, HL
-    _loop
+    _enddo
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; compareStr - string equal
@@ -662,7 +666,8 @@ compareStr:
                 or 1        ; a = ff if carry, 1 if no carry
                 ret
             _endif
-        _until po
+            _until po
+        _enddo
     _endif
     ; count exhausted & no mismatch found
     ld A,0          ; a=0 (s1=s2)

@@ -143,27 +143,22 @@ L_%%M:
 L_%%M:
 .endm
 
-.macro _break, flag
+.macro _while, flag
+    jr flag L_%%M
+    jp STRUC_TOP - 3        ; jump to jump to enddo
+    JUMP_FWD
+L_%%M:
+.endm
+
+.macro _until, flag
     jp flag, STRUC_TOP - 3  ; jump to jump to enddo
     JUMP_FWD
 .endm
 
-.macro _loop
+.macro _enddo
     jp STRUC_TOP
     JUMP_FWD
     STRUC_POP
-.endm
-
-; _do
-;     ...test
-; _until flag
-
-.macro _until, flag
-    jp flag, L_%%M
-    jr STRUC_TOP
-    JUMP_FWD
-    STRUC_POP
-L_%%M:
 .endm
 
 ; _do
