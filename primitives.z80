@@ -183,106 +183,113 @@ gl_loopexit:
         call printCR
         ret
 
+printRoutine:
+    _do
+        ld A,(DE)
+        call putc
+        inc DE
+        dec BC
+        ISZERO16 B,C
+        _until z
+    _enddo
+    ret
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Output pascal string
 ; params: DE = addr
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 printPStr:
-        push AF
-        push BC
-        push DE
-        ld A, (DE)
-        ld C, A
-        ld B, 0
-        inc DE
-        jr printStrLoop
+    push AF
+    push BC
+    push DE
+    ld A, (DE)
+    ld C, A
+    ld B, 0
+    inc DE
+    call printRoutine
+    pop DE
+    pop BC
+    pop AF
+    ret
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Output string
 ; params: DE = addr, BC = length
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 printStr:
-        push AF
-        push BC
-        push DE
-printStrLoop:
-        ld A,(DE)
-        call putc
-        inc DE
-        dec BC
-        ISZERO16 B,C
-        jr nz, printStrloop
-        pop DE
-        pop BC
-        pop AF
-        ret
+    push AF
+    push BC
+    push DE
+    call printRoutine
+    pop DE
+    pop BC
+    pop AF
+    ret
 
 printCR:
-        push DE
-        ld DE, TXT_NEWLINE
-        call printPStr
-        pop DE
-        ret
+    push DE
+    ld DE, TXT_NEWLINE
+    call printPStr
+    pop DE
+    ret
 
 printNum:
-        push HL
-        push DE
-        push BC
-        LOAD16 H,L, B,C
-        ld A,(VAR_BASE)
-        ld C,A
-        ld DE, wordBuf
-        call formatNum
-        call printStr
-        ld a, " "
-        call putc
-        pop BC
-        pop DE
-        pop HL
-        ret
+    push HL
+    push DE
+    push BC
+    LOAD16 H,L, B,C
+    ld A,(VAR_BASE)
+    ld C,A
+    ld DE, wordBuf
+    call formatNum
+    call printStr
+    ld a, " "
+    call putc
+    pop BC
+    pop DE
+    pop HL
+    ret
 
 ; HL = data, DE = ptr to lineBuf, C = base
 ; DE = ptr to string, BC = length
 formatNum:
-        ; Detect sign of HL.
-        bit 7, H
-        jr z, formatNum_UNSIGNED
-
+    ; Detect sign of HL.
+    bit 7, H
+    _if nz
         ; HL is negative. Output '-' to string and negate HL.
         ld A, '-'
         ld (DE), A
         inc DE
         call negateNum
+    _endif
 
-formatNum_UNSIGNED:
+    ld B, 0     ; B will count character length of number
+    _do
+        push BC
+        call divideWordByByte  ; HL = HL / A, A = remainder
+        pop BC
+        push AF
+        inc B
+        ISZERO16 H,L
+        _until z
+    _enddo
+    _do
+        pop AF
+        add A,$30                     ; convert digit to ASCII
+        cp $3A
+        _if nc
+            add A,7
+        _endif
+        ld (DE), A
+        inc DE
+    _djnz
 
-        ld B, 0     ; B will count character length of number
-        _do
-            push BC
-            call divideWordByByte  ; HL = HL / A, A = remainder
-            pop BC
-            push AF
-            inc B
-            ISZERO16 H,L
-            _until z
-        _enddo
-        _do
-            pop AF
-            add A,$30                     ; convert digit to ASCII
-            cp $3A
-            _if nc
-                add A,7
-            _endif
-            ld (DE), A
-            inc DE
-        _djnz
-
-        ld HL,wordBuf           ;calc length
-        ex DE,HL
-        or A
-        sbc HL,DE
-        LOAD16 B,C, H,L
-        ret
+    ld HL,wordBuf           ;calc length
+    ex DE,HL
+    or A
+    sbc HL,DE
+    LOAD16 B,C, H,L
+    ret
 
 ; negate HL
 negateNum:
@@ -322,34 +329,34 @@ divideWordByByte:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 getKey:
-        push HL
-        push DE
-        push BC
-        _do
-            ld HL, (currkey)
-            ld DE, (lineBufTop)
+    push HL
+    push DE
+    push BC
+    _do
+        ld HL, (currkey)
+        ld DE, (lineBufTop)
+        or A
+        sbc HL, DE                  ; exhausted the input lineBuf?
+        _if nc
+            ld HL, lineBuf
+            ld DE, LINE_BUFSIZE
+            call getline
+            ld HL, lineBuf
+            ld (currkey), HL
             or A
-            sbc HL, DE                  ; exhausted the input lineBuf?
-            _if nc
-                ld HL, lineBuf
-                ld DE, LINE_BUFSIZE
-                call getline
-                ld HL, lineBuf
-                ld (currkey), HL
-                or A
-                adc HL, BC              ; lineBuf+DE = lineBufTop
-                ld (lineBufTop),HL
-            _endif
-            ld HL, (currkey)
-            ld A,(HL)               ; get next key from input lineBuf
-            inc HL
-            ld (currkey),HL         ; increment currkey
-            _break
-        _enddo
-        pop BC
-        pop DE
-        pop HL
-        ret
+            adc HL, BC              ; lineBuf+DE = lineBufTop
+            ld (lineBufTop),HL
+        _endif
+        ld HL, (currkey)
+        ld A,(HL)               ; get next key from input lineBuf
+        inc HL
+        ld (currkey),HL         ; increment currkey
+        _break
+    _enddo
+    pop BC
+    pop DE
+    pop HL
+    ret
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; getToken -  returns a word string as delimited by spaces
