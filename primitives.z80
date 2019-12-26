@@ -60,41 +60,42 @@ rts0:
 getc:
 .if TESTMODE
 
-        push HL
-        ld HL, (char_pointer)
-        ld A, (HL)
-        inc HL
-        ld (char_pointer), HL
-        pop HL
-        ret
+    push HL
+    ld HL, (char_pointer)
+    ld A, (HL)
+    inc HL
+    ld (char_pointer), HL
+    pop HL
+    ret
 
 .else
-waitForChar:
+    _do
         ld A,(serBufUsed)
         cp $00
-        jr z, waitForChar
-        push HL
-        ld HL,(serRdPtr)
-        inc HL
-        ld A,L             ; Only need to check low byte because lineBuf<256 bytes
-        cp (serBuf + SER_BUFSIZE) & $FF
-        jr nz, notRdWrap
+        _until nz
+    _enddo
+    push HL
+    ld HL,(serRdPtr)
+    inc HL
+    ld A,L             ; Only need to check low byte because lineBuf<256 bytes
+    cp (serBuf + SER_BUFSIZE) & $FF
+    _if z
         ld HL,serBuf
-notRdWrap:
-        di
-        ld (serRdPtr),HL
-        ld A,(serBufUsed)
-        dec A
-        ld (serBufUsed),A
-        cp SER_EMPTYSIZE
-        jr nc,rts1
+    _endif
+    di
+    ld (serRdPtr),HL
+    ld A,(serBufUsed)
+    dec A
+    ld (serBufUsed),A
+    cp SER_EMPTYSIZE
+    _if c
         ld A,RTS_LOW
         out ($80),A
-rts1:
-        ld A,(HL)
-        ei
-        pop HL
-        ret                      ; Char ready in A
+    _endif
+    ld A,(HL)
+    ei
+    pop HL
+    ret                      ; Char ready in A
 .endif
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -103,33 +104,36 @@ rts1:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 putc:
-        push     AF              ; Store character
-conout1:
+    push     AF              ; Store character
+; conout1:
+    _do
         in A,($80)         ; Status byte
         bit 1,A             ; Set Zero flag if still transmitting character
-        jr z,conout1       ; Loop until flag signals ready
-        pop AF              ; Retrieve character
-        out ($81),A         ; Output the character
-        ret
+        _until nz
+    _enddo
+    ; jr z,conout1       ; Loop until flag signals ready
+    pop AF              ; Retrieve character
+    out ($81),A         ; Output the character
+    ret
 
 inputReady:
-        ld A,(serBufUsed)
-        cp $0
-        ret
+    ld A,(serBufUsed)
+    cp $0
+    ret
 
 DOCOLON:
-        PUSH_RET D,E        ; push IP on to the return stack
-        inc HL                ; HL = W which points to codeword, so make
-        inc HL                ; IP point to first data word
-        inc HL
+    PUSH_RET D,E        ; push IP on to the return stack
+    inc HL                ; HL = W which points to codeword, so make
+    inc HL                ; IP point to first data word
+    inc HL
 
 DO_NEXT_1:
-        ld E,(HL)
-        inc HL
-        ld D,(HL)
-        inc HL
-        ex DE,HL
-        jp (HL)
+    ld E,(HL)
+    inc HL
+    ld D,(HL)
+    inc HL
+    ex DE,HL
+    jp (HL)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; getline - input line of text
@@ -138,13 +142,14 @@ DO_NEXT_1:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 getline:
-        push AF
-        push HL
-        PRINT_STR TXT_PROMPT
-        pop HL
-        push HL
-        ld BC, 0
-gl_loop:
+    push AF
+    push HL
+    PRINT_STR TXT_PROMPT
+    pop HL
+    push HL
+    ld BC, 0
+    _do
+    gl_loop:
         call getc
         cp $08
         jr nz, gl_append
@@ -158,30 +163,36 @@ gl_loop:
         dec HL
         dec BC
         jr gl_loop
-gl_append:
+    gl_append:
         ld (HL), A
         inc HL
         inc BC
         cp "\r"
-        jr z, gl_loopexit
+        ; jr z, gl_loopexit
+        _until z
         cp "\n"
-        jr z, gl_loopexit
+        ; jr z, gl_loopexit
+        _until z
         bit 7,a
-        jr nz, gl_checklength
-        call putc
-gl_checklength:
+        ; jr nz, gl_checklength
+        _if z
+            call putc
+        _endif
+    ; gl_checklength:
         ld A, E
         cp C
-        jr c, gl_loopexit
-        jr gl_loop
+        ; jr c, gl_loopexit
+        _until c
+    _enddo
+    ; jr gl_loop
 gl_loopexit:
-        ld a, 0
-        cp c
-        jr z, gl_loop
-        pop AF
-        pop HL
-        call printCR
-        ret
+    ld a, 0
+    cp c
+    jr z, gl_loop
+    pop AF
+    pop HL
+    call printCR
+    ret
 
 printRoutine:
     _do
