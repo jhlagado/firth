@@ -149,46 +149,42 @@ getline:
     push HL
     ld BC, 0
     _do
-    gl_loop:
-        call getc
-        cp $08
-        jr nz, gl_append
-        call putc
-        ld a, " "
-        call putc
-        ld a, $08
-        call putc
-        ISZERO16 B,C
-        jr z, gl_loop
-        dec HL
-        dec BC
-        jr gl_loop
-    gl_append:
-        ld (HL), A
-        inc HL
-        inc BC
-        cp "\r"
-        ; jr z, gl_loopexit
-        _until z
-        cp "\n"
-        ; jr z, gl_loopexit
-        _until z
-        bit 7,a
-        ; jr nz, gl_checklength
-        _if z
-            call putc
-        _endif
-    ; gl_checklength:
-        ld A, E
-        cp C
-        ; jr c, gl_loopexit
-        _until c
+        _do
+            call getc
+            cp $08
+            _if z
+                call putc
+                ld a, " "
+                call putc
+                ld a, $08
+                call putc
+                ISZERO16 B,C
+                _if nz
+                    dec HL
+                    dec BC
+                _endif
+                _continue
+            _endif
+            ld (HL), A
+            inc HL
+            inc BC
+            bit 7,a
+            _if z
+                call putc
+            _endif
+
+            cp "\r"
+            _until z
+            cp "\n"
+            _until z
+            ld A, E
+            cp C
+            _until c
+        _enddo
+        ld a, 0
+        cp c
+        _until nz
     _enddo
-    ; jr gl_loop
-gl_loopexit:
-    ld a, 0
-    cp c
-    jr z, gl_loop
     pop AF
     pop HL
     call printCR
