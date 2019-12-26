@@ -326,31 +326,27 @@ getKey:
         push HL
         push DE
         push BC
-getKey1:
-        ld HL, (currkey)
-        ld DE, (lineBufTop)
-        or A
-        sbc HL, DE
-        jr nc, getKey2                ; exhausted the input lineBuf?
-
-        ld HL, (currkey)
-        ld A,(HL)                    ; get next key from input lineBuf
-        inc HL
-        ld (currkey),HL            ; increment currkey
-        jr getKey3
-
-getKey2:    ; Out of input get a line
-        ld HL, lineBuf
-        ld DE, LINE_BUFSIZE
-        call getline
-        ld HL, lineBuf
-        ld (currkey), HL
-        or A
-        adc HL, BC                    ; lineBuf+DE = lineBufTop
-        ld (lineBufTop),HL
-        jr getKey1
-
-getKey3:
+        _do
+            ld HL, (currkey)
+            ld DE, (lineBufTop)
+            or A
+            sbc HL, DE                  ; exhausted the input lineBuf?
+            _if nc
+                ld HL, lineBuf
+                ld DE, LINE_BUFSIZE
+                call getline
+                ld HL, lineBuf
+                ld (currkey), HL
+                or A
+                adc HL, BC              ; lineBuf+DE = lineBufTop
+                ld (lineBufTop),HL
+            _endif
+            ld HL, (currkey)
+            ld A,(HL)               ; get next key from input lineBuf
+            inc HL
+            ld (currkey),HL         ; increment currkey
+            _break
+        _enddo
         pop BC
         pop DE
         pop HL
@@ -618,9 +614,10 @@ lookup:
         inc DE
         ld A, (DE)                    ; a = flags+length field
         and MSK_HIDDEN | MSK_LENGTH    ; %al = name length
+
         cp C                        ; Length is the same?
         _if z
-            ; Compare the strings in detail.
+                                    ; Compare the strings in detail.
             inc DE                  ; DE = Dictionary string we are checking against.
 
             push HL                 ; save HL, BC
@@ -634,6 +631,7 @@ lookup:
                 pop DE                  ; matched, restore DE and return
                 ret
             _endif
+
         _endif
         pop DE                  ; restore DE
         ex DE, HL               ; load DE with link to previous header
