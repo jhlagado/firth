@@ -14,44 +14,44 @@ DONE:           .pstr "\r\nDone! \r\n"
 FAILED:         .pstr "Failed: \r\n"
 
 serialIn:
-        push AF
-        push HL
+    push AF
+    push HL
 
-        in A,($80)
-        and $01             ; Check if interupt due to read lineBuf full
-        jr z,rts0          ; if not, ignore
-
+    in A,($80)
+    and $01             ; Check if interupt due to read lineBuf full
+    _if nz
         in A,($81)
         push AF
         ld A,(serBufUsed)
         cp SER_BUFSIZE     ; If full then ignore
-        jr nz,notFull
-        pop AF
-        jr rts0
-
-notFull:
-        ld HL,(serInPtr)
-        inc HL
-        ld A,L             ; Only need to check low byte becasuse lineBuf<256 bytes
-        cp (serBuf + SER_BUFSIZE) & $FF
-        jr nz, notWrap
-        ld HL,serBuf
-notWrap:
-        ld (serInPtr),HL
-        pop AF
-        ld (HL),A
-        ld A,(serBufUsed)
-        inc A
-        ld (serBufUsed),A
-        cp SER_FULLSIZE
-        jr c,rts0
-        ld A,RTS_HIGH
-        out ($80),A
+        _if z
+            pop AF
+        _else
+            ld HL,(serInPtr)
+            inc HL
+            ld A,L             ; Only need to check low byte becasuse lineBuf<256 bytes
+            cp (serBuf + SER_BUFSIZE) & $FF
+            _if z
+                ld HL,serBuf
+            _endif
+            ld (serInPtr),HL
+            pop AF
+            ld (HL),A
+            ld A,(serBufUsed)
+            inc A
+            ld (serBufUsed),A
+            cp SER_FULLSIZE
+            _if nc
+                ld A,RTS_HIGH
+                out ($80),A
+            _endif
+        _endif
+    _endif
 rts0:
-        pop HL
-        pop AF
-        ei
-        reti
+    pop HL
+    pop AF
+    ei
+    ret
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; getc - input
