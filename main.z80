@@ -4,6 +4,7 @@ TESTMODE equ 0
 
 .include "constants.z80"
 .include "macros.z80"
+.include "struct-macros.z80"
 .include "compiler-macros.z80"
 
 .org START_ROM
