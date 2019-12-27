@@ -162,6 +162,10 @@ L_%%M:
     JUMP_FWD
 .endm
 
+.macro _continue, flag
+    jp flag, STRUC_TOP            ; start of loop
+.endm
+
 .macro _enddo
     jp STRUC_TOP
     JUMP_FWD
