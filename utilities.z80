@@ -150,24 +150,27 @@ getline:
     ld BC, 0
     _do
         _do
-cont:
             call getc
             cp $08
             _if z
-                call putc
-                ld a, " "
-                call putc
-                ld a, $08
-                call putc
-                ISZERO16 B,C
+                ld B,A
+                ld A,C
+                or A
                 _if nz
                     dec HL
-                    dec BC
+                    dec C
+                    ld A,B
+                    ld B,0      ; BC = length
+                    call putc
+                    ld a, " "
+                    call putc
+                    ld a, $08
+                    call putc
                 _endif
             _else
                 ld (HL), A
                 inc HL
-                inc BC
+                inc C
 
                 cp "\r"
                 _until z
