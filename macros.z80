@@ -19,40 +19,40 @@ link: .set 0
 .macro defword, name, namelen, flags, label
 
 HEADER_label:
-	    DW link		            ; link
+        DW link                    ; link
 
 link: .set HEADER_label
 
-    	DB flags + namelen	    ; flags + length byte
-    	DB name		            ; the name
+        DB flags + namelen        ; flags + length byte
+        DB name                    ; the name
 label:
-    	jp DOCOLON
-    	; list of word pointers follow
+        jp DOCOLON
+        ; list of word pointers follow
 .endm
 
 .macro defcode, name, namelen, flags, label
 
 HEADER_label:
-	    DW link		            ; link
+        DW link                    ; link
 
 link: .set HEADER_label
 
-	    DB flags + namelen	; flags + length byte
-	    DB name		    ; the name
+        DB flags + namelen    ; flags + length byte
+        DB name            ; the name
 label:
 .endm
 
 .macro defvar, name, namelen, flags, label, var_label
-	defcode name,namelen,flags,label
-	    push BC
-	    ld BC, var_label
+    defcode name,namelen,flags,label
+        push BC
+        ld BC, var_label
     NEXT
 .endm
 
 .macro defconst, name, namelen, flags, label, value
-	defcode name,namelen,flags,label
-    	push BC
-    	ld BC, value
+    defcode name,namelen,flags,label
+        push BC
+        ld BC, value
     NEXT
 .endm
 

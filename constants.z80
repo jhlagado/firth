@@ -22,7 +22,7 @@ IO_CTRL         equ     $80
 
 MSK_IMMED       equ     $80
 MSK_HIDDEN      equ     $20
-MSK_LENGTH      equ     $1f	                ; length mask
+MSK_LENGTH      equ     $1f                    ; length mask
 
 JP_OPCODE       equ     $C3
 

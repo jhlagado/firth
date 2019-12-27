@@ -17,7 +17,7 @@ lineBuf:        ds LINE_BUFSIZE
 
 wordBuf:    ds 32
 
-IS_LITERAL:     db 0			; Flag used to record if reading a literal
+IS_LITERAL:     db 0            ; Flag used to record if reading a literal
 
 VAR_HERE:       dw START_USER
 VAR_INTP_STOP:

@@ -32,6 +32,7 @@ RST38:                                      ; rst 38 - INTERRUPT VECTOR [ for IM
 RST66:
     ret                                ; do nothing
 
+.include "utilities.z80"
 .include "primitives.z80"
 .include "words.z80"
 

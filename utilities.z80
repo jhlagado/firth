@@ -1,0 +1,685 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; primitives
+;;
+;; low-level machine code routines
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+TXT_NEWLINE:    .pstr "\r\n"
+TXT_PROMPT:     .pstr "\r\n> "
+TXT_INTRO:      .pstr "Firth of Forth Z80\r\n\r\n"
+TXT_ERROR:      .pstr "PARSE ERROR: "
+TXT_STACK_UNDERFLOW:
+                .pstr "Error: Stack underflow\r\n"
+DONE:           .pstr "\r\nDone! \r\n"
+FAILED:         .pstr "Failed: \r\n"
+
+serialIn:
+    push AF
+    push HL
+
+    in A,($80)
+    and $01             ; Check if interupt due to read lineBuf full
+    _if nz
+        in A,($81)
+        push AF
+        ld A,(serBufUsed)
+        cp SER_BUFSIZE     ; If full then ignore
+        _if z
+            pop AF
+        _else
+            ld HL,(serInPtr)
+            inc HL
+            ld A,L             ; Only need to check low byte becasuse lineBuf<256 bytes
+            cp (serBuf + SER_BUFSIZE) & $FF
+            _if z
+                ld HL,serBuf
+            _endif
+            ld (serInPtr),HL
+            pop AF
+            ld (HL),A
+            ld A,(serBufUsed)
+            inc A
+            ld (serBufUsed),A
+            cp SER_FULLSIZE
+            _if nc
+                ld A,RTS_HIGH
+                out ($80),A
+            _endif
+        _endif
+    _endif
+rts0:
+    pop HL
+    pop AF
+    ei
+    ret
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; getc - input
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+getc:
+.if TESTMODE
+
+    push HL
+    ld HL, (char_pointer)
+    ld A, (HL)
+    inc HL
+    ld (char_pointer), HL
+    pop HL
+    ret
+
+.else
+    _do
+        ld A,(serBufUsed)
+        cp $00
+        _until nz
+    _enddo
+    push HL
+    ld HL,(serRdPtr)
+    inc HL
+    ld A,L             ; Only need to check low byte because lineBuf<256 bytes
+    cp (serBuf + SER_BUFSIZE) & $FF
+    _if z
+        ld HL,serBuf
+    _endif
+    di
+    ld (serRdPtr),HL
+    ld A,(serBufUsed)
+    dec A
+    ld (serBufUsed),A
+    cp SER_EMPTYSIZE
+    _if c
+        ld A,RTS_LOW
+        out ($80),A
+    _endif
+    ld A,(HL)
+    ei
+    pop HL
+    ret                      ; Char ready in A
+.endif
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; putc - output a character
+;; params: A = char to output
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+putc:
+    push     AF              ; Store character
+; conout1:
+    _do
+        in A,($80)         ; Status byte
+        bit 1,A             ; Set Zero flag if still transmitting character
+        _until nz
+    _enddo
+    ; jr z,conout1       ; Loop until flag signals ready
+    pop AF              ; Retrieve character
+    out ($81),A         ; Output the character
+    ret
+
+inputReady:
+    ld A,(serBufUsed)
+    cp $0
+    ret
+
+DOCOLON:
+    PUSH_RET D,E        ; push IP on to the return stack
+    inc HL                ; HL = W which points to codeword, so make
+    inc HL                ; IP point to first data word
+    inc HL
+
+DO_NEXT_1:
+    ld E,(HL)
+    inc HL
+    ld D,(HL)
+    inc HL
+    ex DE,HL
+    jp (HL)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; getline - input line of text
+;; params: HL = addr, DE = max (currently up to 255)
+;; returns: BC = length - up to 255
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+getline:
+    push AF
+    push HL
+    PRINT_STR TXT_PROMPT
+    pop HL
+    push HL
+    ld BC, 0
+    _do
+        _do
+            call getc
+            cp $08
+            _if z
+                call putc
+                ld a, " "
+                call putc
+                ld a, $08
+                call putc
+                ISZERO16 B,C
+                _if nz
+                    dec HL
+                    dec BC
+                _endif
+                _continue
+            _endif
+            ld (HL), A
+            inc HL
+            inc BC
+            bit 7,a
+            _if z
+                call putc
+            _endif
+
+            cp "\r"
+            _until z
+            cp "\n"
+            _until z
+            ld A, E
+            cp C
+            _until c
+        _enddo
+        ld a, 0
+        cp c
+        _until nz
+    _enddo
+    pop AF
+    pop HL
+    call printCR
+    ret
+
+printRoutine:
+    _do
+        ld A,(DE)
+        call putc
+        inc DE
+        dec BC
+        ISZERO16 B,C
+        _until z
+    _enddo
+    ret
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Output pascal string
+; params: DE = addr
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+printPStr:
+    push AF
+    push BC
+    push DE
+    ld A, (DE)
+    ld C, A
+    ld B, 0
+    inc DE
+    call printRoutine
+    pop DE
+    pop BC
+    pop AF
+    ret
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Output string
+; params: DE = addr, BC = length
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+printStr:
+    push AF
+    push BC
+    push DE
+    call printRoutine
+    pop DE
+    pop BC
+    pop AF
+    ret
+
+printCR:
+    push DE
+    ld DE, TXT_NEWLINE
+    call printPStr
+    pop DE
+    ret
+
+printNum:
+    push HL
+    push DE
+    push BC
+    LOAD16 H,L, B,C
+    ld A,(VAR_BASE)
+    ld C,A
+    ld DE, wordBuf
+    call formatNum
+    call printStr
+    ld a, " "
+    call putc
+    pop BC
+    pop DE
+    pop HL
+    ret
+
+; HL = data, DE = ptr to lineBuf, C = base
+; DE = ptr to string, BC = length
+formatNum:
+    ; Detect sign of HL.
+    bit 7, H
+    _if nz
+        ; HL is negative. Output '-' to string and negate HL.
+        ld A, '-'
+        ld (DE), A
+        inc DE
+        call negateNum
+    _endif
+
+    ld B, 0     ; B will count character length of number
+    _do
+        push BC
+        call divideWordByByte  ; HL = HL / A, A = remainder
+        pop BC
+        push AF
+        inc B
+        ISZERO16 H,L
+        _until z
+    _enddo
+    _do
+        pop AF
+        add A,$30                     ; convert digit to ASCII
+        cp $3A
+        _if nc
+            add A,7
+        _endif
+        ld (DE), A
+        inc DE
+    _djnz
+
+    ld HL,wordBuf           ;calc length
+    ex DE,HL
+    or A
+    sbc HL,DE
+    LOAD16 B,C, H,L
+    ret
+
+; negate HL
+negateNum:
+    ; Negate HL (using two's complement)
+    xor A
+    sub L
+    ld L, A
+    ld A, 0     ; Note that xor A or SUB A would disturb CF
+    sbc A, H
+    ld H, A
+    ret
+
+; HL / C remainder in A
+divideWordByByte:
+    ld B, 16
+    xor A
+    _do
+        add HL, HL
+        rla
+        _if c
+            sub C
+            inc L
+        _else
+            cp C
+            _if nc
+                sub C
+                inc L
+            _endif
+        _endif
+    _djnz
+    ret
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; getKey -  inputs a line buffered character
+;; params: none
+;; returns: A = character,
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+getKey:
+    push HL
+    push DE
+    push BC
+    _do
+        ld HL, (currkey)
+        ld DE, (lineBufTop)
+        or A
+        sbc HL, DE                  ; exhausted the input lineBuf?
+        _if nc
+            ld HL, lineBuf
+            ld DE, LINE_BUFSIZE
+            call getline
+            ld HL, lineBuf
+            ld (currkey), HL
+            or A
+            adc HL, BC              ; lineBuf+DE = lineBufTop
+            ld (lineBufTop),HL
+        _endif
+        ld HL, (currkey)
+        ld A,(HL)               ; get next key from input lineBuf
+        inc HL
+        ld (currkey),HL         ; increment currkey
+        _break
+    _enddo
+    pop BC
+    pop DE
+    pop HL
+    ret
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; getToken -  returns a word string as delimited by spaces
+;; ignores leading spaces, ignores comments starting with /
+;;
+;; params: none
+;; returns: DE = address of wordBuf, BC = length,
+;; destroys: AF
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+getToken:
+    ; Search for first non-blank character.
+    ; Also skip \ comments.
+    push HL
+    push AF
+
+    _do
+        call getKey                 ; get next key, returned in A
+
+        _switch
+
+            bit 7, A                    ; check end of input
+            _if nz
+                ld BC, 0
+                pop AF
+                pop HL
+                ret
+            _endif
+
+            cp $5C                      ; \ start of a comment?
+            _case z                       ; if yes skip to end of line
+                _do
+                    call getKey
+                    cp "\r"             ; end of line yet?
+                    _if nz
+                        cp "\n"         ; end of line yet?
+                    _endif
+                    _until z
+                _enddo
+            _endcase
+
+            cp " " + 1                      ; <= space?
+            _case nc
+                ld E,31
+                ld HL, wordBuf      ; pointer to return lineBuf
+                _do
+                    ld (HL), A          ; add character to return lineBuf
+                    inc HL
+                    call getKey            ; get next key
+                    cp ' ' + 1            ; <= space?
+                    _until c
+                    dec E
+                    _until z
+                _enddo
+                ; Return the word (well, the static lineBuf) and length.
+                ld DE, wordBuf
+                or A
+                sbc HL, DE     ; return length of the word
+                LOAD16 B,C, H,L
+                pop AF
+                pop HL
+                ret
+            _endcase
+
+        _endswitch
+
+    _enddo
+
+
+
+    ; Search for the end of the word, storing chars as we go.
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; toNumber -  converts string to number in the
+;; base strored in VAR_BASE
+;;
+;; params: HL = string address, BC = string length
+;; returns: DE = parsed number, BC = 0: success, not 0, uparsed chars
+;; destroys: AF
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+toNumber:
+    push IY             ; save regs
+    push HL
+
+    push HL             ; IY = HL
+    pop IY
+
+    ld DE, 0            ; 16 bit accum
+    ld HL, 0            ; 8 bit char
+    ISZERO16 B,C        ; if BC == 0 exit de = 0, BC = 0 (no error)
+    _if z              ; trying to parse a zero-length string is an error, But will return 0.
+        pop HL
+        pop IY
+        ret                 ; de = number, BC = err
+    _endif
+                            ; Check if first character is '-'.
+    ld A, (IY)            ; l = first character in string
+    inc IY
+    push DE                ; push 0 on stack
+    cp '-'                ; negative number?
+    _if z
+        pop DE
+        ld HL, 1
+        push HL                ; push <> 0 on stack, indicating negative
+        dec BC
+        ISZERO16 B,C
+        _if z
+            pop HL                ; error: string is only '-'.
+            ld BC, 1
+            pop HL
+            pop IY
+            ret                 ; de = number, BC = err
+        _endif
+        ; Loop reading digits.
+        push BC
+        ld BC, (VAR_BASE)    ; get BASE (in %dl)
+        call unsignedMultiply             ; de *= BASE, HL is destroyed
+        pop BC
+
+        ld A, (IY)            ; a = next character in string
+        inc IY
+    _endif
+                        ; Convert 0-9, A-z to a number 0-35.
+    _do
+        sub '0'                ; < '0'?
+        jr c, toNumberExit     ; invalid char, end of number
+        cp 10                ; <= '9'?
+        _if nc
+            sub 17                ; < 'A'? (17 is 'A'-'0')
+            _until c
+            add a, 10
+        _endif
+
+        ld HL, (VAR_BASE)       ; get BASE (in %dl)
+        cp L                    ; >= BASE? then invalid char, end of number
+        _until nc
+        add A, E
+        ld E, A
+        ld A, 0
+        adc a, d
+        ld D, A
+        dec BC              ; dec char count
+        ISZERO16 B,C
+        _until z
+        push BC
+        ld BC, (VAR_BASE)    ; get BASE (in %dl)
+        call unsignedMultiply             ; de *= BASE, HL is destroyed
+        pop BC
+
+        ld A, (IY)            ; a = next character in string
+        inc IY
+    _enddo
+
+
+toNumberExit:
+    pop HL
+    ISZERO16 H,L
+    _if nz              ; if not -ve then skip
+        ex DE,HL        ; negate de
+        call negateNum
+        ex DE,HL
+    _endif
+    pop HL
+    pop IY
+    ret                 ; de = number, BC = err
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; unsignedMultiply -  unsigned multiply
+;;
+;; params:  u1 in BC, u2 in DE
+;; returns: result in HLDE
+;; destroys: AF
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+unsignedMultiply:
+    ld HL,0
+    ld A,17     ; loop counter
+    or A        ; clear carry
+    _do
+        rr H
+        rr L
+        rr D
+        rr E
+        _if c
+            add HL,BC
+        _endif
+        dec A
+        _until z
+    _enddo
+    ret
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; unsignedSlashMod -  unsigned divide
+;;
+;; params:  BC = divisor, HLDE = dividend
+;; returns: BC = quotient, HL = remainder
+;; destroys: AF
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+unsignedSlashMod:
+    ld A,16                 ; loop counter
+    sla E
+    rl D                    ; hi bit DE -> carry
+
+    _do
+        adc HL,HL           ; rot left w/ carry
+        _if c
+                            ; case 1: 17 bit, carry:HL = 1xxxx
+            or A            ; we know we can subtract
+            sbc HL,BC
+            or A            ; clear carry to indicate sub ok
+                            ; case 2: 16 bit, carry:HL = 0xxxx
+        _else
+            sbc HL,BC       ; try the subtract
+            _if c
+                add HL,BC   ; else cancel the subtract
+                scf         ;   and set carry to indicate
+            _endif
+        _endif
+        rl E                ; rotate result bit into DE,
+        rl D                ; and next bit of DE into carry
+        dec A
+        _until z
+    _enddo
+                            ; now have complemented quotient in DE,
+                            ; and remainder in HL
+    ld A,D
+    cpl
+    ld B,A
+    ld A,E
+    cpl
+    ld C,A
+    ret
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; lookup - lookup header in dictionary
+;;
+;; params: HL = string address, BC = string length
+;; returns: DE = found header ptr or 0
+;; destroys: AF
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+lookup:
+    ; Now we start searching backwards through the dictionary for this word.
+
+    ld DE, (VAR_LATEST)     ; LATEST points to name header of the latest word in the dictionary
+
+    _do
+        ISZERO16 D,E            ; NULL pointer?  (end of the linked list)
+        ret z
+
+        ; Compare the length expected and the length of the word.
+        ; Note that if the MSK_HIDDEN flag is set on the word, then by a bit of trickery
+        ; this won't pick the word (the length will appear to be wrong).
+
+        push DE                     ; save ptr to header
+
+        inc DE                      ; skip over first field
+        inc DE
+        ld A, (DE)                    ; a = flags+length field
+        and MSK_HIDDEN | MSK_LENGTH    ; %al = name length
+
+        cp C                        ; Length is the same?
+        _if z
+                                    ; Compare the strings in detail.
+            inc DE                  ; DE = Dictionary string we are checking against.
+
+            push HL                 ; save HL, BC
+            push BC
+            call compareStr           ; Compare the strings. BC = len
+            pop BC
+            pop HL
+
+            or A                    ; if A == 0 then matched
+            _if z
+                pop DE                  ; matched, restore DE and return
+                ret
+            _endif
+
+        _endif
+        pop DE                  ; restore DE
+        ex DE, HL               ; load DE with link to previous header
+        ld A,(HL)               ; in dictionary
+        inc HL
+        ld H,(HL)
+        ld l,a
+        ex DE, HL
+    _enddo
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; compareStr - string equal
+;; params: de = string1, HL = string2, BC = length
+;; returns: a = -1, 0, 1, HL = mismatch char if a != 0
+;; destroys: de, HL, BC
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+compareStr:
+
+    ISZERO16 B,C    ; test for Count=0
+    _if nz          ; length zero = match
+        _do
+            ld A,(DE)
+            inc DE
+            cpi
+            _if nz          ; char mismatch: exit
+                dec HL      ; point at mismatch char
+                cp (HL)     ; set carry if char1 < char2
+                sbc A,A
+                or 1        ; a = ff if carry, 1 if no carry
+                ret
+            _endif
+            _until po
+        _enddo
+    _endif
+    ; count exhausted & no mismatch found
+    ld A,0          ; a=0 (s1=s2)
+    ret
