@@ -5,13 +5,13 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 .macro TEST_PUSH, val
-        push BC
+        PUSH_PAR0 BC
         ld BC, val
 .endm
 
 .macro TEST_POP
         LOAD16 H,L, B,C
-        pop BC
+        POP_PAR0 BC
 .endm
 
 .macro TEST_SET_TEXT, s1
@@ -27,7 +27,7 @@ tst_done%%M:
 .endm
 
 .macro TEST_PUSH_TEXT, s1
-        push BC
+        PUSH_PAR0 BC
         ld BC, tpt_text%%M
         jp tpt_done%%M
 tpt_text%%M:
@@ -36,7 +36,7 @@ tpt_done%%M:
 .endm
 
 .macro TEST_PUSH_PTEXT, s1
-        push BC
+        PUSH_PAR0 BC
         ld BC, tpt_text%%M
         jp tpt_done%%M
 tpt_text%%M:
@@ -57,7 +57,7 @@ tf_done%%M:
         call printNum
         LOAD16 H,L, B,C
         ld L, C
-        pop BC
+        POP_PAR0 BC
         CMP16 expect
         jp z, tf_done%%M
         ld DE, FAILED

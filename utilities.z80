@@ -47,7 +47,6 @@ serialIn:
             _endif
         _endif
     _endif
-rts0:
     pop HL
     pop AF
     ei
