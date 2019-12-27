@@ -420,22 +420,22 @@ defcode "SWAP",4,0,SWAP      ; x1 x2 -- x2 x1
     NEXT
 
 defcode "ROT",3,0,ROT        ; x1 x2 x3 -- x2 x3 x1
-    SAVE_REGS BC             ; x3 in BC
-    POP_PAR0 HL              ; x2 in HL
-    POP_PAR0 DE              ; x1 in DE
+    SAVE_REGS B,C             ; x3 in BC
+    POP_PAR0 H,L              ; x2 in HL
+    POP_PAR0 D,E              ; x1 in DE
     EX DE,HL                 ; x1 in HL, x2 in DE
-    PUSH_PAR0 DE             ; x2 on stack
+    PUSH_PAR0 D,E             ; x2 on stack
     PUSH_PAR H,L             ; PUSH x1 - x2 x3 x1
-    RESTORE_REGS BC          ; x1 in BC
+    RESTORE_REGS B,C          ; x1 in BC
     NEXT
 
-defcode "-ROT",3,0,ROT        ; x1 x2 x3 -- x3 x1 x2
-    SAVE_REGS BC             ; x3 in BC
-    POP_PAR0 HL              ; x2 in HL
-    POP_PAR0 DE              ; x1 in DE
+defcode "-ROT",3,0,NROT        ; x1 x2 x3 -- x3 x1 x2
+    SAVE_REGS B,C             ; x3 in BC
+    POP_PAR0 H,L              ; x2 in HL
+    POP_PAR0 D,E              ; x1 in DE
     PUSH_PAR D,E             ; PUSH x1 - x3 x1
     PUSH_PAR H,L             ; PUSH x2 - x3 x1 x2
-    RESTORE_REGS BC          ; x2 in BC
+    RESTORE_REGS B,C          ; x2 in BC
     NEXT
 
 ; defcode "ROT",3,0,ROT        ; x1 x2 x3 -- x2 x3 x1
