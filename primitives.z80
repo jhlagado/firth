@@ -137,8 +137,11 @@ defcode "LIT",3,0,LIT
 
 ;z RSP!  a-addr --                  set return stack pointer
 defcode "RSP!",4,0,RSPSTORE
-	PUSH_PAR0 B,C
-	POP_PAR0 I,X                      ; RSP = TOS
+	; PUSH_PAR0 B,C
+	; POP_PAR0 I,X                      ; RSP = TOS
+    LD H, B
+    LD L, C
+    LD SP, HL
 	POP_PAR0 B,C                      ; POP TOS
     NEXT
 
