@@ -69,24 +69,23 @@ label:
         POP_PAR0 B,C
 .endm
 
-.macro PUSH_PAR0, regHI, regLO
+.macro PUSH_RET, regHI, regLO
         push regHIregLO
 .endm
 
-.macro POP_PAR0, regHI, regLO
+.macro POP_RET, regHI, regLO
         pop regHIregLO
 .endm
 
-
 ; Macros to deal with the return stack.
-.macro PUSH_RET, regHI, regLO
+.macro PUSH_PAR0, regHI, regLO
         dec IX              ; PUSH register pair on ret stack
         ld (IX+0),regHI
         dec IX
         ld (IX+0),regLO
 .endm
 
-.macro POP_RET, regHI, regLO
+.macro POP_PAR0, regHI, regLO
         ld regLO,(IX+0)     ; POP register pair from ret stk
         inc IX
         ld regHI,(IX+0)
