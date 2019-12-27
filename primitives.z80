@@ -137,11 +137,7 @@ defcode "LIT",3,0,LIT
 
 ;z RSP!  a-addr --                  set return stack pointer
 defcode "RSP!",4,0,RSPSTORE
-	; PUSH_PAR0 B,C
-	; POP_PAR0 I,X                      ; RSP = TOS
-    LD H, B
-    LD L, C
-    LD SP, HL
+    SET_RET_SP B,C
 	POP_PAR0 B,C                      ; POP TOS
     NEXT
 
@@ -437,18 +433,6 @@ defcode "-ROT",3,0,NROT        ; x1 x2 x3 -- x3 x1 x2
     PUSH_PAR H,L             ; PUSH x2 - x3 x1 x2
     RESTORE_REGS B,C          ; x2 in BC
     NEXT
-
-; defcode "ROT",3,0,ROT        ; x1 x2 x3 -- x2 x3 x1
-;     POP_PAR0 HL              ; x2 in HL
-;     ex (SP),HL          ; x2 on stack, x1 in HL
-;     PUSH_PAR H, L       ; PUSH x1
-;     NEXT
-
-; defcode "-ROT",4,0,NROT     ; x1 x2 x3 -- x3 x1 x2
-;     POP_PAR H, L        ; x3 in HL, x2 in BC
-;     ex (SP),HL          ; x3 on stack, x1 in HL
-;     PUSH_PAR0 HL             ; x3 x1 on stack, BC = x2
-;     NEXT
 
 ; >R    ( x -- ) ( R: -- x )  Move  x from TOS to the return stack.
 defcode ">R",2,0,TO_R

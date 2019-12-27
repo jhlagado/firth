@@ -6,11 +6,16 @@
 
 .macro NEXT
         ex DE,HL
-        jp (IY)
+        NEXT_1
 .endm
 
 .macro NEXT_1
-        jp (IY)
+    ld E,(HL)
+    inc HL
+    ld D,(HL)
+    inc HL
+    ex DE,HL
+    jp (HL)
 .endm
 
 ; Store the chain of links.
@@ -57,27 +62,6 @@ label:
 .endm
 
 ; Macros to deal with the param stack.
-.macro PUSH_PAR, regHI, regLO
-        PUSH_PAR0 B,C             ; push TOS reg pair
-        ld B, regHI         ; move register pair into TOS reg pair
-        ld C, regLO
-.endm
-
-.macro POP_PAR, regHI, regLO
-        ld regHI, B         ; move TOS reg pair into register pair
-        ld regLO, c
-        POP_PAR0 B,C
-.endm
-
-.macro PUSH_RET, regHI, regLO
-        push regHIregLO
-.endm
-
-.macro POP_RET, regHI, regLO
-        pop regHIregLO
-.endm
-
-; Macros to deal with the return stack.
 .macro PUSH_PAR0, regHI, regLO
         dec IX              ; PUSH register pair on ret stack
         ld (IX+0),regHI
@@ -90,6 +74,34 @@ label:
         inc IX
         ld regHI,(IX+0)
         inc IX
+.endm
+
+; Macros to deal with the param stack with TOS in BC
+.macro PUSH_PAR, regHI, regLO
+        PUSH_PAR0 B,C             ; push TOS reg pair
+        ld B, regHI         ; move register pair into TOS reg pair
+        ld C, regLO
+.endm
+
+.macro POP_PAR, regHI, regLO
+        ld regHI, B         ; move TOS reg pair into register pair
+        ld regLO, c
+        POP_PAR0 B,C
+.endm
+
+; Macros to deal with the return stack.
+.macro PUSH_RET, regHI, regLO
+        push regHIregLO
+.endm
+
+.macro POP_RET, regHI, regLO
+        pop regHIregLO
+.endm
+
+.macro SET_RET_SP
+    LD H, B
+    LD L, C
+    LD SP, HL
 .endm
 
 .macro SAVE_REGS, regHI, regLO    ; Swap register bank and transfer TOS to regTOS

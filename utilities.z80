@@ -125,14 +125,7 @@ DOCOLON:
     inc HL                ; HL = W which points to codeword, so make
     inc HL                ; IP point to first data word
     inc HL
-
-DO_NEXT_1:
-    ld E,(HL)
-    inc HL
-    ld D,(HL)
-    inc HL
-    ex DE,HL
-    jp (HL)
+    NEXT_1
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; getline - input line of text
