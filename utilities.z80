@@ -71,7 +71,7 @@ getc:
     _do
         ld A,(serBufUsed)
         cp $00
-        _until nz
+    _until nz
     _enddo
     push HL
     ld HL,(serRdPtr)
@@ -108,7 +108,7 @@ putc:
     _do
         in A,($80)         ; Status byte
         bit 1,A             ; Set Zero flag if still transmitting character
-        _until nz
+    _until nz
     _enddo
     ; jr z,conout1       ; Loop until flag signals ready
     pop AF              ; Retrieve character
@@ -169,7 +169,7 @@ getline:
 getLineCheck:
         ld a, 0
         cp c
-        _until nz
+    _until nz
     _enddo
     pop AF
     pop HL
@@ -183,7 +183,7 @@ printRoutine:
         inc DE
         dec BC
         ISZERO16 B,C
-        _until z
+    _until z
     _enddo
     ret
 
@@ -264,7 +264,7 @@ formatNum:
         push AF
         inc B
         ISZERO16 H,L
-        _until z
+    _until z
     _enddo
     _do
         pop AF
@@ -384,7 +384,7 @@ getToken:
                     _if nz
                         cp "\n"         ; end of line yet?
                     _endif
-                    _until z
+                _until z
                 _enddo
             _endcase
 
@@ -397,9 +397,9 @@ getToken:
                     inc HL
                     call getKey            ; get next key
                     cp ' ' + 1            ; <= space?
-                    _until c
+                _until c
                     dec E
-                    _until z
+                _until z
                 _enddo
                 ; Return the word (well, the static lineBuf) and length.
                 ld DE, wordBuf
@@ -477,13 +477,13 @@ toNumber:
         cp 10                ; <= '9'?
         _if nc
             sub 17                ; < 'A'? (17 is 'A'-'0')
-            _until c
+    _until c            ; BUG: nested until !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             add a, 10
         _endif
 
         ld HL, (VAR_BASE)       ; get BASE (in %dl)
         cp L                    ; >= BASE? then invalid char, end of number
-        _until nc
+    _until nc
         add A, E
         ld E, A
         ld A, 0
@@ -491,7 +491,7 @@ toNumber:
         ld D, A
         dec BC              ; dec char count
         ISZERO16 B,C
-        _until z
+    _until z
         push BC
         ld BC, (VAR_BASE)    ; get BASE (in %dl)
         call unsignedMultiply             ; de *= BASE, HL is destroyed
@@ -535,7 +535,7 @@ unsignedMultiply:
             add HL,BC
         _endif
         dec A
-        _until z
+    _until z
     _enddo
     ret
 
@@ -570,7 +570,7 @@ unsignedSlashMod:
         rl E                ; rotate result bit into DE,
         rl D                ; and next bit of DE into carry
         dec A
-        _until z
+    _until z
     _enddo
                             ; now have complemented quotient in DE,
                             ; and remainder in HL
@@ -660,7 +660,7 @@ compareStr:
                 or 1        ; a = ff if carry, 1 if no carry
                 ret
             _endif
-            _until po
+        _until po
         _enddo
     _endif
     ; count exhausted & no mismatch found
