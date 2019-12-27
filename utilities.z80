@@ -47,6 +47,7 @@ serialIn:
             _endif
         _endif
     _endif
+rts0:
     pop HL
     pop AF
     ei
@@ -149,43 +150,37 @@ getline:
     ld BC, 0
     _do
         _do
+cont:
             call getc
             cp $08
             _if z
-                ld B,A
-                ld A,C
-                or A
+                call putc
+                ld a, " "
+                call putc
+                ld a, $08
+                call putc
+                ISZERO16 B,C
                 _if nz
                     dec HL
-                    dec C
-                    ld A,B
-                    ld B,0      ; BC = length
-                    call putc
-                    ld a, " "
-                    call putc
-                    ld a, $08
-                    call putc
+                    dec BC
                 _endif
-            _else
-                ld (HL), A
-                inc HL
-                inc C
-
-                cp "\r"
-                _until z
-                cp "\n"
-                _until z
-
-
-                bit 7,a
-                _if z
-                    call putc
-                _endif
-
-                ld A, E
-                cp C
-                _until c
+                jp cont
             _endif
+            ld (HL), A
+            inc HL
+            inc BC
+            bit 7,a
+            _if z
+                call putc
+            _endif
+
+            cp "\r"
+            _until z
+            cp "\n"
+            _until z
+            ld A, E
+            cp C
+            _until c
         _enddo
         ld a, 0
         cp c
