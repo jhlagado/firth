@@ -37,8 +37,8 @@ RST66:
 .include "words.z80"
 
 START:
-    ld SP, RET_STACK                    ; Initialise the return stack.
-    ld IX, PAR_STACK                    ; Initialise the param stack.
+    ld IX, RET_STACK                    ; Initialise the return stack.
+    ld SP, PAR_STACK                    ; Initialise the param stack.
     ld BC, 0                            ; TOS
     ld HL,serBuf
     ld (serInPtr),HL
