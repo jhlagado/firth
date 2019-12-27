@@ -308,9 +308,10 @@ defcode "LSHIFT",6,0,LSHIFT
     ld B,C              ; b = loop counter
     inc B               ; test for counter=0 case
     jr LSHIFT2
-LSHIFT1:   add HL,HL        ; left shift HL, n times
-LSHIFT2:   djnz LSHIFT1
-
+    _do
+        add HL,HL        ; left shift HL, n times
+LSHIFT2:
+    _djnz
     LOAD16 B,C, H,L     ; result is new TOS
     NEXT
 
@@ -319,9 +320,9 @@ defcode "=",1,0,EQUALS
     POP_PAR0 HL
     or A
     sbc HL,BC       ; x1-x2 in HL, SZVC valid
-    jr z,EQ1
-    ld BC, 1       ;   if -ve, result true
-EQ1:
+    _if nz
+        ld BC, 1       ;   if -ve, result true
+    _endif
     inc BC
     NEXT
 
@@ -386,13 +387,15 @@ defcode "FALSE",5,0,FALSE
 
 ;RSHIFT  x1 u -- x2    logical R shift u places
 defcode "RSHIFT",6,0,RSHIFT
-    POP_PAR0 HL        ;   NB: hi 8 bits ignored!
-    ld B,C        ; b = loop counter
-    inc B         ; test for counter=0 case
+    POP_PAR0 HL         ;   NB: hi 8 bits ignored!
+    ld B,C              ; b = loop counter
+    inc B               ; test for counter=0 case
     jr RSHIFT2
-RSHIFT1:   srl H         ; right shift HL, n times
-    rr L
-RSHIFT2:   djnz RSHIFT1
+    _do
+        srl H           ; right shift HL, n times
+        rr L
+RSHIFT2:
+    _djnz
     LOAD16 B,C, H,L     ; result is new TOS
     NEXT
 
@@ -528,9 +531,9 @@ defcode "KEY?",4,0,QKEY              ; ( -- c )
 	PUSH_PAR0 BC		                ; save TOS
 	call inputReady
     ld BC, 1                    ; TOS = true
-    jr nz, QKEY_DONE
-    ld BC, 0                    ; TOS = false
-QKEY_DONE:
+    _if z
+        ld BC, 0                    ; TOS = false
+    _endif
     NEXT
 
 defcode ".",1,0,DOT                 ; print top of stack in BASE
