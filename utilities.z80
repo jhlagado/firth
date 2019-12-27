@@ -150,6 +150,7 @@ getline:
     ld BC, 0
     _do
         _do
+cont:
             call getc
             cp $08
             _if z
@@ -163,23 +164,26 @@ getline:
                     dec HL
                     dec BC
                 _endif
-                _continue
-            _endif
-            ld (HL), A
-            inc HL
-            inc BC
-            bit 7,a
-            _if z
-                call putc
-            _endif
+            _else
+                ld (HL), A
+                inc HL
+                inc BC
 
-            cp "\r"
-            _until z
-            cp "\n"
-            _until z
-            ld A, E
-            cp C
-            _until c
+                cp "\r"
+                _until z
+                cp "\n"
+                _until z
+
+
+                bit 7,a
+                _if z
+                    call putc
+                _endif
+
+                ld A, E
+                cp C
+                _until c
+            _endif
         _enddo
         ld a, 0
         cp c
