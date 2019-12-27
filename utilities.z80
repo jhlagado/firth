@@ -47,7 +47,6 @@ serialIn:
             _endif
         _endif
     _endif
-rts0:
     pop HL
     pop AF
     ei
@@ -150,7 +149,6 @@ getline:
     ld BC, 0
     _do
         _do
-cont:
             call getc
             cp $08
             _if z
@@ -164,7 +162,6 @@ cont:
                     dec HL
                     dec BC
                 _endif
-                jp cont
             _else
                 ld (HL), A
                 inc HL
@@ -342,7 +339,6 @@ getKey:
     push HL
     push DE
     push BC
-    ; _do
     ld HL, (currkey)
     ld DE, (lineBufTop)
     or A
@@ -361,8 +357,6 @@ getKey:
     ld A,(HL)               ; get next key from input lineBuf
     inc HL
     ld (currkey),HL         ; increment currkey
-    ;     _break
-    ; _enddo
     pop BC
     pop DE
     pop HL

@@ -1,7 +1,8 @@
 ;-------------------------------------------------------------------------------
 ;
 ; Assembler Structured Control-flow Macros
-; by John Hardy 2019
+; by John Hardy @ 2019 ALL WRONGS RESERVED
+; https://github.com/jhlagado/struct-z80
 ;
 ; Inspired by the work of Garth Wilson and Dave Keenan
 ; http://wilsonminesco.com/StructureMacros/
