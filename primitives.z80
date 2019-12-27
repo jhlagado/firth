@@ -1,14 +1,14 @@
 defcode "EXIT",4,0,EXIT
-	POP_RET H,L		            ; POP_PAR0 return stack into IP
+	POP_RET H,L		            ; pop return stack into IP
     NEXT_1
 
 ; FIND                                  ( ptr len -- headPtr )
 defcode "FIND",4,0,FIND
-    SAVE_REGS BC
-    POP_PAR0 HL
+    SAVE_REGS B,C
+    POP_PAR0 H,L
     call lookup                     ; params: HL = string address, BC = string length
                                     ; returns: DE = found header ptr or 0
-    RESTORE_REGS DE
+    RESTORE_REGS D,E
     NEXT
 
 defcode "EXECUTE",7,0,EXECUTE
@@ -16,27 +16,27 @@ defcode "EXECUTE",7,0,EXECUTE
     jp (hl)                         ; go do Forth word
 
 defcode "NUMBER",6,0,NUMBER             ; ( ptr len -- num err )
-    SAVE_REGS BC
-    POP_PAR0 HL
+    SAVE_REGS B,C
+    POP_PAR0 H,L
 	call toNumber                   ; params: HL = string address, BC = string length
 			                        ; Returns the parsed number in DE,
 	                                ; BC = 0, success
-    PUSH_PAR0 DE
-    RESTORE_REGS BC
+    PUSH_PAR0 D,E
+    RESTORE_REGS B,C
     NEXT
 
 defcode "PRINT",5,0,PRINT
-    SAVE_REGS DE
+    SAVE_REGS D,E
     call printPStr
     RESTORE_REGS0
     NEXT
 
 defcode "TOKEN",5,0,TOKEN               ; -- c-addr length  ; NOT STANDARD
-    PUSH_PAR0 BC                         ; save TOS
+    PUSH_PAR0 B,C                         ; save TOS
     exx
     call getToken
-    PUSH_PAR0 DE                         ; DE = str ptr
-    RESTORE_REGS BC                 ; HL = length
+    PUSH_PAR0 D,E                         ; DE = str ptr
+    RESTORE_REGS B,C                 ; HL = length
     NEXT
 
 defcode "+!",2,0,ADDSTORE               ; (n addr -- )
@@ -48,7 +48,7 @@ defcode "+!",2,0,ADDSTORE               ; (n addr -- )
 	ld A,(HL)
 	adc A,B
 	ld (HL),A
-	POP_PAR0 BC                      ; clear param stack
+	POP_PAR0 B,C                      ; clear param stack
     NEXT
 
 defcode "[",1,MSK_IMMED,LBRAC
@@ -98,7 +98,7 @@ defcode "BRANCH",6,0,BRANCH          ; relative branching
 ; ?branch   x --              branch if TOS zero
 defcode "0BRANCH",7,0,ZBRANCH
     ISZERO16 B,C        ; test old TOS
-    POP_PAR0 BC              ; POP new TOS
+    POP_PAR0 B,C              ; POP new TOS
     jr z,BRANCH         ; if old TOS=0, branch
     inc DE              ; else skip inline value
     inc DE
@@ -106,11 +106,11 @@ defcode "0BRANCH",7,0,ZBRANCH
 
 ; U*   u1 u2 -- ud   unsigned mutliply
 defcode "U*",2,0,UMUL  ; u1 u2 -- ud
-    SAVE_REGS BC    ; u2 in BC
-    POP_PAR0 DE          ; u1 in DE
+    SAVE_REGS B,C    ; u2 in BC
+    POP_PAR0 D,E          ; u1 in DE
 	call unsignedMultiply
-    PUSH_PAR0 DE         ; udlo result
-    RESTORE_REGS BC ; udhi result
+    PUSH_PAR0 D,E         ; udlo result
+    RESTORE_REGS B,C ; udhi result
     NEXT
 
 ;C 0<     n -- flag      true if TOS negative
@@ -127,7 +127,7 @@ defcode "LIT",3,0,LIT
 	; IP points to the next command, But in this case it points to the next
 	; literal 16 bit integer.  Get that literal increment IP.
 
-	PUSH_PAR0 BC         ; pushTOS
+	PUSH_PAR0 B,C         ; pushTOS
 	ex DE, HL       ; HL = IP
 	ld C, (HL)      ; TOS = (IP), IP + 2
 	inc HL
@@ -137,9 +137,9 @@ defcode "LIT",3,0,LIT
 
 ;z RSP!  a-addr --                  set return stack pointer
 defcode "RSP!",4,0,RSPSTORE
-	PUSH_PAR0 BC
-	POP_PAR0 IX                      ; RSP = TOS
-	POP_PAR0 BC                      ; POP TOS
+	PUSH_PAR0 B,C
+	POP_PAR0 I,X                      ; RSP = TOS
+	POP_PAR0 B,C                      ; POP TOS
     NEXT
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -154,7 +154,7 @@ defcode "!",1,0,STORE
     ld (HL),C
     inc HL
     ld (HL),B
-    POP_PAR0 BC          ; POP new TOS
+    POP_PAR0 B,C          ; POP new TOS
     NEXT
 
 defcode ",",1,0,COMMA
@@ -164,7 +164,7 @@ defcode ",",1,0,COMMA
 	ld (HL), B
 	inc HL
 	ld (VAR_HERE), HL	; Update HERE (incremented)
-	POP_PAR0 BC		        ; cleanup TOS
+	POP_PAR0 B,C		        ; cleanup TOS
     NEXT
 
 defcode "@",1,0,FETCH
@@ -186,17 +186,17 @@ defcode "CELLS",5,0,CELLS
 defcode "C!",2,0,CSTORE
     POP_PAR H,L
     ld (HL),C
-    POP_PAR0 BC          ; POP new TOS
+    POP_PAR0 B,C          ; POP new TOS
     NEXT
 
 defcode "C,",1,0,CCOMMA
-    PUSH_PAR0 HL
+    PUSH_PAR0 H,L
 	ld HL, (VAR_HERE)	; HERE
 	ld (HL), C          ; Store DE at memory pointed to by VAR_HERE
 	inc HL
 	ld (VAR_HERE), HL	; Update HERE (incremented)
-    POP_PAR0 HL
-	POP_PAR0 BC		        ; cleanup TOS
+    POP_PAR0 H,L
+	POP_PAR0 B,C		        ; cleanup TOS
     NEXT
 
 ; C@     c-addr -- char   fetch char from memory
@@ -225,7 +225,7 @@ defcode "CHARS",5,0,CHARS
 
 ; +       n1/u1 n2/u2 -- n3/u3     add n1+n2
 defcode "+",1,0,PLUS
-    POP_PAR0 HL
+    POP_PAR0 H,L
     add HL,BC
     LOAD16 B,C, H,L
     NEXT
@@ -237,7 +237,7 @@ defcode "2*",2,0,TWOSTAR
     NEXT
 
 defcode "-",1,0,MINUS
-    POP_PAR0 HL
+    POP_PAR0 H,L
     or A
     sbc HL,BC
     LOAD16 B,C, H,L
@@ -245,12 +245,12 @@ defcode "-",1,0,MINUS
 
 ; U/MOD   ud u1 -- u2 u3   unsigned 32/16->16
 defcode "U/MOD",5,0,USLASHMOD
-    SAVE_REGS BC    ; BC = divisor
-    POP_PAR0 HL      ; HLDE = dividend
-    POP_PAR0 DE
+    SAVE_REGS B,C    ; BC = divisor
+    POP_PAR0 H,L      ; HLDE = dividend
+    POP_PAR0 D,E
     call unsignedSlashMod
-    PUSH_PAR0 HL     ; PUSH remainder
-    RESTORE_REGS BC     ; quotient remains in TOS
+    PUSH_PAR0 H,L     ; PUSH remainder
+    RESTORE_REGS B,C     ; quotient remains in TOS
     NEXT
 
 ; 2/      x1 -- x2                  arithmetic right shift
@@ -277,7 +277,7 @@ defcode "0=",2,0,ZEQUAL
 
 ; and    x1 x2 -- x3            logical and
 defcode "AND",3,0,and	        ; bitwise and
-    POP_PAR0 HL
+    POP_PAR0 H,L
     ld A,b
     and H
     ld B,A
@@ -298,13 +298,13 @@ defcode "INVERT",6,0,INVERT
 
 ; TRUE
 defcode "TRUE",4,0,TRUE
-    PUSH_PAR0 BC
+    PUSH_PAR0 B,C
     ld BC,1
     NEXT
 
 ; LSHIFT  x1 u -- x2       logical L shift u places
 defcode "LSHIFT",6,0,LSHIFT
-    POP_PAR0 HL              ;   NB: hi 8 bits ignored!
+    POP_PAR0 H,L              ;   NB: hi 8 bits ignored!
     ld B,C              ; b = loop counter
     inc B               ; test for counter=0 case
     jr LSHIFT2
@@ -317,7 +317,7 @@ LSHIFT2:
 
 ; =      x1 x2 -- flag         test x1=x2
 defcode "=",1,0,EQUALS
-    POP_PAR0 HL
+    POP_PAR0 H,L
     or A
     sbc HL,BC       ; x1-x2 in HL, SZVC valid
     _if nz
@@ -328,7 +328,7 @@ defcode "=",1,0,EQUALS
 
 ; <      n1 n2 -- flag          test n1<n2
 defcode "<",1,0,LESSTHAN	        ; less than
-    POP_PAR0 HL
+    POP_PAR0 H,L
     or A
     sbc HL,BC       ; n1-n2 in HL, SZVC valid
     ; jp pe,revsense  ; if OV, use rev. sense
@@ -353,13 +353,13 @@ defcode "<",1,0,LESSTHAN	        ; less than
 
 ; >      n1 n2 -- flag          test n1 > n2
 defcode ">",1,0,GREATERTHAN	        ; less than
-    POP_PAR0 HL                  ; swap operands
+    POP_PAR0 H,L                  ; swap operands
     PUSH_PAR H,L
     jr LESSTHAN
 
 ; OR    x1 x2 -- x3             logical OR
 defcode "OR",2,0,OR	            ; bitwise OR
-    POP_PAR0 HL
+    POP_PAR0 H,L
     ld A,B
     or H
     ld B,A
@@ -370,7 +370,7 @@ defcode "OR",2,0,OR	            ; bitwise OR
 
 ; xor    x1 x2 -- x3            logical xor
 defcode "XOR",3,0,xor	        ; bitwise xor
-    POP_PAR0 HL
+    POP_PAR0 H,L
     ld A,B
     xor H
     ld B,A
@@ -381,13 +381,13 @@ defcode "XOR",3,0,xor	        ; bitwise xor
 
 ; FALSE
 defcode "FALSE",5,0,FALSE
-    PUSH_PAR0 BC
+    PUSH_PAR0 B,C
     ld BC,0
     NEXT
 
 ;RSHIFT  x1 u -- x2    logical R shift u places
 defcode "RSHIFT",6,0,RSHIFT
-    POP_PAR0 HL         ;   NB: hi 8 bits ignored!
+    POP_PAR0 H,L         ;   NB: hi 8 bits ignored!
     ld B,C              ; b = loop counter
     inc B               ; test for counter=0 case
     jr RSHIFT2
@@ -407,17 +407,17 @@ RSHIFT2:
 
 
 defcode "DUP",3,0,DUP        ; x -- x x
-    PUSH_PAR0 BC
+    PUSH_PAR0 B,C
     NEXT
 
 ; SWAP     x1 x2 -- x2 x1    swap top two items
 defcode "SWAP",4,0,SWAP      ; x1 x2 -- x2 x1
-    POP_PAR0 hl
+    POP_PAR0 H,L
     PUSH_PAR H,L
     NEXT
 
 defcode "ROT",3,0,ROT        ; x1 x2 x3 -- x2 x3 x1
-    POP_PAR0 HL              ; x2 in HL
+    POP_PAR0 H,L              ; x2 in HL
     ex (SP),HL          ; x2 on stack, x1 in HL
     PUSH_PAR H, L       ; PUSH x1
     NEXT
@@ -425,31 +425,31 @@ defcode "ROT",3,0,ROT        ; x1 x2 x3 -- x2 x3 x1
 defcode "-ROT",4,0,NROT     ; x1 x2 x3 -- x3 x1 x2
     POP_PAR H, L        ; x3 in HL, x2 in BC
     ex (SP),HL          ; x3 on stack, x1 in HL
-    PUSH_PAR0 HL             ; x3 x1 on stack, BC = x2
+    PUSH_PAR0 H,L             ; x3 x1 on stack, BC = x2
     NEXT
 
 ; >R    ( x -- ) ( R: -- x )  Move  x from TOS to the return stack.
 defcode ">R",2,0,TO_R
     PUSH_RET B,C
-    POP_PAR0 BC
+    POP_PAR0 B,C
     NEXT
 
 ; R@ r-fetch
 
 defcode "DROP",4,0,DROP      ; x --
-    POP_PAR0 BC		    ; drop top of stack
+    POP_PAR0 B,C		    ; drop top of stack
     NEXT
 
 ; OVER    x1 x2 -- x1 x2 x1
 defcode "OVER",4,0,OVER
-    POP_PAR0 hl
-    PUSH_PAR0 hl
+    POP_PAR0 H,L
+    PUSH_PAR0 H,L
     PUSH_PAR H,L
     NEXT
 
 ; R>    ( -- x ) ( R: x -- )  Move x from the return stack to TOS
 defcode "R>",2,0,R_FROM
-    PUSH_PAR0 BC
+    PUSH_PAR0 B,C
     POP_RET B,C
     NEXT
 
@@ -465,8 +465,8 @@ defcode "'",1,0,TICK                 ; ( -- addr ) PUSH code word ptr of followi
 ; CREATE     addr len --       create new header from name
 defcode "CREATE",6,0,CREATE  ; addr len --
 
-    SAVE_REGS BC
-    POP_PAR0 HL
+    SAVE_REGS B,C
+    POP_PAR0 H,L
 	; Link pointer.
 	ld DE, (VAR_HERE)	    ; DE point to the start of a new header
 	ld A, (VAR_LATEST) 	    ; write ptr to previous word in header
@@ -509,10 +509,10 @@ defcode "IMMEDIATE",9,MSK_IMMED,IMMEDIATE
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 defcode "ACCEPT",6,0,ACCEPT              ; ( addr max -- len )
-    SAVE_REGS DE                    ; max - up to 255
-	POP_PAR0 HL                          ; addr
+    SAVE_REGS D,E                    ; max - up to 255
+	POP_PAR0 H,L                          ; addr
     call getline
-    RESTORE_REGS BC                 ; TOS = len
+    RESTORE_REGS B,C                 ; TOS = len
     NEXT
 
 defcode "KEY",3,0,KEY                ; ( -- c )
@@ -524,11 +524,11 @@ defcode "KEY",3,0,KEY                ; ( -- c )
 defcode "EMIT",4,0,EMIT              ; print the character on the stack
 	ld A, C                     ; (c -- )
 	call putc
-    POP_PAR0 BC                      ; clear stack
+    POP_PAR0 B,C                      ; clear stack
     NEXT
 
 defcode "KEY?",4,0,QKEY              ; ( -- c )
-	PUSH_PAR0 BC		                ; save TOS
+	PUSH_PAR0 B,C		                ; save TOS
 	call inputReady
     ld BC, 1                    ; TOS = true
     _if z
@@ -538,5 +538,5 @@ defcode "KEY?",4,0,QKEY              ; ( -- c )
 
 defcode ".",1,0,DOT                 ; print top of stack in BASE
     call printNum
-    POP_PAR0 BC
+    POP_PAR0 B,C
     NEXT
