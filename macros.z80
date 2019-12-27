@@ -61,15 +61,32 @@ defcode name,namelen,flags,label
 NEXT
 .endm
 
-; Macros to deal with the param stack.
+; Macros to deal with the return stack.
 .macro PUSH_PAR0, regHI, regLO
+    push regHIregLO
+.endm
+
+.macro POP_PAR0, regHI, regLO
+    pop regHIregLO
+.endm
+
+.macro SET_RET_SP
+    ; LD H, B
+    ; LD L, C
+    ; LD SP, HL
+    PUSH BC
+    POP IX
+.endm
+
+; Macros to deal with the param stack.
+.macro PUSH_RET, regHI, regLO
     dec IX              ; PUSH register pair on ret stack
     ld (IX+0),regHI
     dec IX
     ld (IX+0),regLO
 .endm
 
-.macro POP_PAR0, regHI, regLO
+.macro POP_RET, regHI, regLO
     ld regLO,(IX+0)     ; POP register pair from ret stk
     inc IX
     ld regHI,(IX+0)
@@ -87,21 +104,6 @@ NEXT
     ld regHI, B         ; move TOS reg pair into register pair
     ld regLO, c
     POP_PAR0 B,C
-.endm
-
-; Macros to deal with the return stack.
-.macro PUSH_RET, regHI, regLO
-    push regHIregLO
-.endm
-
-.macro POP_RET, regHI, regLO
-    pop regHIregLO
-.endm
-
-.macro SET_RET_SP
-    LD H, B
-    LD L, C
-    LD SP, HL
 .endm
 
 .macro SAVE_REGS, regHI, regLO    ; Swap register bank and transfer TOS to regTOS
