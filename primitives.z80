@@ -420,16 +420,35 @@ defcode "SWAP",4,0,SWAP      ; x1 x2 -- x2 x1
     NEXT
 
 defcode "ROT",3,0,ROT        ; x1 x2 x3 -- x2 x3 x1
-    POP_PAR0 H,L              ; x2 in HL
-    ex (SP),HL          ; x2 on stack, x1 in HL
-    PUSH_PAR H, L       ; PUSH x1
+    SAVE_REGS BC             ; x3 in BC
+    POP_PAR0 HL              ; x2 in HL
+    POP_PAR0 DE              ; x1 in DE
+    EX DE,HL                 ; x1 in HL, x2 in DE
+    PUSH_PAR0 DE             ; x2 on stack
+    PUSH_PAR H,L             ; PUSH x1 - x2 x3 x1
+    RESTORE_REGS BC          ; x1 in BC
     NEXT
 
-defcode "-ROT",4,0,NROT     ; x1 x2 x3 -- x3 x1 x2
-    POP_PAR H, L        ; x3 in HL, x2 in BC
-    ex (SP),HL          ; x3 on stack, x1 in HL
-    PUSH_PAR0 H,L             ; x3 x1 on stack, BC = x2
+defcode "-ROT",3,0,ROT        ; x1 x2 x3 -- x3 x1 x2
+    SAVE_REGS BC             ; x3 in BC
+    POP_PAR0 HL              ; x2 in HL
+    POP_PAR0 DE              ; x1 in DE
+    PUSH_PAR D,E             ; PUSH x1 - x3 x1
+    PUSH_PAR H,L             ; PUSH x2 - x3 x1 x2
+    RESTORE_REGS BC          ; x2 in BC
     NEXT
+
+; defcode "ROT",3,0,ROT        ; x1 x2 x3 -- x2 x3 x1
+;     POP_PAR0 HL              ; x2 in HL
+;     ex (SP),HL          ; x2 on stack, x1 in HL
+;     PUSH_PAR H, L       ; PUSH x1
+;     NEXT
+
+; defcode "-ROT",4,0,NROT     ; x1 x2 x3 -- x3 x1 x2
+;     POP_PAR H, L        ; x3 in HL, x2 in BC
+;     ex (SP),HL          ; x3 on stack, x1 in HL
+;     PUSH_PAR0 HL             ; x3 x1 on stack, BC = x2
+;     NEXT
 
 ; >R    ( x -- ) ( R: -- x )  Move  x from TOS to the return stack.
 defcode ">R",2,0,TO_R
