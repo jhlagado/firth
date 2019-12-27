@@ -5,8 +5,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 .macro NEXT
-        ex DE,HL
-        NEXT_1
+    ex DE,HL
+    NEXT_1
 .endm
 
 .macro NEXT_1
@@ -24,78 +24,78 @@ link: .set 0
 .macro defword, name, namelen, flags, label
 
 HEADER_label:
-	    DW link		            ; link
+    DW link		            ; link
 
 link: .set HEADER_label
 
-    	DB flags + namelen	    ; flags + length byte
-    	DB name		            ; the name
+    DB flags + namelen	    ; flags + length byte
+    DB name		            ; the name
 label:
-    	jp DOCOLON
-    	; list of word pointers follow
+    jp DOCOLON
+    ; list of word pointers follow
 .endm
 
 .macro defcode, name, namelen, flags, label
 
 HEADER_label:
-	    DW link		            ; link
+    DW link		            ; link
 
 link: .set HEADER_label
 
-	    DB flags + namelen	; flags + length byte
-	    DB name		    ; the name
+    DB flags + namelen	; flags + length byte
+    DB name		    ; the name
 label:
 .endm
 
 .macro defvar, name, namelen, flags, label, var_label
-	defcode name,namelen,flags,label
-	    PUSH_PAR0 B,C
-	    ld BC, var_label
-    NEXT
+defcode name,namelen,flags,label
+    PUSH_PAR0 B,C
+    ld BC, var_label
+NEXT
 .endm
 
 .macro defconst, name, namelen, flags, label, value
-	defcode name,namelen,flags,label
-    	PUSH_PAR0 B,C
-    	ld BC, value
-    NEXT
+defcode name,namelen,flags,label
+    PUSH_PAR0 B,C
+    ld BC, value
+NEXT
 .endm
 
 ; Macros to deal with the param stack.
 .macro PUSH_PAR0, regHI, regLO
-        dec IX              ; PUSH register pair on ret stack
-        ld (IX+0),regHI
-        dec IX
-        ld (IX+0),regLO
+    dec IX              ; PUSH register pair on ret stack
+    ld (IX+0),regHI
+    dec IX
+    ld (IX+0),regLO
 .endm
 
 .macro POP_PAR0, regHI, regLO
-        ld regLO,(IX+0)     ; POP register pair from ret stk
-        inc IX
-        ld regHI,(IX+0)
-        inc IX
+    ld regLO,(IX+0)     ; POP register pair from ret stk
+    inc IX
+    ld regHI,(IX+0)
+    inc IX
 .endm
 
 ; Macros to deal with the param stack with TOS in BC
 .macro PUSH_PAR, regHI, regLO
-        PUSH_PAR0 B,C             ; push TOS reg pair
-        ld B, regHI         ; move register pair into TOS reg pair
-        ld C, regLO
+    PUSH_PAR0 B,C             ; push TOS reg pair
+    ld B, regHI         ; move register pair into TOS reg pair
+    ld C, regLO
 .endm
 
 .macro POP_PAR, regHI, regLO
-        ld regHI, B         ; move TOS reg pair into register pair
-        ld regLO, c
-        POP_PAR0 B,C
+    ld regHI, B         ; move TOS reg pair into register pair
+    ld regLO, c
+    POP_PAR0 B,C
 .endm
 
 ; Macros to deal with the return stack.
 .macro PUSH_RET, regHI, regLO
-        push regHIregLO
+    push regHIregLO
 .endm
 
 .macro POP_RET, regHI, regLO
-        pop regHIregLO
+    pop regHIregLO
 .endm
 
 .macro SET_RET_SP
@@ -105,45 +105,45 @@ label:
 .endm
 
 .macro SAVE_REGS, regHI, regLO    ; Swap register bank and transfer TOS to regTOS
-        PUSH_PAR0 B,C             ; only use if word doesn't execute other words
-        exx
-        POP_PAR0 regHI, regLO
+    PUSH_PAR0 B,C             ; only use if word doesn't execute other words
+    exx
+    POP_PAR0 regHI, regLO
 .endm
 
 .macro RESTORE_REGS, regHI, regLO ; Swap register bank and transfer regTOS to TOS
-        PUSH_PAR0 regHI, regLO         ; only use if word doesn't execute other words
-        exx
-        POP_PAR0 B,C
+    PUSH_PAR0 regHI, regLO         ; only use if word doesn't execute other words
+    exx
+    POP_PAR0 B,C
 .endm
 
 .macro RESTORE_REGS0    ; Swap register bank and clear TOS
-                                ; only use if word doesn't execute other words
-        exx
-        POP_PAR0 B,C
+                            ; only use if word doesn't execute other words
+    exx
+    POP_PAR0 B,C
 .endm
 
 .macro LOAD16, destHI, destLO, srcHI, srcLO    ; transfer from src reg pair to dest reg pair
-        ld destLO, srcLO
-        ld destHI, srcHI
+    ld destLO, srcLO
+    ld destHI, srcHI
 .endm
 
 ; destroys A
 .macro ISZERO16, regHI, regLO    ; check if reg pair is zero
-        ld a, regLO              ; NOTE: A is destroyed
-        or regHI
+    ld a, regLO              ; NOTE: A is destroyed
+    or regHI
 .endm
 
 .macro PRINT_STR, addr
-        PUSH_PAR0 D,E
-        ld DE, addr
-        call printPStr
-        POP_PAR0 D,E
+    PUSH_PAR0 D,E
+    ld DE, addr
+    call printPStr
+    POP_PAR0 D,E
 .endm
 
 .macro CMP16, val
-        ld DE, val
-        or A
-        sbc HL, DE
-        ISZERO16 H,L
+    ld DE, val
+    or A
+    sbc HL, DE
+    ISZERO16 H,L
 .endm
 

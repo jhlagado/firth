@@ -120,13 +120,6 @@ inputReady:
     cp $0
     ret
 
-DOCOLON:
-    PUSH_RET D,E        ; push IP on to the return stack
-    inc HL                ; HL = W which points to codeword, so make
-    inc HL                ; IP point to first data word
-    inc HL
-    NEXT_1
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; getline - input line of text
 ;; params: HL = addr, DE = max (currently up to 255)
@@ -673,3 +666,10 @@ compareStr:
     ; count exhausted & no mismatch found
     ld A,0          ; a=0 (s1=s2)
     ret
+
+DOCOLON:
+    PUSH_RET D,E        ; push IP on to the return stack
+    inc HL                ; HL = W which points to codeword, so make
+    inc HL                ; IP point to first data word
+    inc HL
+    NEXT_1
