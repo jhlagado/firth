@@ -165,23 +165,25 @@ cont:
                     dec BC
                 _endif
                 jp cont
-            _endif
-            ld (HL), A
-            inc HL
-            inc BC
-            bit 7,a
-            _if z
-                call putc
-            _endif
+            _else
+                ld (HL), A
+                inc HL
+                inc BC
+                bit 7,a
+                _if z
+                    call putc
+                _endif
 
-            cp "\r"
-            _until z
-            cp "\n"
-            _until z
-            ld A, E
-            cp C
-            _until c
+                cp "\r"
+                jr z, getLineCheck
+                cp "\n"
+                jr z, getLineCheck
+                ld A, E
+                cp C
+                jr c, getLineCheck
+            _endif
         _enddo
+getLineCheck:
         ld a, 0
         cp c
         _until nz
@@ -340,27 +342,27 @@ getKey:
     push HL
     push DE
     push BC
-    _do
-        ld HL, (currkey)
-        ld DE, (lineBufTop)
+    ; _do
+    ld HL, (currkey)
+    ld DE, (lineBufTop)
+    or A
+    sbc HL, DE                  ; exhausted the input lineBuf?
+    _if nc
+        ld HL, lineBuf
+        ld DE, LINE_BUFSIZE
+        call getline
+        ld HL, lineBuf
+        ld (currkey), HL
         or A
-        sbc HL, DE                  ; exhausted the input lineBuf?
-        _if nc
-            ld HL, lineBuf
-            ld DE, LINE_BUFSIZE
-            call getline
-            ld HL, lineBuf
-            ld (currkey), HL
-            or A
-            adc HL, BC              ; lineBuf+DE = lineBufTop
-            ld (lineBufTop),HL
-        _endif
-        ld HL, (currkey)
-        ld A,(HL)               ; get next key from input lineBuf
-        inc HL
-        ld (currkey),HL         ; increment currkey
-        _break
-    _enddo
+        adc HL, BC              ; lineBuf+DE = lineBufTop
+        ld (lineBufTop),HL
+    _endif
+    ld HL, (currkey)
+    ld A,(HL)               ; get next key from input lineBuf
+    inc HL
+    ld (currkey),HL         ; increment currkey
+    ;     _break
+    ; _enddo
     pop BC
     pop DE
     pop HL

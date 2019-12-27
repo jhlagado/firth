@@ -132,7 +132,13 @@ L_%%M:
 
 ; _do
 ;     ...test
-;     _break flag
+;     _while flag
+;
+;     ...test
+;     _until flag
+;
+;     ...test
+;     _continue flag
 ;     ...
 ; _enddo
 
@@ -155,15 +161,6 @@ L_%%M:
     JUMP_FWD
 .endm
 
-.macro _continue
-    jp STRUC_TOP            ; start of loop
-.endm
-
-.macro _break
-    jp STRUC_TOP - 3        ; jump to jump to enddo
-    JUMP_FWD
-.endm
-
 .macro _enddo
     jp STRUC_TOP
     JUMP_FWD
@@ -174,7 +171,7 @@ L_%%M:
 ;     ...test
 ; _djnz
 
-.macro _djnz
+.macro _djnz                ; start of loop
     djnz STRUC_TOP
     JUMP_FWD
     STRUC_POP
