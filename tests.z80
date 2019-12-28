@@ -144,19 +144,19 @@
 
     TEST_PUSH -101
     TEST_PUSH 20
-    TEST_WORD SLASH
+    TEST_WORD SLASHMOD
     TEST_EXPECT -5, "expect -101 / 20 to be -5"
     TEST_EXPECT -1, "expect -101 % 20 to be -1"
 
     TEST_PUSH -101
     TEST_PUSH -20
-    TEST_WORD SLASH
+    TEST_WORD SLASHMOD
     TEST_EXPECT 5,  "expect -101 / -20 to be 5"
     TEST_EXPECT -1, "expect -101 % -20 to be -1"
 
     TEST_PUSH 101
     TEST_PUSH -20
-    TEST_WORD SLASH
+    TEST_WORD SLASHMOD
     TEST_EXPECT -5,  "expect 101 / -20 to be -5"
     TEST_EXPECT 1, "expect 101 % -20 to be 1"
 
