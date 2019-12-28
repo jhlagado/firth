@@ -9,7 +9,7 @@ TESTMODE equ 0
 
 .org START_ROM
 RST00:                                      ; Reset
-    di                                  ; Disable interrupts
+    di                                      ; Disable interrupts
     jp START
 
 .org $0008
@@ -28,25 +28,25 @@ RST18:                                      ; Check serial status
 RST38:                                      ; rst 38 - INTERRUPT VECTOR [ for IM 1 ]
     jp serialIn
 
-.org $0066                       ; rst 66 - NON-MASKABLE INTERRUPT
+.org $0066                                  ; rst 66 - NON-MASKABLE INTERRUPT
 RST66:
-    ret                                ; do nothing
+    ret                                     ; do nothing
 
 .include "utilities.z80"
 .include "primitives.z80"
 .include "words.z80"
 
 START:
-    ld SP, RET_STACK                    ; Initialise the return stack.
-    ld IX, PAR_STACK                    ; Initialise the param stack.
-    ld BC, 0                            ; TOS
+    ld SP, RET_STACK                        ; Initialise the return stack.
+    ld IX, PAR_STACK                        ; Initialise the param stack.
+    ld BC, 0                                ; TOS
     ld HL,serBuf
     ld (serInPtr),HL
     ld (serRdPtr),HL
-    xor A                               ; 0 to accumulator
+    xor A                                   ; 0 to accumulator
     ld (serBufUsed),A
     ld A,RTS_LOW
-    out ($80),A                         ; Initialise ACIA
+    out ($80),A                             ; Initialise ACIA
     im 1
     ei
 
@@ -55,7 +55,7 @@ START:
 
 .else
     PRINT_STR TXT_INTRO
-    ld DE, COLD                         ; Initialise interpreter.
+    ld DE, COLD                             ; Initialise interpreter.
     NEXT
 .endif
 
@@ -85,4 +85,4 @@ TESTS_START:
 
 .include "variables.z80"
 
-START_USER:                     ; user allocated data starts here
+START_USER:                                 ; user allocated data starts here

@@ -119,7 +119,7 @@ defword "*",1,0,STAR        ; u1 u2 -- ud
     cEndIf
     DW EXIT
 
-defword "/MOD",1,0,SLASHMOD       ; dvend dvisr -- rem quot
+defword "/MOD",4,0,SLASHMOD       ; dvend dvisr -- rem quot
     DW OVER, OVER           ;       u1 u2 -- u1 u2 u1 u2  dupe both args
     DW XOR                  ; u1 u2 u1 u2 -- u1 u2 b1     xor hi bits
     DW ZEROLESS             ; true if high bit still set
@@ -150,7 +150,7 @@ defword "/",1,0,SLASH       ; dvend dvisr -- quot
     DW SWAP, DROP           ; drop remainder
     DW EXIT
 
-defword "MOD",1,0,MOD     ; dvend dvisr -- remainder
+defword "MOD",3,0,MOD     ; dvend dvisr -- remainder
     DW SLASHMOD
     DW DROP                 ; drop quotient
     DW EXIT
