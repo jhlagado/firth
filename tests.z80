@@ -129,18 +129,36 @@
 
     TEST_PUSH -10
     TEST_PUSH 10
-    TEST_WORD MUL
+    TEST_WORD STAR
     TEST_EXPECT -100, "expect -10 * 10 to be -100"
 
     TEST_PUSH -10
     TEST_PUSH -20
-    TEST_WORD MUL
+    TEST_WORD STAR
     TEST_EXPECT 200, "expect -10 * -20 to be 200"
 
     TEST_PUSH 10
     TEST_PUSH -20
-    TEST_WORD MUL
+    TEST_WORD STAR
     TEST_EXPECT -200, "expect -10 * -20 to be 200"
+
+    TEST_PUSH -101
+    TEST_PUSH 20
+    TEST_WORD SLASH
+    TEST_EXPECT -5, "expect -101 / 20 to be -5"
+    TEST_EXPECT -1, "expect -101 % 20 to be -1"
+
+    TEST_PUSH -101
+    TEST_PUSH -20
+    TEST_WORD SLASH
+    TEST_EXPECT 5,  "expect -101 / -20 to be 5"
+    TEST_EXPECT -1, "expect -101 % -20 to be -1"
+
+    TEST_PUSH 101
+    TEST_PUSH -20
+    TEST_WORD SLASH
+    TEST_EXPECT -5,  "expect 101 / -20 to be -5"
+    TEST_EXPECT 1, "expect 101 % -20 to be 1"
 
     TEST_SET_TEXT ": TESTIF2 IF 100 THEN ;"
 

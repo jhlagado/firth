@@ -110,7 +110,7 @@ defcode "0BRANCH",7,0,ZBRANCH
     NEXT
 
 ; U*   u1 u2 -- ud   unsigned mutliply
-defcode "U*",2,0,UMUL  ; u1 u2 -- ud
+defcode "U*",2,0,USTAR  ; u1 u2 -- ud
     SAVE_REGS B,C    ; u2 in BC
     POP_PAR0 D,E          ; u1 in DE
 	call unsignedMultiply
@@ -249,10 +249,12 @@ defcode "-",1,0,MINUS
 
 ; U/MOD   u1 u2 -- u1 u2    unsigned 16 / 16 -> r q
 defcode "U/MOD",5,0,USLASHMOD
-    POP_PAR D,E             ; DE = divisor
+    SAVE_REGS D,E
+    POP_PAR0 B,C             ; DE = divisor
                             ; BC = dividend
     call divideWordByWord
     PUSH_PAR0 H,L           ; PUSH remainder,
+    RESTORE_REGS B,C
     NEXT
 
 ; 2/      x1 -- x2                  arithmetic right shift

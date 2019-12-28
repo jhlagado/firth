@@ -323,43 +323,37 @@ divideWordByByte:
 ; destroys: ?
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 divideWordByWord:
-    ld hl,0
-    ld a,b
-    ld b,8
-; Div16_Loop1:
+    push DE
+    ld HL,0
+    ld A,B
+    ld B,8
     _do
         rla
-        adc hl,hl
-        sbc hl,de
-        ; jr nc,Div16_NoAdd1
+        adc HL,HL
+        sbc HL,DE
         _if c
-            add hl,de
+            add HL,DE
         _endif
-; Div16_NoAdd1:
     _djnz
-    ; djnz Div16_Loop1
     rla
     cpl
-    ld b,a
-    ld a,c
-    ld c,b
-    ld b,8
-; Div16_Loop2:
+    ld B,A
+    ld A,C
+    ld C,B
+    ld B,8
     _do
         rla
-        adc hl,hl
-        sbc hl,de
-        ; jr nc,Div16_NoAdd2
+        adc HL,HL
+        sbc HL,DE
         _if c
-            add hl,de
+            add HL,DE
         _endif
-; Div16_NoAdd2:
     _djnz
-    ; djnz Div16_Loop2
     rla
     cpl
-    ld b,c
-    ld c,a
+    ld B,C
+    ld C,A
+    pop DE
     ret
 
 

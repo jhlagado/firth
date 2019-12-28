@@ -107,28 +107,41 @@ defword "ABS",3,0,ABS
     cEndIf
     DW EXIT
 
-defword "*",1,0,MUL  ; u1 u2 -- ud
+defword "*",1,0,STAR        ; u1 u2 -- ud
     DW OVER, OVER           ; dupe both args
     DW ABS, SWAP, ABS       ; remove sign from both args
-    DW UMUL, DROP           ; multiply, drop hi-word
+    DW USTAR, DROP          ; unsigned multiply, drop hi-word
     DW NROT                 ; move to bottom
-    DW XOR                  ; zero is signs are the same
+    DW XOR                  ; zero if signs are the same
     DW ZEROLESS             ; if high bit set
     cIf
         DW NEGATE           ; if signs differ then negate answer
     cEndIf
     DW EXIT
 
-defword "/",1,0,SLASH       ; u1 u2 -- u3 u4
-    DW OVER, OVER           ; dupe both args
-    DW XOR                  ; zero is signs are the same
-    DW NROT                 ; move to bottom
-    DW ABS, SWAP, ABS       ; remove sign from both args
-    DW USLASHMOD            ; divide (remainder, quotient)
-    DW ROT                  ; bring to top
-    DW ZEROLESS             ; if high bit set
+defword "/",1,0,SLASH       ; dvend dvisr -- rem quot
+    DW OVER, OVER           ;       u1 u2 -- u1 u2 u1 u2  dupe both args
+    DW XOR                  ; u1 u2 u1 u2 -- u1 u2 b1     xor hi bits
+    DW ZEROLESS             ; true if high bit still set
+    DW NROT                 ;    u1 u2 b1 -- b1 u1 u2     move to bottom
+
+    DW OVER                 ;    b1 u1 u2 -- b1 u1 u2 u1  dupe dividend
+    DW ZEROLESS             ; b1 u1 u2 u1 -- b1 u1 u2 b2  zero if signs are the same
+    DW NROT                 ; b1 u1 u2 b2 -- b1 b2 u1 u2  move to bottom
+
+    ; DW DOT, DOT, DOT, DOT, CR  ; u2=-20 u1=-101 b2=1 b1=0
+
+    DW ABS, SWAP, ABS, SWAP ; remove sign from both args
+    DW USLASHMOD            ; b1 b2 u1 u2 -- b1 b2 r q    unsigned divide (remainder, quotient)
+    DW SWAP                 ; b1 b2 u1 u2 -- b1 b2 q r
+    DW ROT                  ; b1 b2 q r -- b1 q r b2      bring to top
     cIf
-        DW NEGATE           ; if signs differ then negate answer
+        DW NEGATE           ;   b1 q r b2 -- b1 q -r      if -ve then negate answer
+    cEndIf
+    DW NROT                 ;     b1 q -r -- -r b1 q     bring to top
+    DW SWAP                 ;     -r b1 q -- -r q b1      bring to top
+    cIf
+        DW NEGATE           ;     -r q b1 -- -r -q       if signs differ then negate answer
     cEndIf
     DW EXIT
 

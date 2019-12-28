@@ -1,6 +1,6 @@
 .engine mycomputer
 
-TESTMODE equ 0
+TESTMODE equ 1
 
 .include "constants.z80"
 .include "macros.z80"
@@ -37,8 +37,8 @@ RST66:
 .include "words.z80"
 
 START:
-    ld IX, RET_STACK                    ; Initialise the return stack.
-    ld SP, PAR_STACK                    ; Initialise the param stack.
+    ld SP, RET_STACK                    ; Initialise the return stack.
+    ld IX, PAR_STACK                    ; Initialise the param stack.
     ld BC, 0                            ; TOS
     ld HL,serBuf
     ld (serInPtr),HL
@@ -75,11 +75,7 @@ TESTS_START:
 
 .if TESTMODE = 2
     ; ////////////////////////////////////
-    TEST_PUSH 2
-    TEST_PUSH 2
-    TEST_SET_TEXT "ADD"
-    TEST_WORD INTERPRET
-    TEST_EXPECT 4, "2 2 ADD = 4"
+
 .endif
 
 .if TESTMODE
