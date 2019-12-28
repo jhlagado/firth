@@ -2,7 +2,12 @@ defcode "EXIT",4,0,EXIT
 	POP_RET H,L		            ; pop return stack into IP
     NEXT_1
 
-; FIND                                  ( ptr len -- headPtr )
+defcode "WORDS", 5, 0, WORDS
+    SAVE_REGS B,C
+    call listWords
+    RESTORE_REGS B,C
+    NEXT
+
 defcode "FIND",4,0,FIND
     SAVE_REGS B,C
     POP_PAR0 H,L
