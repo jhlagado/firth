@@ -247,14 +247,12 @@ defcode "-",1,0,MINUS
     LOAD16 B,C, H,L
     NEXT
 
-; U/MOD   ud u1 -- u2 u3   unsigned 32/16->16
+; U/MOD   u1 u2 -- u1 u2    unsigned 16 / 16 -> r q
 defcode "U/MOD",5,0,USLASHMOD
-    SAVE_REGS B,C    ; BC = divisor
-    POP_PAR0 H,L      ; HLDE = dividend
-    POP_PAR0 D,E
-    call unsignedSlashMod
-    PUSH_PAR0 H,L     ; PUSH remainder
-    RESTORE_REGS B,C     ; quotient remains in TOS
+    POP_PAR D,E             ; DE = divisor
+                            ; BC = dividend
+    call divideWordByWord
+    PUSH_PAR0 H,L           ; PUSH remainder,
     NEXT
 
 ; 2/      x1 -- x2                  arithmetic right shift

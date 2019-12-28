@@ -111,11 +111,24 @@ defword "*",1,0,MUL  ; u1 u2 -- ud
     DW OVER, OVER           ; dupe both args
     DW ABS, SWAP, ABS       ; remove sign from both args
     DW UMUL, DROP           ; multiply, drop hi-word
-    DW ROT, ROT             ; move to bottom
+    DW NROT                 ; move to bottom
     DW XOR                  ; zero is signs are the same
     DW ZEROLESS             ; if high bit set
     cIf
-        DW NEGATE               ; if signs differ then negate answer
+        DW NEGATE           ; if signs differ then negate answer
+    cEndIf
+    DW EXIT
+
+defword "/",1,0,SLASH       ; u1 u2 -- u3 u4
+    DW OVER, OVER           ; dupe both args
+    DW XOR                  ; zero is signs are the same
+    DW NROT                 ; move to bottom
+    DW ABS, SWAP, ABS       ; remove sign from both args
+    DW USLASHMOD            ; divide (remainder, quotient)
+    DW ROT                  ; bring to top
+    DW ZEROLESS             ; if high bit set
+    cIf
+        DW NEGATE           ; if signs differ then negate answer
     cEndIf
     DW EXIT
 
