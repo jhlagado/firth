@@ -138,15 +138,17 @@ getline:
             call getc
             cp $08
             _if z
-                call putc
-                ld a, " "
-                call putc
-                ld a, $08
-                call putc
+                ld B,A
                 ISZERO16 B,C
                 _if nz
                     dec HL
                     dec BC
+                    ld A,C
+                    call putc
+                    ld a, " "
+                    call putc
+                    ld a, $08
+                    call putc
                 _endif
             _else
                 ld (HL), A
