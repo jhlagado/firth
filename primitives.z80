@@ -430,7 +430,7 @@ defcode "ROT",3,0,ROT        ; x1 x2 x3 -- x2 x3 x1
     RESTORE_REGS B,C          ; x1 in BC
     NEXT
 
-defcode "-ROT",3,0,NROT        ; x1 x2 x3 -- x3 x1 x2
+defcode "-ROT",4,0,NROT        ; x1 x2 x3 -- x3 x1 x2
     SAVE_REGS B,C             ; x3 in BC
     POP_PAR0 H,L              ; x2 in HL
     POP_PAR0 D,E              ; x1 in DE

@@ -10,10 +10,10 @@ COLD:
 
 defconst "VERSION",7,0,VERSION,1
 defconst "R0",2,0,RZ, RET_STACK
-defconst "DOCOLON",5,0, __DOCOL,DOCOLON
-defconst "MSK_IMMED",7,0,__MSK_IMMED,MSK_IMMED
-defconst "MSK_HIDDEN",8,0,__MSK_HIDDEN,MSK_HIDDEN
-defconst "MSK_LENGTH",9,0,__MSK_LENGTH,MSK_LENGTH
+defconst "DOCOLON",7,0, __DOCOL,DOCOLON
+defconst "MSK_IMMED",9,0,__MSK_IMMED,MSK_IMMED
+defconst "MSK_HIDDEN",10,0,__MSK_HIDDEN,MSK_HIDDEN
+defconst "MSK_LENGTH",11,0,__MSK_LENGTH,MSK_LENGTH
 
 defword "QUIT",4,0,QUIT
     DW RZ,RSPSTORE        ; reset the return stack R0 RSP!
@@ -28,7 +28,7 @@ defword "INTERPRET",6,0,INTERPRET
     cUntil                          ; and loop
     DW EXIT
 
-defword "interp",4,0,interp
+defword "interp",6,0,interp
     DW TOKEN                        ; ( -- ptr len)
     DW DUP, ZEQUAL
     cIf
@@ -93,7 +93,7 @@ defword "ALLOT",5,0,ALLOT
     DW EXIT
 
 ; NEGATE  n1 -- n2                        negate n1
-defword "NEGATE",1,0,NEGATE
+defword "NEGATE",6,0,NEGATE
     DW INVERT
     DW ONEPLUS
     DW EXIT
@@ -227,7 +227,7 @@ defword "CR",2,0,CR                  ; ( -- )
     DW EXIT
 
 defvar "HERE",4,0,HERE, VAR_HERE
-defvar "INTP_STOP",12,0,INTP_STOP, VAR_INTP_STOP
+defvar "INTP_STOP",9,0,INTP_STOP, VAR_INTP_STOP
 defvar "STATE",5,0,STATE, VAR_STATE
 defvar "S0",2,0,SZ, VAR_SZ
 defvar "BASE",4,0,BASE, VAR_BASE
