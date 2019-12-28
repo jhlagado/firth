@@ -150,7 +150,7 @@ defword "/",1,0,SLASH       ; dvend dvisr -- quot
     DW SWAP, DROP           ; drop remainder
     DW EXIT
 
-defword "MOD",1,0,SLASH     ; dvend dvisr -- remainder
+defword "MOD",1,0,MOD     ; dvend dvisr -- remainder
     DW SLASHMOD
     DW DROP                 ; drop quotient
     DW EXIT
