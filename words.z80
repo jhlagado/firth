@@ -13,7 +13,7 @@ defconst "R0",2,0,RZ, RET_STACK
 defconst "DOCOLON",7,0, __DOCOL,DOCOLON
 defconst "MSK_IMMED",9,0,__MSK_IMMED,MSK_IMMED
 defconst "MSK_HIDDEN",10,0,__MSK_HIDDEN,MSK_HIDDEN
-defconst "MSK_LENGTH",11,0,__MSK_LENGTH,MSK_LENGTH
+defconst "MSK_LENGTH",10,0,__MSK_LENGTH,MSK_LENGTH
 
 defword "QUIT",4,0,QUIT
     DW RZ,RSPSTORE        ; reset the return stack R0 RSP!
