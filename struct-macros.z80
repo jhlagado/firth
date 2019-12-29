@@ -153,13 +153,13 @@ L_%%M:
 .macro _while, flag
     jr flag, L_%%M
     jp STRUC_TOP - 3        ; jump to jump to enddo
-    JUMP_FWD
+    JUMP_FWD                ; needed?
 L_%%M:
 .endm
 
 .macro _until, flag
     jp flag, STRUC_TOP - 3  ; jump to jump to enddo
-    JUMP_FWD
+    JUMP_FWD                ; needed?
 .endm
 
 .macro _continue, flag
