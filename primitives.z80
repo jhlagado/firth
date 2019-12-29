@@ -569,11 +569,11 @@ defcode ".s",2,0,DOTS                  ; ( -- )
     push DE
     push IX
     pop DE
-    ld HL,PAR_STACK
+    ld HL,PAR_STACK - 4
     or A
     sbc HL,DE
-    _if nz
-        ld HL,PAR_STACK
+    _if nc
+        ld HL,PAR_STACK - 4
         _do
             ld C,(HL)
             dec HL
@@ -585,7 +585,7 @@ defcode ".s",2,0,DOTS                  ; ( -- )
             or A
             sbc HL,DE
             pop HL
-        _until z
+        _until c
         _enddo
     _endif
     pop DE
