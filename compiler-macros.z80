@@ -54,6 +54,13 @@ CPL_TOP .set 0
     CPL_10 .set 0
 .endm
 
+.macro cBRANCH_FWD
+    CUR_ADR .set $
+    org CPL_TOP - 2
+    DW CUR_ADR - CPL_TOP + 2
+    org CUR_ADR
+.endm
+
 .macro cIF
     DW ZBRANCH, 0
     CPL_PUSH $
@@ -61,20 +68,13 @@ CPL_TOP .set 0
 
 .macro cELSE
     DW BRANCH, 0
-    BRANCH_FWD
+    cBRANCH_FWD
     CPL_TOP .set $          ;reuse TOS
 .endm
 
 .macro cENDIF
-    BRANCH_FWD
+    cBRANCH_FWD
     CPL_POP
-.endm
-
-.macro BRANCH_FWD
-    CUR_ADR .set $
-    org CPL_TOP - 2
-    DW CUR_ADR - CPL_TOP + 2
-    org CUR_ADR
 .endm
 
 .macro cDO
@@ -88,7 +88,7 @@ CPL_TOP .set 0
 
 .macro cWEND
     DW ZBRANCH, CPL_2 - $ - 2
-    BRANCH_FWD
+    cBRANCH_FWD
     CPL_POP
     CPL_POP
 .endm
@@ -100,6 +100,32 @@ CPL_TOP .set 0
 
 .macro cFOREVER
     DW ZBRANCH, CPL_TOP - $ - 2
+    CPL_POP
+.endm
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+.macro cDO2
+    DW BRANCH, 2
+    DW BRANCH, 0
+    CPL_PUSH $
+.endm
+
+.macro cWHILE2
+    DW INVERT, ZBRANCH, CPL_TOP - $ - 4
+.endm
+
+.macro cUNTIL2
+    DW ZBRANCH, CPL_TOP - $ - 4
+.endm
+
+.macro cCONTINUE2
+    DW BRANCH, CPL_TOP - $ - 2
+.endm
+
+.macro cENDDO2
+    DW BRANCH, CPL_TOP - $ - 2
+    cBRANCH_FWD
     CPL_POP
 .endm
 

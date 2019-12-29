@@ -22,10 +22,11 @@ defword "QUIT",4,0,QUIT
 defword "INTERPRET",6,0,INTERPRET
     DW LIT, 0
     DW INTP_STOP, STORE
-    cDo
+    cDO2
         DW interp                        ; interpret the next word
         DW INTP_STOP, FETCH
-    cUntil                          ; and loop
+    cUNTIL2                          ; and loop
+    cENDDO
     DW EXIT
 
 defword "interp",6,0,interp
