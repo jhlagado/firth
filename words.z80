@@ -19,11 +19,16 @@ defword "quit",4,0,QUIT
     DW RZ,RSPSTORE        ; reset the return stack R0 RSP!
     DW INTERPRET        ; interpret the next word
 
+StackPrompt: db '=> '
+
 defword "interpret",6,0,INTERPRET
     DW LIT, 0
     DW INTP_STOP, STORE
     cDO
         DW interp                        ; interpret the next word
+        DW CR
+        DW LIT, StackPrompt, LIT, 3, TYPE
+        DW DOTS, CR
         DW INTP_STOP, FETCH
     cUNTIL
     cENDDO
