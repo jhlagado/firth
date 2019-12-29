@@ -580,7 +580,6 @@ defcode ".s",2,0,DOTS                  ; ( -- )
             ld B,(HL)
             dec HL
             call printNum
-            call printSpace
             push HL
             or A
             sbc HL,DE
@@ -590,7 +589,6 @@ defcode ".s",2,0,DOTS                  ; ( -- )
         pop BC
     _endif
     call printNum                   ; print tos
-    call printSpace
     pop DE
     NEXT
 
