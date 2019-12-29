@@ -106,17 +106,17 @@ CPL_TOP .set 0
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 .macro cDO2
-    DW BRANCH, 2
+    DW BRANCH, 6
     DW BRANCH, 0
     CPL_PUSH $
 .endm
 
 .macro cWHILE2
-    DW INVERT, ZBRANCH, CPL_TOP - $ - 4
+    DW INVERT, ZBRANCH, CPL_TOP - $ - 6
 .endm
 
 .macro cUNTIL2
-    DW ZBRANCH, CPL_TOP - $ - 4
+    DW ZBRANCH, CPL_TOP - $ - 6
 .endm
 
 .macro cCONTINUE2

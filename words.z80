@@ -8,24 +8,25 @@
 COLD:
         DW QUIT                     ; headerless word which never terminates
 
-defconst "VERSION",7,0,VERSION,1
-defconst "R0",2,0,RZ, RET_STACK
-defconst "DOCOLON",7,0, __DOCOL,DOCOLON
-defconst "MSK_IMMED",9,0,__MSK_IMMED,MSK_IMMED
-defconst "MSK_HIDDEN",10,0,__MSK_HIDDEN,MSK_HIDDEN
-defconst "MSK_LENGTH",10,0,__MSK_LENGTH,MSK_LENGTH
+defconst "version",7,0,VERSION,1
+defconst "r0",2,0,RZ, RET_STACK
+defconst "docolon",7,0, __DOCOL,DOCOLON
+defconst "msk_immed",9,0,__MSK_IMMED,MSK_IMMED
+defconst "msk_hidden",10,0,__MSK_HIDDEN,MSK_HIDDEN
+defconst "msk_length",10,0,__MSK_LENGTH,MSK_LENGTH
 
-defword "QUIT",4,0,QUIT
+defword "quit",4,0,QUIT
     DW RZ,RSPSTORE        ; reset the return stack R0 RSP!
     DW INTERPRET        ; interpret the next word
 
-defword "INTERPRET",6,0,INTERPRET
+defword "interpret",6,0,INTERPRET
     DW LIT, 0
     DW INTP_STOP, STORE
-    cDO
+    cDO2
         DW interp                        ; interpret the next word
         DW INTP_STOP, FETCH
-    cUNTIL                               ; and loop
+    cUNTIL2
+    cENDDO2
     DW EXIT
 
 defword "interp",6,0,interp
@@ -73,7 +74,7 @@ defword "interp",6,0,interp
     DW EXIT
 
 
-defword ">CFA",4,0,TCFA
+defword ">cfa",4,0,TCFA
     DW LIT, 2, PLUS
     DW COUNT
     DW LIT, MSK_LENGTH, AND
@@ -81,25 +82,25 @@ defword ">CFA",4,0,TCFA
     DW EXIT
 
 ; COUNT extract string length from pascal string  ( ptr -- ptr+1 len )
-defword "COUNT",5,0,COUNT
+defword "count",5,0,COUNT
     DW DUP, LIT, 1, PLUS            ; ( ptr -- ptr ptr+1)
     DW SWAP, CFETCH                 ; ( ptr ptr+1 -- ptr+1 len)
     DW EXIT
 
 ; ALLOT                             ( n -- addr ) allocate n bytes of memory
-defword "ALLOT",5,0,ALLOT
+defword "allot",5,0,ALLOT
     DW HERE, FETCH, SWAP        ; here n
     DW HERE, ADDSTORE                    ; adds n to HERE, old value of HERE left on stack
     DW EXIT
 
 ; NEGATE  n1 -- n2                        negate n1
-defword "NEGATE",6,0,NEGATE
+defword "negate",6,0,NEGATE
     DW INVERT
     DW ONEPLUS
     DW EXIT
 
 ; ABS   n -- u                      absolute value
-defword "ABS",3,0,ABS
+defword "abs",3,0,ABS
     DW DUP                      ; copy arg
     DW ZEROLESS
     cIf
@@ -119,7 +120,7 @@ defword "*",1,0,STAR        ; u1 u2 -- ud
     cEndIf
     DW EXIT
 
-defword "/MOD",4,0,SLASHMOD       ; dvend dvisr -- rem quot
+defword "/mod",4,0,SLASHMOD       ; dvend dvisr -- rem quot
     DW OVER, OVER           ;       u1 u2 -- u1 u2 u1 u2  dupe both args
     DW XOR                  ; u1 u2 u1 u2 -- u1 u2 b1     xor hi bits
     DW ZEROLESS             ; true if high bit still set
@@ -150,7 +151,7 @@ defword "/",1,0,SLASH       ; dvend dvisr -- quot
     DW SWAP, DROP           ; drop remainder
     DW EXIT
 
-defword "MOD",3,0,MOD     ; dvend dvisr -- remainder
+defword "mod",3,0,MOD     ; dvend dvisr -- remainder
     DW SLASHMOD
     DW DROP                 ; drop quotient
     DW EXIT
@@ -161,18 +162,18 @@ defword "MOD",3,0,MOD     ; dvend dvisr -- remainder
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-defword "IF",2,MSK_IMMED,IF
+defword "if",2,MSK_IMMED,IF
     DW LIT, ZBRANCH, COMMA              ; compile 0BRANCH
     DW HERE, FETCH, DUP, COMMA          ; compile HERE and also push on stack
     DW EXIT
 
-defword "THEN",4,MSK_IMMED,THEN
+defword "then",4,MSK_IMMED,THEN
     DW DUP
     DW HERE, FETCH, SWAP, MINUS            ; calculate the offset from the address saved on the stack
     DW SWAP, STORE                        ; store the offset in the back-filled location
     DW EXIT
 
-defword "ELSE",4,MSK_IMMED,ELSE
+defword "else",4,MSK_IMMED,ELSE
     DW LIT, BRANCH, COMMA                ; definite branch to just over the false-part
     DW HERE, FETCH                        ; save HERE on stack
     DW LIT, 0, COMMA                    ; compile a dummy offset
@@ -182,17 +183,17 @@ defword "ELSE",4,MSK_IMMED,ELSE
 
 ; BEGIN condition WHILE ... REPEAT
 
-defword "BEGIN",5,MSK_IMMED,BEGIN
+defword "begin",5,MSK_IMMED,BEGIN
     DW HERE, FETCH                        ; save HERE on stack (HERE1)
     DW EXIT
 
-defword "WHILE",5,MSK_IMMED,WHILE
+defword "while",5,MSK_IMMED,WHILE
     DW LIT, ZBRANCH, COMMA              ; compile branch on zero
     DW HERE, FETCH                        ; save HERE in stack (HERE2)
     DW LIT, 0, COMMA                    ; compile dummy offset
     DW EXIT
 
-defword "REPEAT",6,MSK_IMMED,REPEAT
+defword "repeat",6,MSK_IMMED,REPEAT
     DW LIT, BRANCH, COMMA               ; compile branch
     DW SWAP                             ; TOS = HERE1
     DW HERE, FETCH, MINUS, COMMA        ; compile offset (HERE1 - HERE3)
@@ -218,7 +219,7 @@ defword ":",1,0,COLON
     DW EXIT                        ; Return from the function.
 
 ; CONSTANT   n --      define a Forth constant
-defword "CONSTANT",8,0,CONSTANT              ; ( n -- ) get name from input
+defword "constant",8,0,CONSTANT              ; ( n -- ) get name from input
     DW TOKEN                            ; read name
     DW CREATE                           ; create header
     DW LIT, JP_OPCODE, CCOMMA                ; write Z80 jp OPCODE to word
@@ -234,7 +235,7 @@ defword ";",1,MSK_IMMED,SEMICOLON
     DW LBRAC                    ; Go back to IMMEDIATE mode.
     DW EXIT                        ; Return from the function.
 
-defword "VARIABLE",8,0,VARIABLE              ; ( n -- ) get name from input
+defword "variable",8,0,VARIABLE              ; ( n -- ) get name from input
     DW LIT, 1, CELLS, ALLOT                    ; allocate 1 word, push addr
     DW TOKEN                            ; read name
     DW CREATE                           ; create header
@@ -253,7 +254,7 @@ defword "VARIABLE",8,0,VARIABLE              ; ( n -- ) get name from input
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-defword "CR",2,0,CR                  ; ( -- )
+defword "cr",2,0,CR                  ; ( -- )
     DW LIT                      ; emit cr lf
     DB "\n", 0
     DW LIT
@@ -262,12 +263,12 @@ defword "CR",2,0,CR                  ; ( -- )
     DW EMIT
     DW EXIT
 
-defvar "HERE",4,0,HERE, VAR_HERE
-defvar "INTP_STOP",9,0,INTP_STOP, VAR_INTP_STOP
-defvar "STATE",5,0,STATE, VAR_STATE
-defvar "S0",2,0,SZ, VAR_SZ
-defvar "BASE",4,0,BASE, VAR_BASE
-defvar "LATEST",6,0,LATEST, VAR_LATEST
+defvar "here",4,0,HERE, VAR_HERE
+defvar "intp_stop",9,0,INTP_STOP, VAR_INTP_STOP
+defvar "state",5,0,STATE, VAR_STATE
+defvar "s0",2,0,SZ, VAR_SZ
+defvar "base",4,0,BASE, VAR_BASE
+defvar "latest",6,0,LATEST, VAR_LATEST
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;

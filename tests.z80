@@ -6,118 +6,118 @@
 
     TEST_SET_TEXT "hello\r\n"
     TEST_WORD KEY
-    TEST_EXPECT $68, "KEY 'h'"
+    TEST_EXPECT $68, "key 'h'"
     TEST_WORD KEY
-    TEST_EXPECT $65, "KEY 'e'"
+    TEST_EXPECT $65, "key 'e'"
 
     TEST_SET_TEXT "x"
     TEST_WORD TOKEN
-    TEST_EXPECT 1, "TOKEN 'x'"
+    TEST_EXPECT 1, "token 'x'"
     TEST_POP
 
     TEST_SET_TEXT "xyz"
     TEST_WORD TOKEN
-    TEST_EXPECT 3, "TOKEN 'xyz'"
+    TEST_EXPECT 3, "token 'xyz'"
     TEST_POP
 
     TEST_SET_TEXT "a xyz "
     TEST_WORD TOKEN
-    TEST_EXPECT 1, "TOKEN 'a xyz'"
+    TEST_EXPECT 1, "token 'a xyz'"
     TEST_WORD TOKEN
-    TEST_EXPECT 3, "TOKEN 'a xyz'"
+    TEST_EXPECT 3, "token 'a xyz'"
     TEST_POP
 
     TEST_WORD HERE
     TEST_WORD FETCH
-    TEST_EXPECT START_USER, "HERE"
+    TEST_EXPECT START_USER, "here"
 
-    TEST_PUSH_TEXT "XYZ"
+    TEST_PUSH_TEXT "xyz"
     TEST_PUSH 3
     TEST_WORD CREATE
     TEST_WORD LATEST
     TEST_WORD FETCH
-    TEST_EXPECT START_USER, "CREATE XYZ LATEST"
+    TEST_EXPECT START_USER, "create xyz latest"
     TEST_WORD HERE
     TEST_WORD FETCH
-    TEST_EXPECT START_USER + 6, "CREATE XYZ HERE"
+    TEST_EXPECT START_USER + 6, "create xyz here"
 
-    TEST_SET_TEXT "DUP"
+    TEST_SET_TEXT "dup"
     TEST_PUSH 1
     TEST_WORD INTERPRET
-    TEST_EXPECT 1, "1 INTERPRET DUP"
-    TEST_EXPECT 1, "1 INTERPRET DUP 2"
+    TEST_EXPECT 1, "1 interpret dup"
+    TEST_EXPECT 1, "1 interpret dup 2"
 
     TEST_SET_TEXT "123"
     TEST_WORD INTERPRET
-    TEST_EXPECT 123, "INTERPRET 123"
+    TEST_EXPECT 123, "interpret 123"
 
     TEST_PUSH 999
     TEST_SET_TEXT "$$123"
     TEST_WORD INTERPRET
-    TEST_EXPECT 999, "INTERPRET $$123"
+    TEST_EXPECT 999, "interpret $$123"
 
     TEST_PUSH 1
     TEST_PUSH 2
     TEST_WORD DUP
-    TEST_EXPECT 2, "DUP 2"
-    TEST_EXPECT 2, "DUP 2"
+    TEST_EXPECT 2, "dup 2"
+    TEST_EXPECT 2, "dup 2"
 
-    TEST_SET_TEXT "X123"
+    TEST_SET_TEXT "x123"
     TEST_PUSH 123
     TEST_WORD CONSTANT
-    TEST_SET_TEXT "X123"
+    TEST_SET_TEXT "x123"
     TEST_WORD INTERPRET
-    TEST_EXPECT 123, "CONSTANT X123 = 123"
+    TEST_EXPECT 123, "constant x123 = 123"
 
-    TEST_SET_TEXT "V1"
+    TEST_SET_TEXT "v1"
     TEST_WORD VARIABLE
 
     TEST_PUSH 123
-    TEST_SET_TEXT "V1"
+    TEST_SET_TEXT "v1"
     TEST_WORD INTERPRET
     TEST_WORD STORE
 
-    TEST_SET_TEXT "V1"
+    TEST_SET_TEXT "v1"
     TEST_WORD INTERPRET
     TEST_WORD FETCH
-    TEST_EXPECT 123, "VARIABLE V1 = 123"
+    TEST_EXPECT 123, "variable v1 = 123"
 
-    TEST_SET_TEXT ": DBL DUP + ;"
+    TEST_SET_TEXT ": dbl dup + ;"
     TEST_WORD INTERPRET
     TEST_PUSH 2
-    TEST_SET_TEXT "DBL"
+    TEST_SET_TEXT "dbl"
     TEST_WORD INTERPRET
-    TEST_EXPECT 4, "COLON DBL 2 = 4"
+    TEST_EXPECT 4, "colon dbl 2 = 4"
 
     TEST_WORD CR
 
     TEST_SET_TEXT "a xyz"
     TEST_WORD TOKEN
-    TEST_EXPECT 1, "TOKEN 'a xyz'"
+    TEST_EXPECT 1, "token 'a xyz'"
     TEST_WORD TOKEN
-    TEST_EXPECT 3, "TOKEN 'a xyz'"
+    TEST_EXPECT 3, "token 'a xyz'"
 
     TEST_SET_TEXT "100 100 +"
     TEST_WORD INTERPRET
-    TEST_EXPECT 200, "TOKEN '100 100 + = 200'"
+    TEST_EXPECT 200, "token '100 100 + = 200'"
 
     ld HL, 12
     ld C, 10
     call divideWordByByte
     ld B, 0
     ld C, A
-    TEST_EXPECT 2, "DIV 11 / 10 = 1 1"
+    TEST_EXPECT 2, "div 11 / 10 = 1 1"
 
     TEST_SET_TEXT "100 10 + ."
     TEST_WORD INTERPRET
 
-    TEST_SET_TEXT "16 BASE ! 20"
+    TEST_SET_TEXT "16 base ! 20"
     TEST_WORD INTERPRET
     TEST_EXPECT 32, "expect $20 to be 32"
 
-    TEST_SET_TEXT "0A BASE ! 20"
+    TEST_SET_TEXT "0A base ! 20"
     TEST_WORD INTERPRET
-    TEST_EXPECT 20, "expect DECIMAL 20 to be 32"
+    TEST_EXPECT 20, "expect decimal 20 to be 32"
 
     TEST_SET_TEXT "-10 ABS"
     TEST_WORD INTERPRET
@@ -160,65 +160,65 @@
     TEST_EXPECT -5,  "expect 101 / -20 to be -5"
     TEST_EXPECT 1, "expect 101 % -20 to be 1"
 
-    TEST_SET_TEXT ": TESTIF2 IF 100 THEN ;"
+    TEST_SET_TEXT ": testif2 if 100 then ;"
 
     TEST_WORD INTERPRET
 
     TEST_PUSH 200
     TEST_PUSH 1
 
-    TEST_SET_TEXT "TESTIF2"
+    TEST_SET_TEXT "testif2"
     TEST_WORD INTERPRET
-    TEST_EXPECT 100, "1 IF 100 THEN --> 100"
+    TEST_EXPECT 100, "1 if 100 then --> 100"
 
     TEST_PUSH 0
 
-    TEST_SET_TEXT "TESTIF2"
+    TEST_SET_TEXT "testif2"
     TEST_WORD INTERPRET
-    TEST_EXPECT 200, "0 IF 100 THEN --> 200"
+    TEST_EXPECT 200, "0 if 100 then --> 200"
 
-    TEST_SET_TEXT ": TESTIF3 IF 100 ELSE 200 THEN ;"
+    TEST_SET_TEXT ": testif3 if 100 else 200 then ;"
 
     TEST_WORD INTERPRET
 
     TEST_PUSH 0
 
-    TEST_SET_TEXT "TESTIF3"
+    TEST_SET_TEXT "testif3"
     TEST_WORD INTERPRET
     TEST_EXPECT 200, "0 --> 200"
 
     TEST_PUSH 1
 
-    TEST_SET_TEXT "TESTIF3"
+    TEST_SET_TEXT "testif3"
     TEST_WORD INTERPRET
     TEST_EXPECT 100, "1 --> 100"
 
-    TEST_SET_TEXT ": TESTLOOP BEGIN DUP 5 < WHILE DUP . 1+ REPEAT ;"
+    TEST_SET_TEXT ": testloop begin dup 5 < while dup . 1+ repeat ;"
 
     TEST_WORD INTERPRET
 
     TEST_PUSH 0
 
-    TEST_SET_TEXT "TESTLOOP"
+    TEST_SET_TEXT "testloop"
     TEST_WORD INTERPRET
     TEST_EXPECT 5, "Loop until limit < 5"
 
-    TEST_PUSH_PTEXT "XYZ"
+    TEST_PUSH_PTEXT "xyz"
     TEST_WORD COUNT
-    TEST_EXPECT 3, "XYZ length 3"
+    TEST_EXPECT 3, "xyz length 3"
     TEST_WORD CFETCH
-    TEST_EXPECT "X" + 0, "XYZ --> X"
+    TEST_EXPECT "x" + 0, "xyz --> x"
 
     TEST_PUSH HEADER_LATEST
     TEST_WORD TCFA
-    TEST_EXPECT HEADER_LATEST + 3 + 6, "CFA 3 bytes plus length of name"
+    TEST_EXPECT HEADER_LATEST + 3 + 6, "cfa 3 bytes plus length of name"
 
     TEST_PUSH 1
     TEST_PUSH 2
     TEST_PUSH HEADER_PLUS
     TEST_WORD TCFA
     TEST_WORD EXECUTE
-    TEST_EXPECT 3, "1 2 PLUS = 3"
+    TEST_EXPECT 3, "1 2 plus = 3"
 
     TEST_PUSH_TEXT "100"
     TEST_PUSH 3
@@ -226,14 +226,14 @@
     TEST_EXPECT 0, "0 = no parse err"
     TEST_EXPECT 100, "parse 100"
 
-    TEST_PUSH_TEXT "LATEST"
+    TEST_PUSH_TEXT "latest"
     TEST_PUSH 6
     TEST_WORD FIND
     TEST_EXPECT HEADER_LATEST, "find header of LATEST"
 
     TEST_SET_TEXT "100"
     TEST_WORD INTERPRET
-    TEST_EXPECT 100, "INTERPRET parse 100"
+    TEST_EXPECT 100, "interpret parse 100"
 
     TEST_SET_TEXT "BASE"
     TEST_WORD INTERPRET
@@ -244,31 +244,31 @@
     TEST_WORD INTERPRET
     TEST_EXPECT 5, "3 + 2 = 5"
 
-    TEST_SET_TEXT ": ADD + ;"
+    TEST_SET_TEXT ": add + ;"
     TEST_WORD INTERPRET
 
     TEST_PUSH 2
     TEST_PUSH 2
-    TEST_SET_TEXT "ADD"
+    TEST_SET_TEXT "add"
     TEST_WORD INTERPRET
-    TEST_EXPECT 4, "2 2 ADD = 4"
+    TEST_EXPECT 4, "2 2 add = 4"
 
 
-    TEST_SET_TEXT ": DUMP 16 BASE ! OVER + SWAP BEGIN OVER OVER SWAP < WHILE DUP 7 AND 0= IF CR DUP . THEN DUP C@ . 1+ REPEAT CR 10 BASE ! ;"
+    TEST_SET_TEXT ": dump 16 base ! over + swap begin over over swap < while dup 7 and 0= if cr dup . then dup c@ . 1+ repeat cr 10 base ! ;"
 
     TEST_WORD INTERPRET
 
-    TEST_PUSH_TEXT "ADD"
+    TEST_PUSH_TEXT "add"
     TEST_PUSH 3
     TEST_WORD FIND
     TEST_PUSH 64
 
-    TEST_SET_TEXT "DUMP"
+    TEST_SET_TEXT "dump"
     TEST_WORD INTERPRET
 
 jp skipXXNOTDef
 
-    defword "XXNOT",3,0,NOT
+    defword "xxnot",3,0,NOT
         cIF
             DW LIT, 0
         cELSE
@@ -280,7 +280,7 @@ skipXXNOTDef:
 
     TEST_PUSH 0
     TEST_WORD NOT
-    TEST_EXPECT 1, "XXNOT 0 = 1"
+    TEST_EXPECT 1, "xxnot 0 = 1"
     TEST_PUSH 1
     TEST_WORD NOT
-    TEST_EXPECT 0, "XXNOT 1 = 0"
+    TEST_EXPECT 0, "xxnot 1 = 0"
