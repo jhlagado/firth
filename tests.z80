@@ -235,7 +235,7 @@
     TEST_WORD INTERPRET
     TEST_EXPECT 100, "interpret parse 100"
 
-    TEST_SET_TEXT "BASE"
+    TEST_SET_TEXT "base"
     TEST_WORD INTERPRET
     TEST_WORD FETCH
     TEST_EXPECT 10, "expect base to be 10"
