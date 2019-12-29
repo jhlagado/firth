@@ -144,9 +144,8 @@ getline:
                     dec BC
                     ld a, $08
                     call putc
-                    ld a, " "
-                    call putc
-                    ld a, $08
+                    call printSpace
+                    ld A, $08
                     call putc
                 _endif
             _else
@@ -222,9 +221,16 @@ printStr:
 
 printCR:
     push DE
-    ld DE, TXT_NEWLINE
+    ld DE,TXT_NEWLINE
     call printPStr
     pop DE
+    ret
+
+printSpace:
+    push AF
+    ld A," "
+    call putc
+    pop AF
     ret
 
 printNum:
@@ -237,8 +243,7 @@ printNum:
     ld DE, wordBuf
     call formatNum
     call printStr
-    ld a, " "
-    call putc
+    call printSpace
     pop BC
     pop DE
     pop HL
@@ -747,7 +752,7 @@ listWords:
         ld C,A
         inc DE
         call printStr
-        ld A," "
+        call printSpace
         call putc
         pop HL                      ; HL = link to previous header
         ld E,(HL)

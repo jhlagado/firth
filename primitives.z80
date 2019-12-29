@@ -146,6 +146,18 @@ defcode "rsp!",4,0,RSPSTORE
 	POP_PAR0 B,C                      ; POP TOS
     NEXT
 
+defcode "sp@",3,0,SPFETCH
+    push IX
+    pop HL
+    PUSH_PAR H,L
+    NEXT
+
+defcode "sp!",3,0,SPSTORE
+    POP_PAR H,L
+    push HL
+    pop IX
+    next
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;; memory access
@@ -550,4 +562,38 @@ defcode "key?",4,0,QKEY              ; ( -- c )
 defcode ".",1,0,DOT                 ; print top of stack in BASE
     call printNum
     POP_PAR0 B,C
+    NEXT
+
+; ( paren
+; .S dot-s
+;X .S      --           print stack contents
+;   SP@ S0 - IF
+;       SP@ S0 2 - DO I @ U. -2 +LOOP
+;   THEN ;
+defcode ".S",2,0,DOTS                  ; ( -- )
+    push BC
+    push DE
+    push IX
+    pop DE
+    ld HL,STACK_START
+    or A
+    sbc HL,DE
+    _if nz
+        ld HL,STACK_START
+        _do
+            ld C,(HL)
+            dec HL
+            ld B,(HL)
+            dec HL
+            call printNum
+            call printSpace
+            push HL
+            or A
+            sbc HL,DE
+            pop HL
+        _until z
+        _enddo
+    _endif
+    push DE
+    pop BC
     NEXT
