@@ -564,13 +564,7 @@ defcode ".",1,0,DOT                 ; print top of stack in BASE
     POP_PAR0 B,C
     NEXT
 
-; ( paren
-; .S dot-s
-;X .S      --           print stack contents
-;   SP@ S0 - IF
-;       SP@ S0 2 - DO I @ U. -2 +LOOP
-;   THEN ;
-defcode ".S",2,0,DOTS                  ; ( -- )
+defcode ".s",2,0,DOTS                  ; ( -- )
     push BC
     push DE
     push IX
