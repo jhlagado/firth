@@ -588,6 +588,8 @@ defcode ".s",2,0,DOTS                  ; ( -- )
         _until z
         _enddo
     _endif
-    push DE
+    pop DE
     pop BC
+    call printNum                   ; print tos
+    call printSpace
     NEXT

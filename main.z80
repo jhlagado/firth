@@ -1,6 +1,6 @@
 .engine mycomputer
 
-TESTMODE equ 0
+TESTMODE equ 2
 
 .include "constants.z80"
 .include "macros.z80"
@@ -75,7 +75,10 @@ TESTS_START:
 
 .if TESTMODE = 2
     ; ////////////////////////////////////
-
+    TEST_PUSH 3
+    TEST_PUSH 2
+    TEST_PUSH 1
+    TEST_WORD DOTS
 .endif
 
 .if TESTMODE
