@@ -119,11 +119,11 @@
     TEST_WORD INTERPRET
     TEST_EXPECT 20, "expect decimal 20 to be 32"
 
-    TEST_SET_TEXT "-10 ABS"
+    TEST_SET_TEXT "-10 abs"
     TEST_WORD INTERPRET
     TEST_EXPECT 10, "expect abs -10 to be 10"
 
-    TEST_SET_TEXT "10 ABS"
+    TEST_SET_TEXT "10 abs"
     TEST_WORD INTERPRET
     TEST_EXPECT 10, "expect abs 10 to be 10"
 
