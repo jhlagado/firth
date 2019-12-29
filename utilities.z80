@@ -408,6 +408,7 @@ getToken:
 
     _do
         call getKey                 ; get next key, returned in A
+        call toLowercase            ; ensure lowercase
 
         _switch
 
@@ -458,9 +459,23 @@ getToken:
 
     _enddo
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; toLowercase -  converts ASCII value register A
+;; to lowercase
+;;
+;; params: A = ASCII char
+;; returns: A = lowercase ASCII char
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-
-    ; Search for the end of the word, storing chars as we go.
+toLowercase:
+    cp 'A'
+    _if nc
+        cp 'Z' + 1
+        _if c
+            or $20      ; set bit 6
+        _endif
+    _endif
+    ret
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; toNumber -  converts string to number in the
