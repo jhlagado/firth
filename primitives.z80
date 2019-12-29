@@ -575,11 +575,11 @@ defcode ".S",2,0,DOTS                  ; ( -- )
     push DE
     push IX
     pop DE
-    ld HL,STACK_START
+    ld HL,PAR_STACK
     or A
     sbc HL,DE
     _if nz
-        ld HL,STACK_START
+        ld HL,PAR_STACK
         _do
             ld C,(HL)
             dec HL
