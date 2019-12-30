@@ -66,6 +66,8 @@ STRUC_TOP .set 0
     org CUR_ADR
 .endm
 
+; if
+
 .macro _if, flag
     jp flag, L_%%M
     jp $              ; placeholder jump to _else or _endif
@@ -83,6 +85,8 @@ L_%%M:
     STRUC_FWD
     STRUC_POP
 .endm
+
+; switch
 
 .macro _switch
     jr L_%%M
@@ -105,6 +109,18 @@ L_%%M:
 .endm
 
 .macro _endswitch
+    STRUC_FWD
+    STRUC_POP
+.endm
+
+; skip
+
+.macro _skip
+    jp $              ; placeholder jump to _else or _endif
+    STRUC_PUSH $
+.endm
+
+.macro _endskip
     STRUC_FWD
     STRUC_POP
 .endm
