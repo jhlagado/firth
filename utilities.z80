@@ -132,10 +132,10 @@ inputReady:
 getline:
     push AF
     push HL
-    call printCR
-    PRINT_STR StackPrompt
-    call printStack
-    call printCR
+    ; call printCR
+    ; PRINT_STR StackPrompt
+    ; call printStack
+    ; call printCR
     PRINT_STR TXT_PROMPT
     pop HL
     push HL
