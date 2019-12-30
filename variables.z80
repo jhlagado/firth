@@ -19,6 +19,7 @@ wordBuf:    ds 32
 
 IS_LITERAL:     db 0            ; Flag used to record if reading a literal
 
+VAR_HERE:       ds PAD_SIZE
 VAR_HERE:       dw START_USER
 VAR_INTP_STOP:
                 dw 0

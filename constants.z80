@@ -20,7 +20,6 @@ START_RAM       equ     START_ROM + ROM_SIZE
 END_RAM         equ     START_RAM + RAM_SIZE
 RET_STACK       equ     END_RAM             ; return stack, 128 B, grows down
 PAR_STACK       equ     RET_STACK - 128     ; parameter stack, 128B, grows down
-PAD             equ     PAR_STACK - PAR_STACK_SIZE - PAD_SIZE ; user scratch pad
 
 IO_DATA         equ     $81
 IO_CTRL         equ     $80
