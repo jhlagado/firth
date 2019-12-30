@@ -112,11 +112,15 @@ CPL_TOP .set 0
 .endm
 
 .macro cWHILE2
-    DW INVERT, ZBRANCH, CPL_TOP - $ - 6
+    DW ZBRANCH, CPL_TOP - $ - 6
 .endm
 
 .macro cUNTIL2
-    DW ZBRANCH, CPL_TOP - $ - 6
+    DW ZEQUAL, ZBRANCH, CPL_TOP - $ - 6
+.endm
+
+.macro cBREAK
+    DW BRANCH, CPL_TOP - $ - 6
 .endm
 
 .macro cCONTINUE2
