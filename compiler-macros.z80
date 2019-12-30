@@ -78,58 +78,29 @@ CPL_TOP .set 0
 .endm
 
 .macro cDO
-    CPL_PUSH $
-.endm
-
-.macro cWHILE
-    DW ZBRANCH, 0
-    CPL_PUSH $
-.endm
-
-.macro cWEND
-    DW ZBRANCH, CPL_2 - $ - 2
-    cBRANCH_FWD
-    CPL_POP
-    CPL_POP
-.endm
-
-.macro cUNTIL
-    DW ZBRANCH, CPL_TOP - $ - 2
-    CPL_POP
-.endm
-
-.macro cFOREVER
-    DW ZBRANCH, CPL_TOP - $ - 2
-    CPL_POP
-.endm
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-.macro cDO2
     DW BRANCH, 6
     DW BRANCH, 0
     CPL_PUSH $
 .endm
 
-.macro cWHILE2
-    DW ZBRANCH, CPL_TOP - $ - 6
+.macro cWHILE
+    DW ZBRANCH, CPL_TOP - $ - 8
 .endm
 
-.macro cUNTIL2
-    DW ZEQUAL, ZBRANCH, CPL_TOP - $ - 6
+.macro cUNTIL
+    DW ZEQUAL, ZBRANCH, CPL_TOP - $ - 8
 .endm
 
 .macro cBREAK
-    DW BRANCH, CPL_TOP - $ - 6
+    DW BRANCH, CPL_TOP - $ - 8
 .endm
 
-.macro cCONTINUE2
+.macro cCONTINUE
     DW BRANCH, CPL_TOP - $ - 2
 .endm
 
-.macro cENDDO2
+.macro cENDDO
     DW BRANCH, CPL_TOP - $ - 2
     cBRANCH_FWD
     CPL_POP
 .endm
-
