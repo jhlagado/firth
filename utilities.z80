@@ -6,6 +6,9 @@
 
 TXT_NEWLINE:    .pstr "\r\n"
 TXT_PROMPT:     .pstr "\r\n> "
+StackPrompt:    .pstr "=> "
+
+
 TXT_INTRO:      .pstr "Firth of Forth Z80\r\n\r\n"
 TXT_ERROR:      .pstr "PARSE ERROR: "
 TXT_STACK_UNDERFLOW:
@@ -129,6 +132,10 @@ inputReady:
 getline:
     push AF
     push HL
+    call printCR
+    PRINT_STR StackPrompt
+    call printStack
+    call printCR
     PRINT_STR TXT_PROMPT
     pop HL
     push HL
@@ -248,6 +255,34 @@ printNum:
     pop DE
     pop HL
     ret
+
+printStack:
+    push BC
+    push DE
+    push IX
+    pop DE
+    ld HL,PAR_STACK - 4
+    or A
+    sbc HL,DE
+    _if nc
+        ld HL,PAR_STACK - 4
+        _do
+            ld C,(HL)
+            dec HL
+            ld B,(HL)
+            dec HL
+            call printNum
+            push HL
+            or A
+            sbc HL,DE
+            pop HL
+        _until c
+        _enddo
+    _endif
+    pop DE
+    pop BC
+    ret
+
 
 ; HL = data, DE = ptr to lineBuf, C = base
 ; DE = ptr to string, BC = length

@@ -565,31 +565,8 @@ defcode ".",1,0,DOT                 ; print top of stack in BASE
     NEXT
 
 defcode ".s",2,0,DOTS                  ; ( -- )
-    push DE
-    push IX
-    pop DE
-    ld HL,PAR_STACK - 4
-    or A
-    sbc HL,DE
-    _if nc
-        ld HL,PAR_STACK - 4
-        push BC
-        _do
-            ld C,(HL)
-            dec HL
-            ld B,(HL)
-            dec HL
-            call printNum
-            push HL
-            or A
-            sbc HL,DE
-            pop HL
-        _until c
-        _enddo
-        pop BC
-    _endif
+    call printStack
     call printNum                   ; print tos
-    pop DE
     NEXT
 
 defcode "type",4,0,TYPE             ; ( str len -- )
