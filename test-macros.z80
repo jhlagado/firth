@@ -4,14 +4,6 @@
 ;; macros to facilitate tests
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-.macro TEST_PUSH, val
-    PUSH_PAR_VALUE val
-.endm
-
-.macro TEST_POP
-    POP_PAR H,L
-.endm
-
 .macro TEST_SET_TEXT, s1
     ld HL, lineBuf
     ld (lineBufTop),HL
@@ -25,33 +17,7 @@ tst_text%%M:
     _endskip
 .endm
 
-.macro TEST_PUSH_TEXT, s1
-    PUSH_PAR0 B,C
-    ld BC, tpt_text%%M
-    _skip
-tpt_text%%M:
-        db s1
-    _endskip
-.endm
-
-.macro TEST_PUSH_PTEXT, s1
-    PUSH_PAR0 B,C
-    ld BC, tpt_text%%M
-    _skip
-tpt_text%%M:
-        .pstr s1
-    _endskip
-.endm
-
-.macro TEST_WORD, name
-    ld DE, tf_nextword%%M
-    ld HL, name
-    jp (HL)
-tf_nextword%%M:
-    DW $ + 2
-.endm
-
-.macro TEST_EXPECT, expect, failtxt
+.macro EXPECT, expect, failtxt
     call printNum
     LOAD16 H,L, B,C
     ld L, C

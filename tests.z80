@@ -5,266 +5,266 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
     TEST_SET_TEXT "hello\r\n"
-    TEST_WORD KEY
-    TEST_EXPECT $68, "key 'h'"
-    TEST_WORD KEY
-    TEST_EXPECT $65, "key 'e'"
+    CALLWORD KEY
+    EXPECT $68, "key 'h'"
+    CALLWORD KEY
+    EXPECT $65, "key 'e'"
 
     TEST_SET_TEXT "x"
-    TEST_WORD TOKEN
-    TEST_EXPECT 1, "token 'x'"
-    TEST_POP
+    CALLWORD TOKEN
+    EXPECT 1, "token 'x'"
+    POP_PAR H,L   ; drop
 
     TEST_SET_TEXT "xyz"
-    TEST_WORD TOKEN
-    TEST_EXPECT 3, "token 'xyz'"
-    TEST_POP
+    CALLWORD TOKEN
+    EXPECT 3, "token 'xyz'"
+    POP_PAR H,L   ; drop
 
     TEST_SET_TEXT "a xyz "
-    TEST_WORD TOKEN
-    TEST_EXPECT 1, "token 'a xyz'"
-    TEST_WORD TOKEN
-    TEST_EXPECT 3, "token 'a xyz'"
-    TEST_POP
+    CALLWORD TOKEN
+    EXPECT 1, "token 'a xyz'"
+    CALLWORD TOKEN
+    EXPECT 3, "token 'a xyz'"
+    POP_PAR H,L   ; drop
 
-    TEST_WORD HERE
-    TEST_WORD FETCH
-    TEST_EXPECT START_USER, "here"
+    CALLWORD HERE
+    CALLWORD FETCH
+    EXPECT START_USER, "here"
 
-    TEST_PUSH_TEXT "xyz"
-    TEST_PUSH 3
-    TEST_WORD CREATE
-    TEST_WORD LATEST
-    TEST_WORD FETCH
-    TEST_EXPECT START_USER, "create xyz latest"
-    TEST_WORD HERE
-    TEST_WORD FETCH
-    TEST_EXPECT START_USER + 6, "create xyz here"
+    PUSH_PAR_TEXT "xyz"
+    PUSH_PAR_VALUE 3
+    CALLWORD CREATE
+    CALLWORD LATEST
+    CALLWORD FETCH
+    EXPECT START_USER, "create xyz latest"
+    CALLWORD HERE
+    CALLWORD FETCH
+    EXPECT START_USER + 6, "create xyz here"
 
     TEST_SET_TEXT "dup"
-    TEST_PUSH 1
-    TEST_WORD INTERPRET
-    TEST_EXPECT 1, "1 interpret dup"
-    TEST_EXPECT 1, "1 interpret dup 2"
+    PUSH_PAR_VALUE 1
+    CALLWORD INTERPRET
+    EXPECT 1, "1 interpret dup"
+    EXPECT 1, "1 interpret dup 2"
 
     TEST_SET_TEXT "123"
-    TEST_WORD INTERPRET
-    TEST_EXPECT 123, "interpret 123"
+    CALLWORD INTERPRET
+    EXPECT 123, "interpret 123"
 
-    TEST_PUSH 999
+    PUSH_PAR_VALUE 999
     TEST_SET_TEXT "$$123"
-    TEST_WORD INTERPRET
-    TEST_EXPECT 999, "interpret $$123"
+    CALLWORD INTERPRET
+    EXPECT 999, "interpret $$123"
 
-    TEST_PUSH 1
-    TEST_PUSH 2
-    TEST_WORD DUP
-    TEST_EXPECT 2, "dup 2"
-    TEST_EXPECT 2, "dup 2"
+    PUSH_PAR_VALUE 1
+    PUSH_PAR_VALUE 2
+    CALLWORD DUP
+    EXPECT 2, "dup 2"
+    EXPECT 2, "dup 2"
 
     TEST_SET_TEXT "x123"
-    TEST_PUSH 123
-    TEST_WORD CONSTANT
+    PUSH_PAR_VALUE 123
+    CALLWORD CONSTANT
     TEST_SET_TEXT "x123"
-    TEST_WORD INTERPRET
-    TEST_EXPECT 123, "constant x123 = 123"
+    CALLWORD INTERPRET
+    EXPECT 123, "constant x123 = 123"
 
     TEST_SET_TEXT "v1"
-    TEST_WORD VARIABLE
+    CALLWORD VARIABLE
 
-    TEST_PUSH 123
+    PUSH_PAR_VALUE 123
     TEST_SET_TEXT "v1"
-    TEST_WORD INTERPRET
-    TEST_WORD STORE
+    CALLWORD INTERPRET
+    CALLWORD STORE
 
     TEST_SET_TEXT "v1"
-    TEST_WORD INTERPRET
-    TEST_WORD FETCH
-    TEST_EXPECT 123, "variable v1 = 123"
+    CALLWORD INTERPRET
+    CALLWORD FETCH
+    EXPECT 123, "variable v1 = 123"
 
     TEST_SET_TEXT ": dbl dup + ;"
-    TEST_WORD INTERPRET
-    TEST_PUSH 2
+    CALLWORD INTERPRET
+    PUSH_PAR_VALUE 2
     TEST_SET_TEXT "dbl"
-    TEST_WORD INTERPRET
-    TEST_EXPECT 4, "colon dbl 2 = 4"
+    CALLWORD INTERPRET
+    EXPECT 4, "colon dbl 2 = 4"
 
-    TEST_WORD CR
+    CALLWORD CR
 
     TEST_SET_TEXT "a xyz"
-    TEST_WORD TOKEN
-    TEST_EXPECT 1, "token 'a xyz'"
-    TEST_WORD TOKEN
-    TEST_EXPECT 3, "token 'a xyz'"
+    CALLWORD TOKEN
+    EXPECT 1, "token 'a xyz'"
+    CALLWORD TOKEN
+    EXPECT 3, "token 'a xyz'"
 
     TEST_SET_TEXT "100 100 +"
-    TEST_WORD INTERPRET
-    TEST_EXPECT 200, "token '100 100 + = 200'"
+    CALLWORD INTERPRET
+    EXPECT 200, "token '100 100 + = 200'"
 
     ld HL, 12
     ld C, 10
     call divideWordByByte
     ld B, 0
     ld C, A
-    TEST_EXPECT 2, "div 11 / 10 = 1 1"
+    EXPECT 2, "div 11 / 10 = 1 1"
 
     TEST_SET_TEXT "100 10 + ."
-    TEST_WORD INTERPRET
+    CALLWORD INTERPRET
 
     TEST_SET_TEXT "16 base ! 20"
-    TEST_WORD INTERPRET
-    TEST_EXPECT 32, "expect $20 to be 32"
+    CALLWORD INTERPRET
+    EXPECT 32, "expect $20 to be 32"
 
     TEST_SET_TEXT "0A base ! 20"
-    TEST_WORD INTERPRET
-    TEST_EXPECT 20, "expect decimal 20 to be 32"
+    CALLWORD INTERPRET
+    EXPECT 20, "expect decimal 20 to be 32"
 
     TEST_SET_TEXT "-10 abs"
-    TEST_WORD INTERPRET
-    TEST_EXPECT 10, "expect abs -10 to be 10"
+    CALLWORD INTERPRET
+    EXPECT 10, "expect abs -10 to be 10"
 
     TEST_SET_TEXT "10 abs"
-    TEST_WORD INTERPRET
-    TEST_EXPECT 10, "expect abs 10 to be 10"
+    CALLWORD INTERPRET
+    EXPECT 10, "expect abs 10 to be 10"
 
-    TEST_PUSH -10
-    TEST_PUSH 10
-    TEST_WORD STAR
-    TEST_EXPECT -100, "expect -10 * 10 to be -100"
+    PUSH_PAR_VALUE -10
+    PUSH_PAR_VALUE 10
+    CALLWORD STAR
+    EXPECT -100, "expect -10 * 10 to be -100"
 
-    TEST_PUSH -10
-    TEST_PUSH -20
-    TEST_WORD STAR
-    TEST_EXPECT 200, "expect -10 * -20 to be 200"
+    PUSH_PAR_VALUE -10
+    PUSH_PAR_VALUE -20
+    CALLWORD STAR
+    EXPECT 200, "expect -10 * -20 to be 200"
 
-    TEST_PUSH 10
-    TEST_PUSH -20
-    TEST_WORD STAR
-    TEST_EXPECT -200, "expect -10 * -20 to be 200"
+    PUSH_PAR_VALUE 10
+    PUSH_PAR_VALUE -20
+    CALLWORD STAR
+    EXPECT -200, "expect -10 * -20 to be 200"
 
-    TEST_PUSH -101
-    TEST_PUSH 20
-    TEST_WORD SLASHMOD
-    TEST_EXPECT -5, "expect -101 / 20 to be -5"
-    TEST_EXPECT -1, "expect -101 % 20 to be -1"
+    PUSH_PAR_VALUE -101
+    PUSH_PAR_VALUE 20
+    CALLWORD SLASHMOD
+    EXPECT -5, "expect -101 / 20 to be -5"
+    EXPECT -1, "expect -101 % 20 to be -1"
 
-    TEST_PUSH -101
-    TEST_PUSH -20
-    TEST_WORD SLASHMOD
-    TEST_EXPECT 5,  "expect -101 / -20 to be 5"
-    TEST_EXPECT -1, "expect -101 % -20 to be -1"
+    PUSH_PAR_VALUE -101
+    PUSH_PAR_VALUE -20
+    CALLWORD SLASHMOD
+    EXPECT 5,  "expect -101 / -20 to be 5"
+    EXPECT -1, "expect -101 % -20 to be -1"
 
-    TEST_PUSH 101
-    TEST_PUSH -20
-    TEST_WORD SLASHMOD
-    TEST_EXPECT -5,  "expect 101 / -20 to be -5"
-    TEST_EXPECT 1, "expect 101 % -20 to be 1"
+    PUSH_PAR_VALUE 101
+    PUSH_PAR_VALUE -20
+    CALLWORD SLASHMOD
+    EXPECT -5,  "expect 101 / -20 to be -5"
+    EXPECT 1, "expect 101 % -20 to be 1"
 
     TEST_SET_TEXT ": testif2 if 100 then ;"
 
-    TEST_WORD INTERPRET
+    CALLWORD INTERPRET
 
-    TEST_PUSH 200
-    TEST_PUSH 1
-
-    TEST_SET_TEXT "testif2"
-    TEST_WORD INTERPRET
-    TEST_EXPECT 100, "1 if 100 then --> 100"
-
-    TEST_PUSH 0
+    PUSH_PAR_VALUE 200
+    PUSH_PAR_VALUE 1
 
     TEST_SET_TEXT "testif2"
-    TEST_WORD INTERPRET
-    TEST_EXPECT 200, "0 if 100 then --> 200"
+    CALLWORD INTERPRET
+    EXPECT 100, "1 if 100 then --> 100"
+
+    PUSH_PAR_VALUE 0
+
+    TEST_SET_TEXT "testif2"
+    CALLWORD INTERPRET
+    EXPECT 200, "0 if 100 then --> 200"
 
     TEST_SET_TEXT ": testif3 if 100 else 200 then ;"
 
-    TEST_WORD INTERPRET
+    CALLWORD INTERPRET
 
-    TEST_PUSH 0
-
-    TEST_SET_TEXT "testif3"
-    TEST_WORD INTERPRET
-    TEST_EXPECT 200, "0 --> 200"
-
-    TEST_PUSH 1
+    PUSH_PAR_VALUE 0
 
     TEST_SET_TEXT "testif3"
-    TEST_WORD INTERPRET
-    TEST_EXPECT 100, "1 --> 100"
+    CALLWORD INTERPRET
+    EXPECT 200, "0 --> 200"
+
+    PUSH_PAR_VALUE 1
+
+    TEST_SET_TEXT "testif3"
+    CALLWORD INTERPRET
+    EXPECT 100, "1 --> 100"
 
     TEST_SET_TEXT ": testloop begin dup 5 < while dup . 1+ repeat ;"
 
-    TEST_WORD INTERPRET
+    CALLWORD INTERPRET
 
-    TEST_PUSH 0
+    PUSH_PAR_VALUE 0
 
     TEST_SET_TEXT "testloop"
-    TEST_WORD INTERPRET
-    TEST_EXPECT 5, "Loop until limit < 5"
+    CALLWORD INTERPRET
+    EXPECT 5, "Loop until limit < 5"
 
-    TEST_PUSH_PTEXT "xyz"
-    TEST_WORD COUNT
-    TEST_EXPECT 3, "xyz length 3"
-    TEST_WORD CFETCH
-    TEST_EXPECT "x" + 0, "xyz --> x"
+    PUSH_PAR_PTEXT "xyz"
+    CALLWORD COUNT
+    EXPECT 3, "xyz length 3"
+    CALLWORD CFETCH
+    EXPECT "x" + 0, "xyz --> x"
 
-    TEST_PUSH HEADER_LATEST
-    TEST_WORD TCFA
-    TEST_EXPECT HEADER_LATEST + 3 + 6, "cfa 3 bytes plus length of name"
+    PUSH_PAR_VALUE HEADER_LATEST
+    CALLWORD TCFA
+    EXPECT HEADER_LATEST + 3 + 6, "cfa 3 bytes plus length of name"
 
-    TEST_PUSH 1
-    TEST_PUSH 2
-    TEST_PUSH HEADER_PLUS
-    TEST_WORD TCFA
-    TEST_WORD EXECUTE
-    TEST_EXPECT 3, "1 2 plus = 3"
+    PUSH_PAR_VALUE 1
+    PUSH_PAR_VALUE 2
+    PUSH_PAR_VALUE HEADER_PLUS
+    CALLWORD TCFA
+    CALLWORD EXECUTE
+    EXPECT 3, "1 2 plus = 3"
 
-    TEST_PUSH_TEXT "100"
-    TEST_PUSH 3
-    TEST_WORD NUMBER
-    TEST_EXPECT 0, "0 = no parse err"
-    TEST_EXPECT 100, "parse 100"
+    PUSH_PAR_TEXT "100"
+    PUSH_PAR_VALUE 3
+    CALLWORD NUMBER
+    EXPECT 0, "0 = no parse err"
+    EXPECT 100, "parse 100"
 
-    TEST_PUSH_TEXT "latest"
-    TEST_PUSH 6
-    TEST_WORD FIND
-    TEST_EXPECT HEADER_LATEST, "find header of LATEST"
+    PUSH_PAR_TEXT "latest"
+    PUSH_PAR_VALUE 6
+    CALLWORD FIND
+    EXPECT HEADER_LATEST, "find header of LATEST"
 
     TEST_SET_TEXT "100"
-    TEST_WORD INTERPRET
-    TEST_EXPECT 100, "interpret parse 100"
+    CALLWORD INTERPRET
+    EXPECT 100, "interpret parse 100"
 
     TEST_SET_TEXT "base"
-    TEST_WORD INTERPRET
-    TEST_WORD FETCH
-    TEST_EXPECT 10, "expect base to be 10"
+    CALLWORD INTERPRET
+    CALLWORD FETCH
+    EXPECT 10, "expect base to be 10"
 
     TEST_SET_TEXT "3 2 +"
-    TEST_WORD INTERPRET
-    TEST_EXPECT 5, "3 + 2 = 5"
+    CALLWORD INTERPRET
+    EXPECT 5, "3 + 2 = 5"
 
     TEST_SET_TEXT ": add + ;"
-    TEST_WORD INTERPRET
+    CALLWORD INTERPRET
 
-    TEST_PUSH 2
-    TEST_PUSH 2
+    PUSH_PAR_VALUE 2
+    PUSH_PAR_VALUE 2
     TEST_SET_TEXT "add"
-    TEST_WORD INTERPRET
-    TEST_EXPECT 4, "2 2 add = 4"
+    CALLWORD INTERPRET
+    EXPECT 4, "2 2 add = 4"
 
 
     TEST_SET_TEXT ": dump 16 base ! over + swap begin over over swap < while dup 7 and 0= if cr dup . then dup c@ . 1+ repeat cr 10 base ! ;"
 
-    TEST_WORD INTERPRET
+    CALLWORD INTERPRET
 
-    TEST_PUSH_TEXT "add"
-    TEST_PUSH 3
-    TEST_WORD FIND
-    TEST_PUSH 64
+    PUSH_PAR_TEXT "add"
+    PUSH_PAR_VALUE 3
+    CALLWORD FIND
+    PUSH_PAR_VALUE 64
 
     TEST_SET_TEXT "dump"
-    TEST_WORD INTERPRET
+    CALLWORD INTERPRET
 
 jp skipXXNOTDef
 
@@ -278,9 +278,9 @@ jp skipXXNOTDef
 
 skipXXNOTDef:
 
-    TEST_PUSH 0
-    TEST_WORD NOT
-    TEST_EXPECT 1, "xxnot 0 = 1"
-    TEST_PUSH 1
-    TEST_WORD NOT
-    TEST_EXPECT 0, "xxnot 1 = 0"
+    PUSH_PAR_VALUE 0
+    CALLWORD NOT
+    EXPECT 1, "xxnot 0 = 1"
+    PUSH_PAR_VALUE 1
+    CALLWORD NOT
+    EXPECT 0, "xxnot 1 = 0"

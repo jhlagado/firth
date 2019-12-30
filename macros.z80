@@ -89,6 +89,28 @@ NEXT
     POP_PAR0 B,C
 .endm
 
+.macro PUSH_PAR_VALUE, val
+    PUSH_PAR0 B,C
+    ld BC, val
+.endm
+
+.macro PUSH_PAR_TEXT, s1
+    PUSH_PAR_VALUE tpt_text%%M
+    _skip
+tpt_text%%M:
+        db s1
+    _endskip
+.endm
+
+.macro PUSH_PAR_PTEXT, s1
+    PUSH_PAR_VALUE tpt_text%%M
+    ld BC, tpt_text%%M
+    _skip
+tpt_text%%M:
+        .pstr s1
+    _endskip
+.endm
+
 ; Macros to deal with the return stack.
 .macro PUSH_RET, regHI, regLO
     push regHIregLO
@@ -145,5 +167,13 @@ NEXT
     or A
     sbc HL, DE
     ISZERO16 H,L
+.endm
+
+.macro CALLWORD, name
+    ld DE, tf_nextword%%M
+    ld HL, name
+    jp (HL)
+tf_nextword%%M:
+    DW $ + 2
 .endm
 
