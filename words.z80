@@ -31,7 +31,6 @@ defword "interpret",6,0,INTERPRET
         DW DOTS, CR
         DW INTP_STOP, FETCH
     cUNTIL
-    cENDDO
     DW EXIT
 
 defword "interp",6,0,interp
