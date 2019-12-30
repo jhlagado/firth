@@ -1,0 +1,106 @@
+;-------------------------------------------------------------------------------
+;
+; Assembler Structured Looping Macros
+; by John Hardy @ 2019 ALL WRONGS RESERVED
+; https://github.com/jhlagado/struct-z80
+;
+; Inspired by the work of Garth Wilson and Dave Keenan
+; http://wilsonminesco.com/StructureMacros/
+; http://dkeenan.com/AddingStructuredControlFlowToAnyAssembler.htm
+;
+;-------------------------------------------------------------------------------
+
+DLOOP_COUNT .set 0
+
+DLOOP_12 .set 0
+DLOOP_11 .set 0
+DLOOP_10 .set 0
+DLOOP_9 .set 0
+DLOOP_8 .set 0
+DLOOP_7 .set 0
+DLOOP_6 .set 0
+DLOOP_5 .set 0
+DLOOP_4 .set 0
+DLOOP_3 .set 0
+DLOOP_2 .set 0
+DLOOP_TOP .set 0
+
+.macro DLOOP_PUSH, arg
+    DLOOP_COUNT .set DLOOP_COUNT + 1
+
+    DLOOP_12 .set DLOOP_11
+    DLOOP_11 .set DLOOP_10
+    DLOOP_10 .set DLOOP_9
+    DLOOP_9 .set DLOOP_8
+    DLOOP_8 .set DLOOP_7
+    DLOOP_7 .set DLOOP_6
+    DLOOP_6 .set DLOOP_5
+    DLOOP_5 .set DLOOP_4
+    DLOOP_4 .set DLOOP_3
+    DLOOP_3 .set DLOOP_2
+    DLOOP_2 .set DLOOP_TOP
+    DLOOP_TOP .set arg
+.endm
+
+.macro DLOOP_POP
+    DLOOP_COUNT .set DLOOP_COUNT - 1
+
+    DLOOP_TOP .set DLOOP_2
+    DLOOP_2 .set DLOOP_3
+    DLOOP_3 .set DLOOP_4
+    DLOOP_4 .set DLOOP_5
+    DLOOP_5 .set DLOOP_6
+    DLOOP_6 .set DLOOP_7
+    DLOOP_7 .set DLOOP_8
+    DLOOP_8 .set DLOOP_9
+    DLOOP_9 .set DLOOP_10
+    DLOOP_10 .set DLOOP_11
+    DLOOP_11 .set DLOOP_12
+    DLOOP_12 .set 0
+.endm
+
+.macro DLOOP_FWD
+    CUR_ADR .set $
+    org DLOOP_TOP - 2
+    dw CUR_ADR
+    org CUR_ADR
+.endm
+
+.macro _do
+    jr L_%%M
+    jp $                    ; placeholder jump to enddo
+    DLOOP_PUSH $
+L_%%M:
+.endm
+
+.macro _while, flag
+    jr flag, L_%%M
+    jp DLOOP_TOP - 3         ; jump to jump to enddo
+    DLOOP_FWD                ; needed?
+L_%%M:
+.endm
+
+.macro _until, flag
+    jp flag, DLOOP_TOP - 3  ; jump to jump to enddo
+    DLOOP_FWD               ; needed?
+.endm
+
+.macro _break
+    jp DLOOP_TOP - 3        ; start of loop
+.endm
+
+.macro _continue
+    jp DLOOP_TOP            ; start of loop
+.endm
+
+.macro _enddo
+    jp DLOOP_TOP
+    DLOOP_FWD
+    DLOOP_POP
+.endm
+
+.macro _djnz                ; start of loop
+    djnz DLOOP_TOP
+    DLOOP_FWD
+    DLOOP_POP
+.endm
