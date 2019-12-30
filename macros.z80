@@ -169,6 +169,11 @@ tpt_text%%M:
     ISZERO16 H,L
 .endm
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; CallWord
+; params HL=address of word CFA
+; destroys DE
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 .macro CALLWORD, name
     ld DE, tf_nextword%%M
     ld HL, name
