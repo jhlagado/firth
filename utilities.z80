@@ -413,7 +413,6 @@ getToken:
 
     _do
         call getKey                 ; get next key, returned in A
-        call toLowercase            ; ensure lowercase
 
         _switch
 
@@ -429,7 +428,6 @@ getToken:
             _case z                       ; if yes skip to end of line
                 _do
                     call getKey
-                    call toLowercase            ; ensure lowercase
                     cp "\r"             ; end of line yet?
                     _if nz
                         cp "\n"         ; end of line yet?
@@ -446,7 +444,6 @@ getToken:
                     ld (HL), A          ; add character to return lineBuf
                     inc HL
                     call getKey            ; get next key
-                    call toLowercase            ; ensure lowercase
                     cp ' ' + 1            ; <= space?
                 _until c
                     dec E
