@@ -5,68 +5,68 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 .macro TEST_PUSH, val
-        PUSH_PAR0 B,C
-        ld BC, val
+    PUSH_PAR_VALUE val
 .endm
 
 .macro TEST_POP
-        LOAD16 H,L, B,C
-        POP_PAR0 B,C
+    POP_PAR H,L
 .endm
 
 .macro TEST_SET_TEXT, s1
-        ld HL, lineBuf
-        ld (lineBufTop),HL
-        ld (currkey),HL
-        ld HL, tst_text%%M
-        ld (char_pointer), HL
-        jp tst_done%%M
+    ld HL, lineBuf
+    ld (lineBufTop),HL
+    ld (currkey),HL
+    ld HL, tst_text%%M
+    ld (char_pointer), HL
+
+    _skip
 tst_text%%M:
         db s1,"\r\n",-1,"\r\n"
-tst_done%%M:
+    _endskip
 .endm
 
 .macro TEST_PUSH_TEXT, s1
-        PUSH_PAR0 B,C
-        ld BC, tpt_text%%M
-        jp tpt_done%%M
+    PUSH_PAR0 B,C
+    ld BC, tpt_text%%M
+    _skip
 tpt_text%%M:
         db s1
-tpt_done%%M:
+    _endskip
 .endm
 
 .macro TEST_PUSH_PTEXT, s1
-        PUSH_PAR0 B,C
-        ld BC, tpt_text%%M
-        jp tpt_done%%M
+    PUSH_PAR0 B,C
+    ld BC, tpt_text%%M
+    _skip
 tpt_text%%M:
         .pstr s1
-tpt_done%%M:
+    _endskip
 .endm
 
 .macro TEST_WORD, name
-        ld DE, tf_nextword%%M
-        ld HL, name
-        jp (HL)
+    ld DE, tf_nextword%%M
+    ld HL, name
+    jp (HL)
 tf_nextword%%M:
-        DW $ + 2
-tf_done%%M:
+    DW $ + 2
 .endm
 
 .macro TEST_EXPECT, expect, failtxt
-        call printNum
-        LOAD16 H,L, B,C
-        ld L, C
-        POP_PAR0 B,C
-        CMP16 expect
-        jp z, tf_done%%M
-        ld DE, FAILED
-        call printPStr
-        ld DE, te_fail%%M
-        call printPStr
-        halt
+    call printNum
+    LOAD16 H,L, B,C
+    ld L, C
+    POP_PAR0 B,C
+    CMP16 expect
+    jp z, tf_done%%M            ; asm80 macro nesting issue
+                                ; prevents using _if macro here
+    ld DE, FAILED
+    call printPStr
+    ld DE, te_fail%%M
+    call printPStr
+    halt
+    _skip
 te_fail%%M:
         .pstr failtxt
+    _endskip
 tf_done%%M:
 .endm
-
