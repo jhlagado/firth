@@ -135,10 +135,7 @@ defcode "lit",3,0,LIT
 
 	PUSH_PAR0 B,C         ; pushTOS
 	ex DE, HL       ; HL = IP
-	ld C, (HL)      ; TOS = (IP), IP + 2
-	inc HL
-	ld B, (HL)
-	inc HL
+	readWord HL, B,C
     NEXT_1
 
 ;z RSP!  a-addr --                  set return stack pointer
@@ -168,27 +165,20 @@ defcode "sp!",3,0,SPSTORE
 ; !        x a-addr --   store cell in memory
 defcode "!",1,0,STORE
     POP_PAR H,L
-    ld (HL),C
-    inc HL
-    ld (HL),B
+    writeWord HL, B,C
     POP_PAR0 B,C          ; POP new TOS
     NEXT
 
 defcode ",",1,0,COMMA
 	ld HL, (VAR_HERE)	; HERE
-	ld (HL), C          ; Store DE at memory pointed to by VAR_HERE
-	inc HL
-	ld (HL), B
-	inc HL
+	writeWord HL, B,C
 	ld (VAR_HERE), HL	; Update HERE (incremented)
 	POP_PAR0 B,C		        ; cleanup TOS
     NEXT
 
 defcode "@",1,0,FETCH
     loadWord H,L, B,C ; HL = TOS
-	ld C, (HL)      ; TOS = (HL)
-	inc HL
-	ld B, (HL)
+    readWord HL, B,C
     NEXT
 
 ; CELL+    c-addr1 -- c-addr2   add cell size to addr

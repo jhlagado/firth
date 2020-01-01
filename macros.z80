@@ -10,10 +10,7 @@
 .endm
 
 .macro NEXT_1
-    ld E,(HL)
-    inc HL
-    ld D,(HL)
-    inc HL
+    readWord HL, D,E
     ex DE,HL
     jp (HL)
 .endm
