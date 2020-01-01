@@ -138,17 +138,6 @@ tpt_text%%M:
     POP_PAR0 B,C
 .endm
 
-.macro RESTORE_REGS0    ; Swap register bank and clear TOS
-                            ; only use if word doesn't execute other words
-    exx
-    POP_PAR0 B,C
-.endm
-
-.macro LOAD16, destHI, destLO, srcHI, srcLO    ; transfer from src reg pair to dest reg pair
-    ld destLO, srcLO
-    ld destHI, srcHI
-.endm
-
 .macro loadWord, destHI, destLO, srcHI, srcLO    ; transfer from src reg pair to dest reg pair
     ld destLO, srcLO
     ld destHI, srcHI
@@ -170,12 +159,11 @@ tpt_text%%M:
     inc ptr
 .endm
 
-; destroys AF'
-.macro checkZeroWord, regHI, regLO    ; check if reg pair is zero
-    ex AF,AF'
-    ld A, regLO              ; NOTE: A is destroyed
+; result: sets Z if zero
+; destroys: A
+.macro checkZeroWord, regHI, regLO          ; check if reg pair is zero
+    ld A, regLO
     or regHI
-    ex AF,AF'
 .endm
 
 .macro PRINT_STR, addr
@@ -197,7 +185,7 @@ tpt_text%%M:
 ; params HL=address of word CFA
 ; destroys DE
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-.macro CALLWORD, name
+.macro callWord, name
     ld DE, tf_nextword%%M
     ld HL, name
     jp (HL)

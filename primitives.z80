@@ -33,7 +33,8 @@ defcode "number",6,0,NUMBER             ; ( ptr len -- num err )
 defcode "print",5,0,PRINT
     SAVE_REGS D,E
     call printPStr
-    RESTORE_REGS0
+    exx
+    POP_PAR0 B,C
     NEXT
 
 defcode "token",5,0,TOKEN               ; -- c-addr length  ; NOT STANDARD
@@ -184,7 +185,7 @@ defcode ",",1,0,COMMA
     NEXT
 
 defcode "@",1,0,FETCH
-    LOAD16 H,L, B,C ; HL = TOS
+    loadWord H,L, B,C ; HL = TOS
 	ld C, (HL)      ; TOS = (HL)
 	inc HL
 	ld B, (HL)
@@ -243,7 +244,7 @@ defcode "chars",5,0,CHARS
 defcode "+",1,0,PLUS
     POP_PAR0 H,L
     add HL,BC
-    LOAD16 B,C, H,L
+    loadWord B,C, H,L
     NEXT
 
 ; 2*      n1/u1 -- n2/u2            arithmetic left shift
@@ -256,7 +257,7 @@ defcode "-",1,0,MINUS
     POP_PAR0 H,L
     or A
     sbc HL,BC
-    LOAD16 B,C, H,L
+    loadWord B,C, H,L
     NEXT
 
 ; U/MOD   u1 u2 -- u1 u2    unsigned 16 / 16 -> r q
@@ -328,7 +329,7 @@ defcode "lshift",6,0,LSHIFT
         add HL,HL        ; left shift HL, n times
 LSHIFT2:
     _djnz
-    LOAD16 B,C, H,L     ; result is new TOS
+    loadWord B,C, H,L     ; result is new TOS
     NEXT
 
 ; =      x1 x2 -- flag         test x1=x2
@@ -412,7 +413,7 @@ defcode "rshift",6,0,RSHIFT
         rr L
 RSHIFT2:
     _djnz
-    LOAD16 B,C, H,L     ; result is new TOS
+    loadWord B,C, H,L     ; result is new TOS
     NEXT
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -510,7 +511,8 @@ defcode "create",6,0,CREATE  ; addr len --
 	ld (VAR_LATEST), HL
 	ld (VAR_HERE), DE
 
-    RESTORE_REGS0
+    exx
+    POP_PAR0 B,C
     NEXT
 
 defcode "immediate",9,MSK_IMMED,IMMEDIATE

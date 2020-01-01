@@ -244,7 +244,7 @@ printNum:
     push HL
     push DE
     push BC
-    LOAD16 H,L, B,C
+    loadWord H,L, B,C
     ld A,(VAR_BASE)
     ld C,A
     ld DE, wordBuf
@@ -322,7 +322,7 @@ formatNum:
     ex DE,HL
     or A
     sbc HL,DE
-    LOAD16 B,C, H,L
+    loadWord B,C, H,L
     ret
 
 ; negate HL
@@ -488,7 +488,7 @@ getToken:
                 ld DE, wordBuf
                 or A
                 sbc HL, DE     ; return length of the word
-                LOAD16 B,C, H,L
+                loadWord B,C, H,L
                 pop AF
                 pop HL
                 ret
