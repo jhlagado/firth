@@ -118,8 +118,7 @@ tpt_text%%M:
 .endm
 
 .macro SET_RET_SP
-    LD H, B
-    LD L, C
+    loadWord H,L, B,C
     LD SP, HL
 .endm
 

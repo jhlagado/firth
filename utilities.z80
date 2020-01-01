@@ -724,12 +724,13 @@ lookup:
 
         _endif
         pop DE                  ; restore DE
-        ex DE, HL               ; load DE with link to previous header
-        ld A,(HL)               ; in dictionary
-        inc HL
-        ld H,(HL)
-        ld l,a
-        ex DE, HL
+        ld A,(DE)
+        ex AF,AF'
+        inc DE
+        ld A,(DE)
+        ld D,A
+        ex AF,AF'
+        ld E,A
     _enddo
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
