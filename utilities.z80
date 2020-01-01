@@ -830,3 +830,88 @@ DOCOLON:
     inc HL                ; IP point to first data word
     inc HL
     NEXT_1
+
+; params: DE = ptr to word, BC = length
+interpToken:
+    checkZeroWord B,C
+    _if z
+        ld BC, 1
+        ld (VAR_INTP_STOP),BC                             ; INTP_STOPPING:
+    _else
+        push BC                 ; save token length
+        push DE                 ; save token ptr
+        ld A,(VAR_STATE)
+        ex AF,AF'               ; save compile mode
+        loadWord H,L, D,E
+        call lookup
+        checkZeroWord D,E       ; DE = header ptr or zero
+        _if nz
+            pop BC              ; drop token ptr
+            pop BC              ; drop token length
+            ex DE,HL
+            call interpWord
+        _else
+            pop HL              ; HL = token ptr
+            pop BC              ; BC = token length
+            ex AF,AF'           ; restore compile
+            or A                ; if compile, then compile number
+            _if nz
+                call compileNumber
+            _endif
+        _endif
+    _endif
+    ret
+
+; params: HL = ptr to header
+; returns: none,
+; effect: either execute or compier word
+interpWord:
+    inc HL              ; skip "previous word" ptr in header
+    inc HL
+    ex AF,AF'           ; check compile
+    or A
+    _if nz
+        ld A,(HL)       ; A = flags + length
+        and MSK_IMMED   ; if immediate flag <> 0
+        cpl             ;   dont compile
+    _endif
+    ex AF,AF'           ; save immediate
+
+    ld A,(HL)           ; A = flags + length
+    and MSK_LENGTH
+    ld C,A
+    ld B,0
+    add HL,BC           ; HL = cfa
+
+    ex AF,AF'           ; restore immediate
+    or A
+    _if nz              ; if compile <> 0
+        loadWord B,C, H,L
+        call compileWord
+        ret
+    _endif
+    jp (HL)         ; execute word
+
+; params: HL = token ptr BC = token length
+; effect: if compiling, compile valid number
+compileNumber:
+    call toNumber
+    checkZeroWord B,C       ; DE = number, BC = error if > 0
+    _if z
+        ld BC, LIT
+        call compileWord
+        ld BC, DE
+        call compileWord
+    _else
+        Print_Str TXT_ERROR
+    _endif
+    ret
+
+compileWord:
+    push HL
+    ld HL,(VAR_HERE)
+    writeWord HL, B,C
+    ld (VAR_HERE),HL
+    pop HL
+    ret
+

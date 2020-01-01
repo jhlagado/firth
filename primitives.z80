@@ -568,3 +568,15 @@ defcode "type",4,0,TYPE             ; ( str len -- )
     POP_PAR0 B,C                    ; clear TOS
     pop DE
     NEXT
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+defcode "interp1",6,0,interp1              ; ( -- c )
+    PUSH_PAR0 B,C                         ; save TOS
+    exx
+    call getToken
+    call interpToken
+    PUSH_PAR0 D,E                         ; DE = str ptr
+    RESTORE_REGS B,C                 ; HL = length
+    NEXT
+
