@@ -75,6 +75,13 @@ TESTS_START:
 .endif
 
 .if TESTMODE = 2
+
+    PUSH_PAR_VALUE 1
+    PUSH_PAR_TEXT "dup",3
+    CALLWORD interp2
+    EXPECT 1, "1 interpret dup"
+    EXPECT 1, "1 interpret dup 2"
+
 .endif
 
 .if TESTMODE

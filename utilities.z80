@@ -681,59 +681,6 @@ unsignedMultiply:
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; lookup - lookup header in dictionary
-;;
-;; params: HL = string address, BC = string length
-;; returns: DE = found header ptr or 0
-;; destroys: AF
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-lookup:
-    ld DE, (VAR_LATEST)             ; search dictionary backwards from LATEST
-    _do
-        checkZeroWord D,E            ; NULL pointer?  (end of the linked list)
-        ret z
-
-        ; Compare the length expected and the length of the word.
-        ; Note that if the MSK_HIDDEN flag is set on the word, then by a bit of trickery
-        ; this won't pick the word (the length will appear to be wrong).
-
-        push DE                     ; save ptr to header
-
-        inc DE                      ; skip over first field
-        inc DE
-        ld A, (DE)                    ; a = flags+length field
-        and MSK_HIDDEN | MSK_LENGTH    ; %al = name length
-
-        cp C                        ; Length is the same?
-        _if z
-                                    ; Compare the strings in detail.
-            inc DE                  ; DE = Dictionary string we are checking against.
-
-            push HL                 ; save HL, BC
-            push BC
-            call compareStr           ; Compare the strings. BC = len
-            pop BC
-            pop HL
-
-            or A                    ; if A == 0 then matched
-            _if z
-                pop DE                  ; matched, restore DE and return
-                ret
-            _endif
-
-        _endif
-        pop DE                  ; restore DE
-        ld A,(DE)
-        ex AF,AF'
-        inc DE
-        ld A,(DE)
-        ld D,A
-        ex AF,AF'
-        ld E,A
-    _enddo
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; reverseLookup - CFA -> header
 ;;
 ;; params: BC = CFA of word
@@ -840,8 +787,6 @@ interpToken:
     _else
         push BC                 ; save token length
         push DE                 ; save token ptr
-        ld A,(VAR_STATE)
-        ex AF,AF'               ; save compile mode
         loadWord H,L, D,E
         call lookup
         checkZeroWord D,E       ; DE = header ptr or zero
@@ -853,7 +798,7 @@ interpToken:
         _else
             pop HL              ; HL = token ptr
             pop BC              ; BC = token length
-            ex AF,AF'           ; restore compile
+            ld A,(VAR_STATE)
             or A                ; if compile, then compile number
             _if nz
                 call compileNumber
@@ -868,14 +813,18 @@ interpToken:
 interpForthWord:
     inc HL              ; skip "previous word" ptr in header
     inc HL
-    ex AF,AF'           ; check compile
+    ld A,(VAR_STATE)    ; load compile state
     or A
-    _if nz
+    _if nz              ; if compile then override with immed
         ld A,(HL)       ; A = flags + length
         and MSK_IMMED   ; if immediate flag <> 0
-        cpl             ;   dont compile
+        _if nz
+            ld A,0      ; dont' compile
+        _else
+            ld A,1
+        _endif
     _endif
-    ex AF,AF'           ; save immediate
+    ex AF,AF'           ; save compile
 
     ld A,(HL)           ; A = flags + length
     and MSK_LENGTH
@@ -914,4 +863,57 @@ compileWord:
     ld (VAR_HERE),HL
     pop HL
     ret
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; lookup - lookup header in dictionary
+;;
+;; params: HL = string address, BC = string length
+;; returns: DE = found header ptr or 0
+;; destroys: AF
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+lookup:
+    ld DE, (VAR_LATEST)             ; search dictionary backwards from LATEST
+    _do
+        checkZeroWord D,E            ; NULL pointer?  (end of the linked list)
+        ret z
+
+        ; Compare the length expected and the length of the word.
+        ; Note that if the MSK_HIDDEN flag is set on the word, then by a bit of trickery
+        ; this won't pick the word (the length will appear to be wrong).
+
+        push DE                     ; save ptr to header
+
+        inc DE                      ; skip over first field
+        inc DE
+        ld A, (DE)                    ; a = flags+length field
+        and MSK_HIDDEN | MSK_LENGTH    ; %al = name length
+
+        cp C                        ; Length is the same?
+        _if z
+                                    ; Compare the strings in detail.
+            inc DE                  ; DE = Dictionary string we are checking against.
+
+            push HL                 ; save HL, BC
+            push BC
+            call compareStr           ; Compare the strings. BC = len
+            pop BC
+            pop HL
+
+            or A                    ; if A == 0 then matched
+            _if z
+                pop DE                  ; matched, restore DE and return
+                ret
+            _endif
+
+        _endif
+        pop DE                  ; restore DE
+        ld A,(DE)
+        ex AF,AF'
+        inc DE
+        ld A,(DE)
+        ld D,A
+        ex AF,AF'
+        ld E,A
+    _enddo
 
