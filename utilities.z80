@@ -145,7 +145,7 @@ getline:
             call getc
             cp $08
             _if z
-                ISZERO16 B,C
+                checkZeroWord B,C
                 _if nz
                     dec HL
                     dec BC
@@ -189,7 +189,7 @@ printRoutine:
         call putc
         inc DE
         dec BC
-        ISZERO16 B,C
+        checkZeroWord B,C
     _until z
     _enddo
     ret
@@ -304,7 +304,7 @@ formatNum:
         pop BC
         push AF
         inc B
-        ISZERO16 H,L
+        checkZeroWord H,L
     _until z
     _enddo
     _do
@@ -534,7 +534,7 @@ toNumber:
 
     ld DE, 0            ; 16 bit accum
     ld HL, 0            ; 8 bit char
-    ISZERO16 B,C        ; if BC == 0 exit de = 0, BC = 0 (no error)
+    checkZeroWord B,C        ; if BC == 0 exit de = 0, BC = 0 (no error)
     _if z              ; trying to parse a zero-length string is an error, But will return 0.
         pop HL
         pop IY
@@ -550,7 +550,7 @@ toNumber:
         ld HL, 1
         push HL                ; push <> 0 on stack, indicating negative
         dec BC
-        ISZERO16 B,C
+        checkZeroWord B,C
         _if z
             pop HL                ; error: string is only '-'.
             ld BC, 1
@@ -587,7 +587,7 @@ toNumber:
         adc a, d
         ld D, A
         dec BC              ; dec char count
-        ISZERO16 B,C
+        checkZeroWord B,C
     _until z
         push BC
         ld BC, (VAR_BASE)    ; get BASE (in %dl)
@@ -601,7 +601,7 @@ toNumber:
 
 toNumberExit:
     pop HL
-    ISZERO16 H,L
+    checkZeroWord H,L
     _if nz              ; if not -ve then skip
         ex DE,HL        ; negate de
         call negateNum
@@ -691,7 +691,7 @@ unsignedMultiply:
 lookup:
     ld DE, (VAR_LATEST)             ; search dictionary backwards from LATEST
     _do
-        ISZERO16 D,E            ; NULL pointer?  (end of the linked list)
+        checkZeroWord D,E            ; NULL pointer?  (end of the linked list)
         ret z
 
         ; Compare the length expected and the length of the word.
@@ -743,7 +743,7 @@ lookup:
 reverseLookup:
     ld DE, (VAR_LATEST)             ; search dictionary backwards from LATEST
     _do
-        ISZERO16 D,E                ; NULL pointer?  (end of the linked list)
+        checkZeroWord D,E                ; NULL pointer?  (end of the linked list)
     _until z
         push DE                     ; save ptr to header
         inc DE                      ; skip over first field
@@ -773,7 +773,7 @@ reverseLookup:
 listWords:
     ld DE, (VAR_LATEST)             ; search dictionary backwards from LATEST
     _do
-        ISZERO16 D,E                ; NULL pointer?  (end of the linked list)
+        checkZeroWord D,E                ; NULL pointer?  (end of the linked list)
     _until z
         push DE                     ; save ptr to header
         inc DE                      ; skip over first field
@@ -803,7 +803,7 @@ listWords:
 
 compareStr:
 
-    ISZERO16 B,C    ; test for Count=0
+    checkZeroWord B,C    ; test for Count=0
     _if nz          ; length zero = match
         _do
             ld A,(DE)

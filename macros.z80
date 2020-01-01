@@ -149,10 +149,33 @@ tpt_text%%M:
     ld destHI, srcHI
 .endm
 
-; destroys A
-.macro ISZERO16, regHI, regLO    ; check if reg pair is zero
-    ld a, regLO              ; NOTE: A is destroyed
+.macro loadWord, destHI, destLO, srcHI, srcLO    ; transfer from src reg pair to dest reg pair
+    ld destLO, srcLO
+    ld destHI, srcHI
+.endm
+
+; works with HL, IX+d, IY+d
+.macro readWord, ptr, regHI, regLO
+    ld regLO, (ptr)
+    inc ptr
+    ld regHI, (ptr)
+    inc ptr
+.endm
+
+; works with HL, IX+d, IY+d
+.macro writeWord, ptr, regHI, regLO
+    ld (ptr), regLO
+    inc ptr
+    ld (ptr), regHI
+    inc ptr
+.endm
+
+; destroys AF'
+.macro checkZeroWord, regHI, regLO    ; check if reg pair is zero
+    ex AF,AF'
+    ld A, regLO              ; NOTE: A is destroyed
     or regHI
+    ex AF,AF'
 .endm
 
 .macro PRINT_STR, addr
@@ -166,7 +189,7 @@ tpt_text%%M:
     ld DE, val
     or A
     sbc HL, DE
-    ISZERO16 H,L
+    checkZeroWord H,L
 .endm
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

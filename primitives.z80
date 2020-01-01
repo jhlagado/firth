@@ -102,7 +102,7 @@ defcode "branch",6,0,BRANCH          ; relative branching
 
 ; ?branch   x --              branch if TOS zero
 defcode "0branch",7,0,ZBRANCH
-    ISZERO16 B,C        ; test old TOS
+    checkZeroWord B,C        ; test old TOS
     POP_PAR0 B,C              ; POP new TOS
     jr z,BRANCH         ; if old TOS=0, branch
     inc DE              ; else skip inline value
@@ -283,7 +283,7 @@ defcode "2/",2,0,TWOSLASH
 
 ; 0= zero-equals
 defcode "0=",2,0,ZEQUAL
-    ISZERO16 B,C            ; returns 0 if not equal, 1 if equal
+    checkZeroWord B,C            ; returns 0 if not equal, 1 if equal
     ; jr z, ZE1
     _if nz
         ld BC, -1
