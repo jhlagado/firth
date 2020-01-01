@@ -585,10 +585,10 @@ defcode "interp2",6,0,interp2
     POP_PAR0 D,E
     call interpToken
     RESTORE_REGS H,L
+    loadWord H,L, B,C
     POP_PAR0 B,C                ; clear TOS
     checkZeroWord H,L
     _if nz
         jp (HL)                 ; execute word
     _endif
     NEXT
-
