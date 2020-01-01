@@ -849,7 +849,7 @@ interpToken:
             pop BC              ; drop token ptr
             pop BC              ; drop token length
             ex DE,HL
-            call interpWord
+            call interpForthWord
         _else
             pop HL              ; HL = token ptr
             pop BC              ; BC = token length
@@ -865,7 +865,7 @@ interpToken:
 ; params: HL = ptr to header
 ; returns: none,
 ; effect: either execute or compier word
-interpWord:
+interpForthWord:
     inc HL              ; skip "previous word" ptr in header
     inc HL
     ex AF,AF'           ; check compile
