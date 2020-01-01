@@ -795,6 +795,10 @@ interpToken:
             pop BC              ; drop token length
             ex DE,HL
             call interpForthWord
+            checkZeroWord H,L
+            _if nz
+                jp (HL)         ; execute word
+            _endif
         _else
             pop HL              ; HL = token ptr
             pop BC              ; BC = token length
@@ -808,11 +812,12 @@ interpToken:
     ret
 
 ; params: HL = ptr to header
-; returns: none,
+; returns: HL = ptr to word or 0,
 ; effect: either execute or compier word
 interpForthWord:
     inc HL              ; skip "previous word" ptr in header
     inc HL
+
     ld A,(VAR_STATE)    ; load compile state
     or A
     _if nz              ; if compile then override with immed
@@ -830,6 +835,7 @@ interpForthWord:
     and MSK_LENGTH
     ld C,A
     ld B,0
+    inc HL
     add HL,BC           ; HL = cfa
 
     ex AF,AF'           ; restore immediate
@@ -837,10 +843,9 @@ interpForthWord:
     _if nz              ; if compile <> 0
         loadWord B,C, H,L
         call compileWord
-        ret
+        ld HL,0
     _endif
-    jp (HL)         ; execute word
-
+    ret
 ; params: HL = token ptr BC = token length
 ; effect: if compiling, compile valid number
 compileNumber:

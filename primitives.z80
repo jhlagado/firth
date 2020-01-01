@@ -581,7 +581,7 @@ defcode "interp1",6,0,interp1              ; ( -- c )
     NEXT
 
 defcode "interp2",6,0,interp2
-    SAVE_REGS BC
+    SAVE_REGS B,C
     POP_PAR0 D,E
     call interpToken
     exx
