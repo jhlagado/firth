@@ -795,10 +795,6 @@ interpToken:
             pop BC              ; drop token length
             ex DE,HL
             call interpForthWord
-            checkZeroWord H,L
-            _if nz
-                jp (HL)         ; execute word
-            _endif
         _else
             pop HL              ; HL = token ptr
             pop BC              ; BC = token length
@@ -806,6 +802,7 @@ interpToken:
             or A                ; if compile, then compile number
             _if nz
                 call compileNumber
+                ld HL,0
             _endif
         _endif
     _endif
