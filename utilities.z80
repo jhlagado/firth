@@ -836,8 +836,9 @@ interpForthWord:
     _if nz              ; if compile <> 0
         loadWord B,C, H,L
         call compileWord
-        ld HL,0
+        ld HL,1
     _endif
+    ld HL,2
     ret
 ; params: HL = token ptr BC = token length
 ; effect: if compiling, compile valid number
@@ -852,8 +853,10 @@ interpNumber:
             call compileWord
             ld BC, DE
             call compileWord
+            ld HL,1
         _else
             ppush D,E
+            ld HL,0
         _endif
     _else
         Print_Str TXT_ERROR
