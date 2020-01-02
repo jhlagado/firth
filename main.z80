@@ -76,20 +76,20 @@ TESTS_START:
 
 .if TESTMODE = 2
 
-    PUSH_PAR_VALUE 1
-    PUSH_PAR_TEXT "dup",3
+    ppushValue 1
+    ppushText "dup",3
     CALLWORD interp2
     EXPECT 1, "1 dup 3 interp2 - 1"
     EXPECT 1, "1 dup 3 interp2 - 2"
 
     TEST_SET_TEXT "x123"
-    PUSH_PAR_VALUE 123
+    ppushValue 123
     callWord CONSTANT
-    PUSH_PAR_TEXT "constant",8
+    ppushText "constant",8
     callWord interp2
 
-    PUSH_PAR_TEXT "x123",8
-    CALLWORD interp2
+    ppushText "x123",4
+    callWord interp2
 
     EXPECT 123, "constant x123 = 123"
 .endif

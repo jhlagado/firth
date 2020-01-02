@@ -13,25 +13,25 @@
     TEST_SET_TEXT "x"
     CALLWORD TOKEN
     EXPECT 1, "token 'x'"
-    POP_PAR H,L   ; drop
+    ppop H,L   ; drop
 
     TEST_SET_TEXT "xyz"
     CALLWORD TOKEN
     EXPECT 3, "token 'xyz'"
-    POP_PAR H,L   ; drop
+    ppop H,L   ; drop
 
     TEST_SET_TEXT "a xyz "
     CALLWORD TOKEN
     EXPECT 1, "token 'a xyz'"
     CALLWORD TOKEN
     EXPECT 3, "token 'a xyz'"
-    POP_PAR H,L   ; drop
+    ppop H,L   ; drop
 
     CALLWORD HERE
     CALLWORD FETCH
     EXPECT START_USER, "here"
 
-    PUSH_PAR_TEXT "xyz",3
+    ppushText "xyz",3
     CALLWORD CREATE
     CALLWORD LATEST
     CALLWORD FETCH
@@ -41,7 +41,7 @@
     EXPECT START_USER + 6, "create xyz here"
 
     TEST_SET_TEXT "dup"
-    PUSH_PAR_VALUE 1
+    ppushValue 1
     CALLWORD INTERPRET
     EXPECT 1, "1 interpret dup"
     EXPECT 1, "1 interpret dup 2"
@@ -50,19 +50,19 @@
     CALLWORD INTERPRET
     EXPECT 123, "interpret 123"
 
-    PUSH_PAR_VALUE 999
+    ppushValue 999
     TEST_SET_TEXT "$$123"
     CALLWORD INTERPRET
     EXPECT 999, "interpret $$123"
 
-    PUSH_PAR_VALUE 1
-    PUSH_PAR_VALUE 2
+    ppushValue 1
+    ppushValue 2
     CALLWORD DUP
     EXPECT 2, "dup 2"
     EXPECT 2, "dup 2"
 
     TEST_SET_TEXT "x123"
-    PUSH_PAR_VALUE 123
+    ppushValue 123
     CALLWORD CONSTANT
     TEST_SET_TEXT "x123"
     CALLWORD INTERPRET
@@ -71,7 +71,7 @@
     TEST_SET_TEXT "v1"
     CALLWORD VARIABLE
 
-    PUSH_PAR_VALUE 123
+    ppushValue 123
     TEST_SET_TEXT "v1"
     CALLWORD INTERPRET
     CALLWORD STORE
@@ -83,7 +83,7 @@
 
     TEST_SET_TEXT ": dbl dup + ;"
     CALLWORD INTERPRET
-    PUSH_PAR_VALUE 2
+    ppushValue 2
     TEST_SET_TEXT "dbl"
     CALLWORD INTERPRET
     EXPECT 4, "colon dbl 2 = 4"
@@ -126,35 +126,35 @@
     CALLWORD INTERPRET
     EXPECT 10, "expect abs 10 to be 10"
 
-    PUSH_PAR_VALUE -10
-    PUSH_PAR_VALUE 10
+    ppushValue -10
+    ppushValue 10
     CALLWORD STAR
     EXPECT -100, "expect -10 * 10 to be -100"
 
-    PUSH_PAR_VALUE -10
-    PUSH_PAR_VALUE -20
+    ppushValue -10
+    ppushValue -20
     CALLWORD STAR
     EXPECT 200, "expect -10 * -20 to be 200"
 
-    PUSH_PAR_VALUE 10
-    PUSH_PAR_VALUE -20
+    ppushValue 10
+    ppushValue -20
     CALLWORD STAR
     EXPECT -200, "expect -10 * -20 to be 200"
 
-    PUSH_PAR_VALUE -101
-    PUSH_PAR_VALUE 20
+    ppushValue -101
+    ppushValue 20
     CALLWORD SLASHMOD
     EXPECT -5, "expect -101 / 20 to be -5"
     EXPECT -1, "expect -101 % 20 to be -1"
 
-    PUSH_PAR_VALUE -101
-    PUSH_PAR_VALUE -20
+    ppushValue -101
+    ppushValue -20
     CALLWORD SLASHMOD
     EXPECT 5,  "expect -101 / -20 to be 5"
     EXPECT -1, "expect -101 % -20 to be -1"
 
-    PUSH_PAR_VALUE 101
-    PUSH_PAR_VALUE -20
+    ppushValue 101
+    ppushValue -20
     CALLWORD SLASHMOD
     EXPECT -5,  "expect 101 / -20 to be -5"
     EXPECT 1, "expect 101 % -20 to be 1"
@@ -163,14 +163,14 @@
 
     CALLWORD INTERPRET
 
-    PUSH_PAR_VALUE 200
-    PUSH_PAR_VALUE 1
+    ppushValue 200
+    ppushValue 1
 
     TEST_SET_TEXT "testif2"
     CALLWORD INTERPRET
     EXPECT 100, "1 if 100 then --> 100"
 
-    PUSH_PAR_VALUE 0
+    ppushValue 0
 
     TEST_SET_TEXT "testif2"
     CALLWORD INTERPRET
@@ -180,13 +180,13 @@
 
     CALLWORD INTERPRET
 
-    PUSH_PAR_VALUE 0
+    ppushValue 0
 
     TEST_SET_TEXT "testif3"
     CALLWORD INTERPRET
     EXPECT 200, "0 --> 200"
 
-    PUSH_PAR_VALUE 1
+    ppushValue 1
 
     TEST_SET_TEXT "testif3"
     CALLWORD INTERPRET
@@ -196,35 +196,35 @@
 
     CALLWORD INTERPRET
 
-    PUSH_PAR_VALUE 0
+    ppushValue 0
 
     TEST_SET_TEXT "testloop"
     CALLWORD INTERPRET
     EXPECT 5, "Loop until limit < 5"
 
-    PUSH_PAR_PTEXT "xyz"
+    ppushPText "xyz"
     CALLWORD COUNT
     EXPECT 3, "xyz length 3"
     CALLWORD CFETCH
     EXPECT "x" + 0, "xyz --> x"
 
-    PUSH_PAR_VALUE HEADER_LATEST
+    ppushValue HEADER_LATEST
     CALLWORD TCFA
     EXPECT HEADER_LATEST + 3 + 6, "cfa 3 bytes plus length of name"
 
-    PUSH_PAR_VALUE 1
-    PUSH_PAR_VALUE 2
-    PUSH_PAR_VALUE HEADER_PLUS
+    ppushValue 1
+    ppushValue 2
+    ppushValue HEADER_PLUS
     CALLWORD TCFA
     CALLWORD EXECUTE
     EXPECT 3, "1 2 plus = 3"
 
-    PUSH_PAR_TEXT "100",3
+    ppushText "100",3
     CALLWORD NUMBER
     EXPECT 0, "0 = no parse err"
     EXPECT 100, "parse 100"
 
-    PUSH_PAR_TEXT "latest",6
+    ppushText "latest",6
     CALLWORD FIND
     EXPECT HEADER_LATEST, "find header of LATEST"
 
@@ -244,8 +244,8 @@
     TEST_SET_TEXT ": add + ;"
     CALLWORD INTERPRET
 
-    PUSH_PAR_VALUE 2
-    PUSH_PAR_VALUE 2
+    ppushValue 2
+    ppushValue 2
     TEST_SET_TEXT "add"
     CALLWORD INTERPRET
     EXPECT 4, "2 2 add = 4"
@@ -255,9 +255,9 @@
 
     CALLWORD INTERPRET
 
-    PUSH_PAR_TEXT "add",3
+    ppushText "add",3
     CALLWORD FIND
-    PUSH_PAR_VALUE 64
+    ppushValue 64
 
     TEST_SET_TEXT "dump"
     CALLWORD INTERPRET
@@ -274,9 +274,9 @@ jp skipXXNOTDef
 
 skipXXNOTDef:
 
-    PUSH_PAR_VALUE 0
+    ppushValue 0
     CALLWORD NOT
     EXPECT 1, "xxnot 0 = 1"
-    PUSH_PAR_VALUE 1
+    ppushValue 1
     CALLWORD NOT
     EXPECT 0, "xxnot 1 = 0"

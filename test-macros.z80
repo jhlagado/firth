@@ -21,7 +21,7 @@ tst_text%%M:
     call printNum
     loadWord H,L, B,C
     ld L, C
-    POP_PAR0 B,C
+    ppop0 B,C
     CMP16 expect
     jp z, tf_done%%M            ; asm80 macro nesting issue
                                 ; prevents using _if macro here

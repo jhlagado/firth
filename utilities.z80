@@ -853,7 +853,7 @@ interpNumber:
             ld BC, DE
             call compileWord
         _else
-            PUSH_PAR D,E
+            ppush D,E
         _endif
     _else
         Print_Str TXT_ERROR
