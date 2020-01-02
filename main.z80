@@ -76,49 +76,46 @@ TESTS_START:
 
 .if TESTMODE = 2
 
-    ; ppushValue 1
-    ; ppushText "dup",3
-    ; callWord interp2
-    ; EXPECT 1, "1 dup 3 interp2 - 1"
-    ; EXPECT 1, "1 dup 3 interp2 - 2"
+    ppushValue 1
+    ppushText "dup",3
+    callWord interp2
+    EXPECT 1, "1 dup 3 interp2 - 1"
+    EXPECT 1, "1 dup 3 interp2 - 2"
 
-    ; TEST_SET_TEXT "x123"
-    ; ppushValue 123
-    ; callWord CONSTANT
-    ; ppushText "constant",8
-    ; callWord interp2
+    TEST_SET_TEXT "x123"
+    ppushValue 123
+    ppushText "constant",8
+    callWord interp2
 
-    ; ppushText "x123",4
-    ; callWord interp2
-
-    ; EXPECT 123, "constant x123 = 123"
+    ppushText "x123",4
+    callWord interp2
+    EXPECT 123, "constant x123 = 123"
 
     ppushText "3",1
     callWord interp2
     EXPECT 3, "TOS = 3"
 
-    ; callWord RBRAC
-    ; ; ld BC,(VAR_STATE)
-    ; ; EXPECT 1, "] starts compile state"
+    callWord RBRAC
+    ld BC,(VAR_STATE)
+    EXPECT 1, "] starts compile state"
 
-    ; ld BC,(VAR_HERE)
+    ld BC,(VAR_HERE)
 
-    ; ppushText "3",1
-    ; callWord interp2
-    ; ppushText "dup",3
-    ; callWord interp2
+    ppushText "3",1
+    callWord interp2
+    ppushText "dup",3
+    callWord interp2
 
+    ld HL,(VAR_HERE)
+    or a
+    SBC HL,BC
+    loadWord B,C, H,L
+    EXPECT 6, "latest - oldlatest = 6"
 
-    ; ld HL,(VAR_HERE)
-    ; or a
-    ; SBC HL,BC
-    ; loadWord B,C, H,L
-    ; EXPECT 6, "latest - oldlatest = 6"
-
-    ; ppushText "[",1         ; immediate word executes even in compile mode
-    ;                         ; ends compile state
-    ; callWord interp2
-    ; EXPECT 0, "] starts compile state"
+    ppushText "[",1         ; immediate word executes even in compile mode
+                            ; ends compile state
+    callWord interp2
+    EXPECT 0, "] starts compile state"
 
 .endif
 

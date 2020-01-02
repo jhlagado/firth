@@ -799,13 +799,12 @@ interpToken:
             pop HL              ; HL = token ptr
             pop BC              ; BC = token length
             call interpNumber
-            ld HL,0
         _endif
     _endif
     ret
 
 ; params: HL = ptr to header
-; returns: HL = ptr to word or 0,
+; returns: A = 1 (compiled), 2 (to execute), BC = ptr to word,
 ; effect: either execute or compier word
 interpForthWord:
     inc HL              ; skip "previous word" ptr in header
@@ -830,18 +829,19 @@ interpForthWord:
     ld B,0
     inc HL
     add HL,BC           ; HL = cfa
+    loadWord B,C, H,L
 
     ex AF,AF'           ; restore immediate
     or A
     _if nz              ; if compile <> 0
-        loadWord B,C, H,L
         call compileWord
-        ld HL,1
+        ld A,1
+    _else
+        ld A,2
     _endif
-    ld HL,2
     ret
 ; params: HL = token ptr BC = token length
-; effect: if compiling, compile valid number
+; returns: A = 0 (pushed literal), 1 (compiled)
 interpNumber:
     call toNumber
     checkZeroWord B,C       ; DE = number, BC = error if > 0
@@ -853,10 +853,10 @@ interpNumber:
             call compileWord
             ld BC, DE
             call compileWord
-            ld HL,1
+            ld A,1
         _else
             ppush D,E
-            ld HL,0
+            ld A,0
         _endif
     _else
         Print_Str TXT_ERROR

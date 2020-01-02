@@ -584,15 +584,14 @@ defcode "interp2",6,0,interp2
     SAVE_REGS B,C
     ppop0 D,E
     call interpToken
-    RESTORE_REGS H,L
-    loadWord H,L, B,C
-    checkZeroWord H,L
-    ld A,L
+    RESTORE_REGS B,C
+    or A
     _if nz
+        loadWord H,L, B,C
         ppop0 B,C                ; clear TOS
         cp 2
         _if z
             jp (HL)              ; execute word
         _endcase
-    _endswitch
+    _endif
     NEXT
