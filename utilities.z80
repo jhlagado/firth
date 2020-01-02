@@ -798,12 +798,8 @@ interpToken:
         _else
             pop HL              ; HL = token ptr
             pop BC              ; BC = token length
-            ld A,(VAR_STATE)
-            or A                ; if compile, then compile number
-            _if nz
-                call compileNumber
-                ld HL,0
-            _endif
+            call interpNumber
+            ld HL,0
         _endif
     _endif
     ret
@@ -845,14 +841,20 @@ interpForthWord:
     ret
 ; params: HL = token ptr BC = token length
 ; effect: if compiling, compile valid number
-compileNumber:
+interpNumber:
     call toNumber
     checkZeroWord B,C       ; DE = number, BC = error if > 0
     _if z
-        ld BC, LIT
-        call compileWord
-        ld BC, DE
-        call compileWord
+        ld A,(VAR_STATE)
+        or A                ; if compile, then compile number
+        _if nz
+            ld BC, LIT
+            call compileWord
+            ld BC, DE
+            call compileWord
+        _else
+            PUSH_PAR D,E
+        _endif
     _else
         Print_Str TXT_ERROR
     _endif
