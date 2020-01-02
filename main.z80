@@ -79,9 +79,19 @@ TESTS_START:
     PUSH_PAR_VALUE 1
     PUSH_PAR_TEXT "dup",3
     CALLWORD interp2
-    EXPECT 1, "1 interpret dup"
-    EXPECT 1, "1 interpret dup 2"
+    EXPECT 1, "1 dup 3 interp2 - 1"
+    EXPECT 1, "1 dup 3 interp2 - 2"
 
+    TEST_SET_TEXT "x123"
+    PUSH_PAR_VALUE 123
+    callWord CONSTANT
+    PUSH_PAR_TEXT "constant",8
+    callWord interp2
+
+    PUSH_PAR_TEXT "constant",8
+    CALLWORD interp2
+
+    EXPECT 123, "constant x123 = 123"
 .endif
 
 .if TESTMODE
