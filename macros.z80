@@ -82,7 +82,7 @@ NEXT
 
 .macro ppop, regHI, regLO
     ld regHI, B         ; move TOS reg pair into register pair
-    ld regLO, c
+    ld regLO, C
     ppop0 B,C
 .endm
 

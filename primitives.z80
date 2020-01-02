@@ -574,10 +574,32 @@ defcode "type",4,0,TYPE             ; ( str len -- )
 defcode "interp1",6,0,interp1              ; ( -- c )
     ppush0 B,C                         ; save TOS
     exx
+
     call getToken
     call interpToken
-    ppush0 D,E                         ; DE = str ptr
-    RESTORE_REGS B,C                 ; HL = length
+    _switch
+        or A
+        _case z
+            push DE
+            exx
+            pop BC
+        _endcase
+
+        cp 1
+        _case z
+            exx
+            ppop0 B,C                ; clear TOS
+        _endcase
+
+        cp 2
+        _case z
+            push BC
+            exx
+            pop HL
+            ppop0 B,C                ; clear TOS
+            jp (HL)              ; execute word
+        _endcase
+    _endswitch
     NEXT
 
 defcode "interp2",6,0,interp2

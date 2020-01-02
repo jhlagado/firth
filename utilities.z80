@@ -784,6 +784,7 @@ interpToken:
     _if z
         ld BC, 1
         ld (VAR_INTP_STOP),BC                             ; INTP_STOPPING:
+        ld A,1
     _else
         push BC                 ; save token length
         push DE                 ; save token ptr
@@ -855,11 +856,11 @@ interpNumber:
             call compileWord
             ld A,1
         _else
-            ppush D,E
             ld A,0
         _endif
     _else
         Print_Str TXT_ERROR
+        ld A,1
     _endif
     ret
 
