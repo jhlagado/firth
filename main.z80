@@ -88,7 +88,7 @@ TESTS_START:
     PUSH_PAR_TEXT "constant",8
     callWord interp2
 
-    PUSH_PAR_TEXT "constant",8
+    PUSH_PAR_TEXT "x123",8
     CALLWORD interp2
 
     EXPECT 123, "constant x123 = 123"
