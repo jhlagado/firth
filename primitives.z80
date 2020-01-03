@@ -571,7 +571,7 @@ defcode "type",4,0,TYPE             ; ( str len -- )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-defcode "interp",6,0,interp1              ; ( -- c )
+defcode "interp",6,0,interp              ; ( -- c )
     ppush0 B,C                         ; save TOS
     exx
 
