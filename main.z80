@@ -55,9 +55,7 @@ START:
     jp TESTS_START
 
 .else
-    PRINT_STR TXT_INTRO
-    ld DE, COLD                             ; Initialise interpreter.
-    NEXT
+    jp QUIT
 .endif
 
 org START_RAM
@@ -76,46 +74,69 @@ TESTS_START:
 
 .if TESTMODE = 2
 
+    ; TEST_SET_TEXT "hello\r\n"
+    ; CALLWORD KEY
+    ; EXPECT $68, "key 'h'"
+    ; CALLWORD KEY
+    ; EXPECT $65, "key 'e'"
+
+    ; TEST_SET_TEXT "x"
+    ; CALLWORD TOKEN
+    ; EXPECT 1, "token 'x'"
+    ; ppop H,L   ; drop
+
+    ; TEST_SET_TEXT "xyz"
+    ; CALLWORD TOKEN
+    ; EXPECT 3, "token 'xyz'"
+    ; ppop H,L   ; drop
+
+    ; TEST_SET_TEXT "a xyz "
+    ; CALLWORD TOKEN
+    ; EXPECT 1, "token 'a xyz'"
+    ; CALLWORD TOKEN
+    ; EXPECT 3, "token 'a xyz'"
+    ; ppop H,L   ; drop
+
+    ; CALLWORD HERE
+    ; CALLWORD FETCH
+    ; EXPECT START_USER, "here"
+
+    ; ppushText "xyz",3
+    ; CALLWORD CREATE
+    ; CALLWORD LATEST
+    ; CALLWORD FETCH
+    ; EXPECT START_USER, "create xyz latest"
+    ; CALLWORD HERE
+    ; CALLWORD FETCH
+    ; EXPECT START_USER + 6, "create xyz here"
+
     ppushValue 1
-    ppushText "dup",3
-    callWord interp2
-    EXPECT 1, "1 dup 3 interp2 - 1"
-    EXPECT 1, "1 dup 3 interp2 - 2"
+    TEST_SET_TEXT "dup"
+    CALLWORD INTERPRET
+    EXPECT 1, "1 interpret dup"
+    EXPECT 1, "1 interpret dup 2"
 
-    TEST_SET_TEXT "x123"
-    ppushValue 123
-    ppushText "constant",8
-    callWord interp2
+    ; TEST_SET_TEXT "123"
+    ; CALLWORD INTERPRET
+    ; EXPECT 123, "interpret 123"
 
-    ppushText "x123",4
-    callWord interp2
-    EXPECT 123, "constant x123 = 123"
+    ; ppushValue 999
+    ; TEST_SET_TEXT "$$123"
+    ; CALLWORD INTERPRET
+    ; EXPECT 999, "interpret $$123"
 
-    ppushText "3",1
-    callWord interp2
-    EXPECT 3, "TOS = 3"
+    ; ppushValue 1
+    ; ppushValue 2
+    ; CALLWORD DUP
+    ; EXPECT 2, "dup 2"
+    ; EXPECT 2, "dup 2"
 
-    callWord RBRAC
-    ld BC,(VAR_STATE)
-    EXPECT 1, "] starts compile state"
-
-    ld BC,(VAR_HERE)
-
-    ppushText "3",1
-    callWord interp2
-    ppushText "dup",3
-    callWord interp2
-
-    ld HL,(VAR_HERE)
-    or a
-    SBC HL,BC
-    loadWord B,C, H,L
-    EXPECT 6, "latest - oldlatest = 6"
-
-    ppushText "[",1         ; immediate word executes even in compile mode
-                            ; ends compile state
-    callWord interp2
-    EXPECT 0, "] starts compile state"
+    ; TEST_SET_TEXT "x123"
+    ; ppushValue 123
+    ; CALLWORD CONSTANT
+    ; TEST_SET_TEXT "x123"
+    ; CALLWORD INTERPRET
+    ; EXPECT 123, "constant x123 = 123"
 
 .endif
 

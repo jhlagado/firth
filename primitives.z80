@@ -1,6 +1,7 @@
-defcode "exit",4,0,EXIT
-	POP_RET H,L		            ; pop return stack into IP
-    NEXT_1
+; defcode "exit",4,0,EXIT
+;     ret
+; 	POP_RET H,L		            ; pop return stack into IP
+;     NEXT_1
 
 defcode "words", 5, 0, WORDS
     SAVE_REGS B,C
@@ -134,9 +135,9 @@ defcode "lit",3,0,LIT
 	; literal 16 bit integer.  Get that literal increment IP.
 
 	ppush0 B,C         ; pushTOS
-	ex DE, HL       ; HL = IP
+	pop HL
 	readWord HL, B,C
-    NEXT_1
+    jp (HL)
 
 ;z RSP!  a-addr --                  set return stack pointer
 defcode "rsp!",4,0,RSPSTORE
