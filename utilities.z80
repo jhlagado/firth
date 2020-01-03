@@ -821,8 +821,9 @@ interpForthWord:
         _else
             ld A,1
         _endif
+        or a
     _endif
-    ex AF,AF'           ; save compile
+    ex AF,AF'           ; save z flag
 
     ld A,(HL)           ; A = flags + length
     and MSK_LENGTH
@@ -831,9 +832,7 @@ interpForthWord:
     inc HL
     add HL,BC           ; HL = cfa
     loadWord B,C, H,L
-
-    ex AF,AF'           ; restore immediate
-    or A
+    ex AF,AF'           ; restore z flag
     _if nz              ; if compile <> 0
         call compileWord
         ld A,1
