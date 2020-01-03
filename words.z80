@@ -1,7 +1,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; words
 ;;
-;; Forth word defijntions
+;; Forth word defintions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
@@ -23,56 +23,11 @@ defword "interpret",6,0,INTERPRET
     DW LIT, 0
     DW INTP_STOP, STORE
     cDO
-        DW interp1                        ; interpret the next word
+        DW interp                        ; interpret the next word
         DW INTP_STOP, FETCH
     cUNTIL
     cENDDO
     DW EXIT
-
-defword "interp",6,0,interp
-    DW TOKEN                        ; ( -- ptr len)
-    DW DUP, ZEQUAL
-    cIf
-                                    ; INTP_STOPPING:
-        DW DROP, DROP                   ; (ptr len -- )
-        DW LIT, 1
-        DW LIT, VAR_INTP_STOP, STORE    ; VAR_INTP_STOP = 1
-        DW EXIT
-    cEndIf
-    DW OVER, OVER, FIND             ; ( ptr len -- ptr len headPtrOrZero )
-    DW DUP
-    cIf
-        DW SWAP, DROP, SWAP, DROP       ; ( ptr len headPtr -- headPtr ) found
-
-        DW DUP, LIT, 2, PLUS, CFETCH    ; ( headPtr -- headPtr flags ) add 2 to headPtr
-        DW LIT, MSK_IMMED, AND          ; ( headPtr flags -- headPtr immedFlag )
-        DW ZEQUAL
-        cIf
-            DW LIT, VAR_STATE, FETCH        ; (headPtr -- headPtr state), if state = 1 compile
-            cIf
-                DW TCFA, COMMA                  ; compile headPtr
-                DW EXIT
-            cEndIf
-        cEndIf
-        DW TCFA, EXECUTE                ; execute headPtr
-        DW EXIT
-    cEndIf
-    DW DROP                         ; ( ptr len zero -- ptr len ), not found
-
-    DW NUMBER                       ; ( ptr len -- val err )
-    cIf
-        DW DROP                         ; ( ptr len zero -- ptr len ), not found
-        DW LIT, TXT_ERROR               ; err != 0, parse error
-        DW PRINT
-        DW EXIT
-    cEndIf
-    DW LIT, VAR_STATE, FETCH        ; (val -- val state)
-    cIf
-        DW LIT, LIT                     ; (val -- val "LIT" )
-        DW COMMA, COMMA                 ; compile "LIT" val
-    cEndIf
-    DW EXIT
-
 
 defword ">cfa",4,0,TCFA
     DW LIT, 2, PLUS

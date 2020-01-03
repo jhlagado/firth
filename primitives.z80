@@ -571,7 +571,7 @@ defcode "type",4,0,TYPE             ; ( str len -- )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-defcode "interp1",6,0,interp1              ; ( -- c )
+defcode "interp",6,0,interp1              ; ( -- c )
     ppush0 B,C                         ; save TOS
     exx
 
@@ -600,20 +600,4 @@ defcode "interp1",6,0,interp1              ; ( -- c )
             jp (HL)              ; execute word
         _endcase
     _endswitch
-    NEXT
-
-defcode "interp2",6,0,interp2
-    SAVE_REGS B,C
-    ppop0 D,E
-    call interpToken
-    RESTORE_REGS B,C
-    or A
-    _if nz
-        loadWord H,L, B,C
-        ppop0 B,C                ; clear TOS
-        cp 2
-        _if z
-            jp (HL)              ; execute word
-        _endcase
-    _endif
     NEXT
