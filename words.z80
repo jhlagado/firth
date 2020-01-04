@@ -15,38 +15,21 @@ defconst "msk_immed",9,0,__MSK_IMMED,MSK_IMMED
 defconst "msk_hidden",10,0,__MSK_HIDDEN,MSK_HIDDEN
 defconst "msk_length",10,0,__MSK_LENGTH,MSK_LENGTH
 
-; defword "quit",4,0,QUIT
-;     DW RZ,RSPSTORE        ; reset the return stack R0 RSP!
-;     DW INTERPRET        ; interpret the next word
-
 defcode "quit",4,0,QUIT
     ld SP, RET_STACK
-    callWord INTERPRET        ; interpret the next word
-    NEXT
-
-; defword "interpret",6,0,INTERPRET
-;     DW LIT, 0
-;     DW INTP_STOP, STORE
-;     cDO
-;         DW interp                        ; interpret the next word
-;         DW INTP_STOP, FETCH
-;     cUNTIL
-;     cENDDO
-;     DW EXIT
+    call INTERPRET        ; interpret the next word
+    ret
 
 defcode "interpret",6,0,INTERPRET
-    callWord LIT
-    DW 0
-    callWord INTP_STOP
-    callWord STORE
+    ld A, 0
+    ld (VAR_INTP_STOP), A
     _do
-        callWord interp                        ; interpret the next word
+        call interp                        ; interpret the next word
         ld A,(VAR_INTP_STOP)
         or A
     _until nz
     _enddo
-    NEXT
-
+    ret
 
 ; defword ">cfa",4,0,TCFA
 ;     DW LIT, 2, PLUS
@@ -202,6 +185,21 @@ defcode "interpret",6,0,INTERPRET
 ;     DW COMMA                            ; write TOS to word
 ;     DW LIT, EXIT, COMMA                  ; write addr of LIT to word
 ;     DW EXIT
+
+; CONSTANT   n --      define a Forth constant
+defcode "constant",8,0,CONSTANT         ; ( n -- ) get name from input
+    call TOKEN                          ; read name
+    call CREATE                         ; create header
+    ld HL,(VAR_HERE)
+    ld A,CALL_OPCODE                    ; write call LIT
+    writeByte HL, A
+    ld DE, LIT
+    writeWord HL, D,E
+    writeWord HL, B,C                   ; write TOS
+    ld A,RET_OPCODE                     ; write ret
+    writeByte HL, A
+    ld (VAR_HERE),HL
+    ret
 
 ; defword ";",1,MSK_IMMED,SEMICOLON
 ;     DW LIT, EXIT, COMMA            ; Append EXIT (so the word will return).

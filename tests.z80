@@ -262,17 +262,17 @@
     TEST_SET_TEXT "dump"
     CALLWORD INTERPRET
 
-jp skipXXNOTDef
+; jp skipXXNOTDef
 
-    defword "xxnot",3,0,NOT
-        cIF
-            DW LIT, 0
-        cELSE
-            DW LIT, 1
-        cENDIF
-        DW EXIT
+;     defword "xxnot",3,0,NOT
+;         cIF
+;             DW LIT, 0
+;         cELSE
+;             DW LIT, 1
+;         cENDIF
+;         DW EXIT
 
-skipXXNOTDef:
+; skipXXNOTDef:
 
     ppushValue 0
     CALLWORD NOT
