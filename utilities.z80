@@ -771,14 +771,15 @@ compareStr:
     ld A,0          ; a=0 (s1=s2)
     ret
 
-DOCOLON:
-    PUSH_RET D,E        ; push IP on to the return stack
-    inc HL                ; HL = W which points to codeword, so make
-    inc HL                ; IP point to first data word
-    inc HL
-    NEXT_1
+; DOCOLON:
+;     PUSH_RET D,E        ; push IP on to the return stack
+;     inc HL                ; HL = W which points to codeword, so make
+;     inc HL                ; IP point to first data word
+;     inc HL
+;     NEXT_1
 
 ; params: DE = ptr to word, BC = length
+; returns: A =  0 (pushed literal), 1 (compiled), 2 (to execute), BC = ptr to word,
 interpToken:
     checkZeroWord B,C
     _if z
@@ -834,7 +835,11 @@ interpForthWord:
     loadWord B,C, H,L
     ex AF,AF'           ; restore z flag
     _if nz              ; if compile <> 0
-        call compileWord
+        ld HL,(VAR_HERE)
+        ld A, CALL_OPCODE
+        writeByte HL, A
+        writeWord HL, B,C
+        ld (VAR_HERE),HL
         ld A,1
     _else
         ld A,2
@@ -849,10 +854,11 @@ interpNumber:
         ld A,(VAR_STATE)
         or A                ; if compile, then compile number
         _if nz
+            ld HL,(VAR_HERE)
             ld BC, LIT
-            call compileWord
-            ld BC, DE
-            call compileWord
+            writeWord HL, B,C
+            writeWord HL, D,E
+            ld (VAR_HERE),HL
             ld A,1
         _else
             ld A,0
@@ -861,14 +867,6 @@ interpNumber:
         Print_Str TXT_ERROR
         ld A,1
     _endif
-    ret
-
-compileWord:
-    push HL
-    ld HL,(VAR_HERE)
-    writeWord HL, B,C
-    ld (VAR_HERE),HL
-    pop HL
     ret
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

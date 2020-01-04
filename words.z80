@@ -5,12 +5,12 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-COLD:
-        DW QUIT                     ; headerless word which never terminates
+; COLD:
+;         DW QUIT                     ; headerless word which never terminates
 
 defconst "version",7,0,VERSION,1
 defconst "r0",2,0,RZ, RET_STACK
-defconst "docolon",7,0, __DOCOL,DOCOLON
+; defconst "docolon",7,0, __DOCOL,DOCOLON
 defconst "msk_immed",9,0,__MSK_IMMED,MSK_IMMED
 defconst "msk_hidden",10,0,__MSK_HIDDEN,MSK_HIDDEN
 defconst "msk_length",10,0,__MSK_LENGTH,MSK_LENGTH
@@ -44,11 +44,15 @@ defcode "interpret",6,0,INTERPRET
 ;     DW SWAP, CFETCH                 ; ( ptr ptr+1 -- ptr+1 len)
 ;     DW EXIT
 
-; ; ALLOT                             ( n -- addr ) allocate n bytes of memory
-; defword "allot",5,0,ALLOT
-;     DW HERE, FETCH, SWAP        ; here n
-;     DW HERE, ADDSTORE                    ; adds n to HERE, old value of HERE left on stack
-;     DW EXIT
+; ALLOT                             ( n -- addr ) allocate n bytes of memory
+defcode "allot",5,0,ALLOT
+    ppop D,E
+    ld HL, (VAR_HERE)
+    ppush H,L
+    or A
+    adc HL,DE                       ; adds n to HERE, old value of HERE left on stack
+    ld (VAR_HERE),HL
+    ret
 
 ; ; NEGATE  n1 -- n2                        negate n1
 ; defword "negate",6,0,NEGATE
@@ -175,23 +179,18 @@ defcode "interpret",6,0,INTERPRET
 ;     DW RBRAC                    ; Go into compile mode.
 ;     DW EXIT                        ; Return from the function.
 
-; ; CONSTANT   n --      define a Forth constant
-; defword "constant",8,0,CONSTANT              ; ( n -- ) get name from input
-;     DW TOKEN                            ; read name
-;     DW CREATE                           ; create header
-;     DW LIT, JP_OPCODE, CCOMMA                ; write Z80 jp OPCODE to word
-;     DW LIT, DOCOLON, COMMA                ; write addr DOCOLON to word
-;     DW LIT, LIT, COMMA                  ; write addr of LIT to word
-;     DW COMMA                            ; write TOS to word
-;     DW LIT, EXIT, COMMA                  ; write addr of LIT to word
-;     DW EXIT
+; defword ";",1,MSK_IMMED,SEMICOLON
+;     DW LIT, EXIT, COMMA            ; Append EXIT (so the word will return).
+;     DW LATEST, FETCH, HIDDEN    ; Toggle hidden flag -- unhide the word (see below for definition).
+;     DW LBRAC                    ; Go back to IMMEDIATE mode.
+;     DW EXIT                        ; Return from the function.
 
 ; CONSTANT   n --      define a Forth constant
 defcode "constant",8,0,CONSTANT         ; ( n -- ) get name from input
     call TOKEN                          ; read name
     call CREATE                         ; create header
     ld HL,(VAR_HERE)
-    ld A,CALL_OPCODE                    ; write call LIT
+    ld A,CALL_OPCODE                    ; write call LIT with value TOS
     writeByte HL, A
     ld DE, LIT
     writeWord HL, D,E
@@ -199,24 +198,25 @@ defcode "constant",8,0,CONSTANT         ; ( n -- ) get name from input
     ld A,RET_OPCODE                     ; write ret
     writeByte HL, A
     ld (VAR_HERE),HL
+    ppop0 B,C                           ; clear TOS
     ret
 
-; defword ";",1,MSK_IMMED,SEMICOLON
-;     DW LIT, EXIT, COMMA            ; Append EXIT (so the word will return).
-;     DW LATEST, FETCH, HIDDEN    ; Toggle hidden flag -- unhide the word (see below for definition).
-;     DW LBRAC                    ; Go back to IMMEDIATE mode.
-;     DW EXIT                        ; Return from the function.
-
-; defword "variable",8,0,VARIABLE              ; ( n -- ) get name from input
-;     DW LIT, 1, CELLS, ALLOT                    ; allocate 1 word, push addr
-;     DW TOKEN                            ; read name
-;     DW CREATE                           ; create header
-;     DW LIT, JP_OPCODE, CCOMMA                ; write Z80 jp OPCODE to word
-;     DW LIT, DOCOLON, COMMA             ; write addr DOCOLON to word
-;     DW LIT, LIT, COMMA                  ; write addr of LIT to word
-;     DW COMMA                            ; write addr of variable to word
-;     DW LIT, EXIT, COMMA                 ; write addr of LIT to word
-;     DW EXIT
+defcode "variable",8,0,VARIABLE              ; ( n -- ) get name from input
+    ld BC, 2
+    call ALLOT
+    call TOKEN                          ; read name
+    call CREATE                         ; create header
+    ld HL,(VAR_HERE)
+    ld A,CALL_OPCODE                    ; write call LIT with value var address
+    writeByte HL, A
+    ld DE, LIT
+    writeWord HL, D,E
+    writeWord HL, B,C                   ; write addr of variable to word
+    ld A,RET_OPCODE                     ; write ret
+    writeByte HL, A
+    ld (VAR_HERE),HL
+    ppop0 B,C                           ; clear TOS
+    ret
 
 ; ; DOES> does
 

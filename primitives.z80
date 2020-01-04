@@ -1,8 +1,3 @@
-; defcode "exit",4,0,EXIT
-;     ret
-; 	POP_RET H,L		            ; pop return stack into IP
-;     NEXT_1
-
 defcode "words", 5, 0, WORDS
     SAVE_REGS B,C
     call listWords
@@ -574,7 +569,6 @@ defcode "type",4,0,TYPE             ; ( str len -- )
 
 defcode "interp",6,0,interp              ; ( -- c )
     ppush0 B,C                         ; save TOS
-    exx
 
     call getToken
     call interpToken
@@ -582,23 +576,22 @@ defcode "interp",6,0,interp              ; ( -- c )
         or A
         _case z
             push DE
-            exx
             pop BC
         _endcase
 
         cp 1
         _case z
-            exx
             ppop0 B,C                ; clear TOS
         _endcase
 
         cp 2
         _case z
             push BC
-            exx
             pop HL
             ppop0 B,C                ; clear TOS
             jp (HL)              ; execute word
         _endcase
     _endswitch
-    NEXT
+    ret
+
+
