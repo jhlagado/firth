@@ -4,18 +4,10 @@
 ;; macros used by forth and a few utility routines
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-.macro NEXT
-    NEXT_1
-.endm
-
-.macro NEXT_1
-    ret
-.endm
-
 ; Store the chain of links.
 link: .set 0
 
-.macro defcode, name, namelen, flags, label
+.macro defword, name, namelen, flags, label
 
 HEADER_label:
     DW link		            ; link
@@ -28,17 +20,17 @@ label:
 .endm
 
 .macro defvar, name, namelen, flags, label, var_label
-defcode name,namelen,flags,label
+defword name,namelen,flags,label
     ppush0 B,C
     ld BC, var_label
-NEXT
+ret
 .endm
 
 .macro defconst, name, namelen, flags, label, value
-defcode name,namelen,flags,label
+defword name,namelen,flags,label
     ppush0 B,C
     ld BC, value
-NEXT
+ret
 .endm
 
 ; Macros to deal with the param stack.
@@ -162,14 +154,4 @@ tpt_text%%M:
     or A
     sbc HL, DE
     checkZeroWord H,L
-.endm
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; CallWord
-; params HL=address of word CFA
-; destroys DE
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-.macro callWord, name
-    call name
 .endm
