@@ -1,6 +1,6 @@
 .engine mycomputer
 
-TESTMODE equ 2
+TESTMODE equ 0
 
 .include "constants.z80"
 .include "macros.z80"
@@ -55,6 +55,7 @@ START:
     jp TESTS_START
 
 .else
+    PRINT_STR TXT_INTRO
     jp QUIT
 .endif
 
@@ -73,13 +74,6 @@ TESTS_START:
 .endif
 
 .if TESTMODE = 2
-
-    TEST_SET_TEXT ": dbl dup + ;"
-    CALLWORD INTERPRET
-    ppushValue 2
-    TEST_SET_TEXT "dbl"
-    CALLWORD INTERPRET
-    EXPECT 4, "colon dbl 2 = 4"
 
 .endif
 

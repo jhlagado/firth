@@ -636,50 +636,6 @@ unsignedMultiply:
     _enddo
     ret
 
-; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; ;; unsignedSlashMod -  unsigned divide
-; ;;
-; ;; params:  BC = divisor, HLDE = dividend
-; ;; returns: BC = quotient, HL = remainder
-; ;; destroys: AF
-; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-; unsignedSlashMod:
-;     ld A,16                 ; loop counter
-;     sla E
-;     rl D                    ; hi bit DE -> carry
-
-;     _do
-;         adc HL,HL           ; rot left w/ carry
-;         _if c
-;                             ; case 1: 17 bit, carry:HL = 1xxxx
-;             or A            ; we know we can subtract
-;             sbc HL,BC
-;             or A            ; clear carry to indicate sub ok
-;                             ; case 2: 16 bit, carry:HL = 0xxxx
-;         _else
-;             sbc HL,BC       ; try the subtract
-;             _if c
-;                 add HL,BC   ; else cancel the subtract
-;                 scf         ;   and set carry to indicate
-;             _endif
-;         _endif
-;         rl E                ; rotate result bit into DE,
-;         rl D                ; and next bit of DE into carry
-;         dec A
-;     _until z
-;     _enddo
-;                             ; now have complemented quotient in DE,
-;                             ; and remainder in HL
-;     ld A,D
-;     cpl
-;     ld B,A
-;     ld A,E
-;     cpl
-;     ld C,A
-;     ret
-
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; reverseLookup - CFA -> header
 ;;
@@ -770,6 +726,13 @@ compareStr:
     ; count exhausted & no mismatch found
     ld A,0          ; a=0 (s1=s2)
     ret
+
+; DOCOLON:
+;     PUSH_RET D,E        ; push IP on to the return stack
+;     inc HL                ; HL = W which points to codeword, so make
+;     inc HL                ; IP point to first data word
+;     inc HL
+;     NEXT_1
 
 ; params: DE = ptr to word, BC = length
 ; returns: A =  0 (pushed literal), 1 (compiled), 2 (to execute), BC = ptr to word,

@@ -6,7 +6,6 @@
 
 defconst "version",7,0,VERSION,1
 defconst "r0",2,0,RZ, RET_STACK
-; defconst "docolon",7,0, __DOCOL,DOCOLON
 defconst "msk_immed",9,0,__MSK_IMMED,MSK_IMMED
 defconst "msk_hidden",10,0,__MSK_HIDDEN,MSK_HIDDEN
 defconst "msk_length",10,0,__MSK_LENGTH,MSK_LENGTH
@@ -27,13 +26,6 @@ defcode "interpret",6,0,INTERPRET
     _enddo
     ret
 
-; defword ">cfa",4,0,TCFA
-;     dw LIT, 2, PLUS
-;     dw COUNT
-;     dw LIT, MSK_LENGTH, AND
-;     dw PLUS
-;     dw EXIT
-
 defcode ">cfa",4,0,TCFA
     call LIT
     dw 2
@@ -44,12 +36,6 @@ defcode ">cfa",4,0,TCFA
     call AND
     call PLUS
     ret
-
-; ; COUNT extract string length from pascal string  ( ptr -- ptr+1 len )
-; defword "count",5,0,COUNT
-;     dw DUP, LIT, 1, PLUS            ; ( ptr -- ptr ptr+1)
-;     dw SWAP, CFETCH                 ; ( ptr ptr+1 -- ptr+1 len)
-;     dw EXIT
 
 ; COUNT extract string length from pascal string  ( ptr -- ptr+1 len )
 defcode "count",5,0,COUNT
@@ -71,48 +57,22 @@ defcode "allot",5,0,ALLOT
     ld (VAR_HERE),HL
     ret
 
-; ; NEGATE  n1 -- n2                        negate n1
-; defword "negate",6,0,NEGATE
-;     dw INVERT
-;     dw ONEPLUS
-;     dw EXIT
-
 ; NEGATE  n1 -- n2                        negate n1
 defcode "negate",6,0,NEGATE
     call INVERT
     inc BC
     ret
 
-; ; ABS   n -- u                      absolute value
-; defword "abs",3,0,ABS
-;     dw DUP                      ; copy arg
-;     dw ZEROLESS
-;     cIf
-;         dw NEGATE               ; if signs differ then negate answer
-;     cEndIf
-;     dw EXIT
-
 ; ABS   n -- u                      absolute value
 defcode "abs",3,0,ABS
     call DUP                      ; copy arg
     call ZEROLESS
     checkZeroWord B,C
+    ppop0 B,C              ; POP new TOS
     _if nz
         call NEGATE               ; if signs differ then negate answer
     _endif
     ret
-
-; defword "*",1,0,STAR        ; u1 u2 -- ud
-;     dw OVER, OVER           ; dupe both args
-;     dw ABS, SWAP, ABS       ; remove sign from both args
-;     dw USTAR, DROP          ; unsigned multiply, drop hi-word
-;     dw NROT                 ; move to bottom
-;     dw XOR                  ; zero if signs are the same
-;     dw ZEROLESS             ; if high bit set
-;     cIf
-;         dw NEGATE           ; if signs differ then negate answer
-;     cEndIf
-;     dw EXIT
 
 defcode "*",1,0,STAR            ; u1 u2 -- ud
     call OVER
@@ -126,36 +86,11 @@ defcode "*",1,0,STAR            ; u1 u2 -- ud
     call XOR                    ; zero if signs are the same
     call ZEROLESS               ; if high bit set
     checkZeroWord B,C
+    ppop0 B,C              ; POP new TOS
     _if nz
         call NEGATE               ; if signs differ then negate answer
     _endif
     ret
-
-; defword "/mod",4,0,SLASHMOD       ; dvend dvisr -- rem quot
-;     dw OVER, OVER           ;       u1 u2 -- u1 u2 u1 u2  dupe both args
-;     dw XOR                  ; u1 u2 u1 u2 -- u1 u2 b1     xor hi bits
-;     dw ZEROLESS             ; true if high bit still set
-;     dw NROT                 ;    u1 u2 b1 -- b1 u1 u2     move to bottom
-
-;     dw OVER                 ;    b1 u1 u2 -- b1 u1 u2 u1  dupe dividend
-;     dw ZEROLESS             ; b1 u1 u2 u1 -- b1 u1 u2 b2  zero if signs are the same
-;     dw NROT                 ; b1 u1 u2 b2 -- b1 b2 u1 u2  move to bottom
-
-;     ; dw DOT, DOT, DOT, DOT, CR  ; u2=-20 u1=-101 b2=1 b1=0
-
-;     dw ABS, SWAP, ABS, SWAP ; remove sign from both args
-;     dw USLASHMOD            ; b1 b2 u1 u2 -- b1 b2 r q    unsigned divide (remainder, quotient)
-;     dw SWAP                 ; b1 b2 u1 u2 -- b1 b2 q r
-;     dw ROT                  ; b1 b2 q r -- b1 q r b2      bring to top
-;     cIf
-;         dw NEGATE           ;   b1 q r b2 -- b1 q -r      if -ve then negate answer
-;     cEndIf
-;     dw NROT                 ;     b1 q -r -- -r b1 q     bring to top
-;     dw SWAP                 ;     -r b1 q -- -r q b1      bring to top
-;     cIf
-;         dw NEGATE           ;     -r q b1 -- -r -q       if signs differ then negate answer
-;     cEndIf
-;     dw EXIT
 
 defcode "/mod",4,0,SLASHMOD       ; dvend dvisr -- rem quot
     call OVER
@@ -176,21 +111,24 @@ defcode "/mod",4,0,SLASHMOD       ; dvend dvisr -- rem quot
     call SWAP                 ; b1 b2 u1 u2 -- b1 b2 q r
     call ROT                  ; b1 b2 q r -- b1 q r b2      bring to top
     checkZeroWord B,C
+    ppop0 B,C              ; POP new TOS
     _if nz
         call NEGATE           ;   b1 q r b2 -- b1 q -r      if -ve then negate answer
     _endif
     call NROT                 ;     b1 q -r -- -r b1 q     bring to top
     call SWAP                 ;     -r b1 q -- -r q b1      bring to top
     checkZeroWord B,C
+    ppop0 B,C              ; POP new TOS
     _if nz
         call NEGATE           ;     -r q b1 -- -r -q       if signs differ then negate answer
     _endif
     ret
 
-; defword "/",1,0,SLASH       ; dvend dvisr -- quot
-;     dw SLASHMOD
-;     dw SWAP, DROP           ; drop remainder
-;     dw EXIT
+defcode "/",1,0,SLASH       ; dvend dvisr -- quot
+    call SLASHMOD
+    call SWAP
+    call DROP               ; drop remainder
+    ret
 
 defcode "mod",3,0,MOD     ; dvend dvisr -- remainder
     call SLASHMOD
@@ -203,12 +141,10 @@ defcode "mod",3,0,MOD     ; dvend dvisr -- remainder
 ; ;;
 ; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-; defword "if",2,MSK_IMMED,IF
-;     dw LIT, ZBRANCH, COMMA              ; compile 0BRANCH
-;     dw HERE, FETCH, DUP, COMMA          ; compile HERE and also push on stack
-;     dw EXIT
-
 defcode "if",2,MSK_IMMED,IF
+    call LIT
+    dw CALL_OPCODE
+    call CCOMMA              ; compile 0BRANCH
     call LIT
     dw ZBRANCH
     call COMMA              ; compile 0BRANCH
@@ -217,12 +153,6 @@ defcode "if",2,MSK_IMMED,IF
     call DUP
     call COMMA          ; compile HERE and also push on stack
     ret
-
-; defword "then",4,MSK_IMMED,THEN
-;     dw DUP
-;     dw HERE, FETCH, SWAP, MINUS            ; calculate the offset from the address saved on the stack
-;     dw SWAP, STORE                        ; store the offset in the back-filled location
-;     dw EXIT
 
 defcode "then",4,MSK_IMMED,THEN
     call DUP
@@ -234,20 +164,18 @@ defcode "then",4,MSK_IMMED,THEN
     call STORE                        ; store the offset in the back-filled location
     ret
 
-; defword "else",4,MSK_IMMED,ELSE
-;     dw LIT, BRANCH, COMMA                ; definite branch to just over the false-part
-;     dw HERE, FETCH                        ; save HERE on stack
-;     dw LIT, 0, COMMA                    ; compile a dummy offset
-;     dw SWAP                                ; now back-fill the original (IF) offset
-;     dw THEN
-;     dw EXIT
-
 defcode "else",4,MSK_IMMED,ELSE
+    call LIT
+    dw CALL_OPCODE
+    call CCOMMA              ; compile 0BRANCH
     call LIT
     dw BRANCH
     call COMMA                ; definite branch to just over the false-part
     call HERE
     call FETCH                        ; save HERE on stack
+    call LIT
+    dw CALL_OPCODE
+    call CCOMMA              ; compile 0BRANCH
     call LIT
     dw 0
     call COMMA                    ; compile a dummy offset
@@ -257,24 +185,45 @@ defcode "else",4,MSK_IMMED,ELSE
 
 ; BEGIN condition WHILE ... REPEAT
 
-; defword "begin",5,MSK_IMMED,BEGIN
-;     dw HERE, FETCH                        ; save HERE on stack (HERE1)
-;     dw EXIT
+defcode "begin",5,MSK_IMMED,BEGIN
+    call HERE
+    call FETCH                        ; save HERE on stack (HERE1)
+    ret
 
-; defword "while",5,MSK_IMMED,WHILE
-;     dw LIT, ZBRANCH, COMMA              ; compile branch on zero
-;     dw HERE, FETCH                        ; save HERE in stack (HERE2)
-;     dw LIT, 0, COMMA                    ; compile dummy offset
-;     dw EXIT
+defcode "while",5,MSK_IMMED,WHILE
+    call LIT
+    dw CALL_OPCODE
+    call CCOMMA                             ; compile 0BRANCH
+    call LIT
+    dw ZBRANCH
+    call COMMA                              ; compile branch on zero
+    call HERE
+    call FETCH                              ; save HERE in stack (HERE2)
+    call LIT
+    dw 0
+    call COMMA                              ; compile dummy offset
+    ret
 
-; defword "repeat",6,MSK_IMMED,REPEAT
-;     dw LIT, BRANCH, COMMA               ; compile branch
-;     dw SWAP                             ; TOS = HERE1
-;     dw HERE, FETCH, MINUS, COMMA        ; compile offset (HERE1 - HERE3)
-;     dw DUP
-;     dw HERE, FETCH, SWAP, MINUS            ; compile offset (HERE2 - HERE3)
-;     dw SWAP, STORE                      ; save offset in HERE2
-;     dw EXIT
+defcode "repeat",6,MSK_IMMED,REPEAT
+    call LIT
+    dw CALL_OPCODE
+    call CCOMMA                             ; compile 0BRANCH
+    call LIT
+    dw BRANCH
+    call COMMA               ; compile branch
+    call SWAP                             ; TOS = HERE1
+    call HERE
+    call FETCH
+    call MINUS
+    call COMMA        ; compile offset (HERE1 - HERE3)
+    call DUP
+    call HERE
+    call FETCH
+    call SWAP
+    call MINUS            ; compile offset (HERE2 - HERE3)
+    call SWAP
+    call STORE                      ; save offset in HERE2
+    ret
 
 ; ; DO
 ; ; I

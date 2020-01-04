@@ -15,20 +15,6 @@
 ; Store the chain of links.
 link: .set 0
 
-; .macro defword, name, namelen, flags, label
-
-; HEADER_label:
-;     DW link		            ; link
-
-; link: .set HEADER_label
-
-;     DB flags + namelen	    ; flags + length byte
-;     DB name		            ; the name
-; label:
-;     jp DOCOLON
-;     ; list of word pointers follow
-; .endm
-
 .macro defcode, name, namelen, flags, label
 
 HEADER_label:
