@@ -771,13 +771,6 @@ compareStr:
     ld A,0          ; a=0 (s1=s2)
     ret
 
-; DOCOLON:
-;     PUSH_RET D,E        ; push IP on to the return stack
-;     inc HL                ; HL = W which points to codeword, so make
-;     inc HL                ; IP point to first data word
-;     inc HL
-;     NEXT_1
-
 ; params: DE = ptr to word, BC = length
 ; returns: A =  0 (pushed literal), 1 (compiled), 2 (to execute), BC = ptr to word,
 interpToken:
@@ -855,6 +848,8 @@ interpNumber:
         or A                ; if compile, then compile number
         _if nz
             ld HL,(VAR_HERE)
+            ld A, CALL_OPCODE
+            writeByte HL, A
             ld BC, LIT
             writeWord HL, B,C
             writeWord HL, D,E

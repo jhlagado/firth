@@ -88,23 +88,24 @@ defcode "2+",2,0,TWOPLUS
 defcode "noop",4,0,noop
     NEXT
 
-defcode "branch",6,0,BRANCH          ; relative branching
-    ex DE, HL                   ; add the offset to the instruction pointer
-    ld E, (HL)
-    inc HL
-    ld D, (HL)
-    dec HL
-    add HL, DE
-    NEXT_1
-
 ; ?branch   x --              branch if TOS zero
 defcode "0branch",7,0,ZBRANCH
-    checkZeroWord B,C        ; test old TOS
-    ppop0 B,C              ; POP new TOS
-    jr z,BRANCH         ; if old TOS=0, branch
-    inc DE              ; else skip inline value
-    inc DE
-    NEXT
+    checkZeroWord B,C               ; test old TOS
+    ppop0 B,C                       ; POP new TOS
+    jr z,BRANCH                     ; if old TOS=0, branch
+    pop HL
+    inc HL                          ; else skip inline value
+    inc HL
+    jp (HL)
+
+defcode "branch",6,0,BRANCH         ; relative branching
+    pop HL                          ; add the offset to the instruction pointer
+    ld E,(HL)
+    inc HL
+    ld D,(HL)
+    dec HL
+    add HL,DE
+    jp (HL)
 
 ; U*   u1 u2 -- ud   unsigned mutliply
 defcode "u*",2,0,USTAR  ; u1 u2 -- ud

@@ -1,280 +1,365 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; tests
+;; words
 ;;
-;; these tests will evaluate when TESTMODE = 1
+;; Forth word defintions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-    TEST_SET_TEXT "hello\r\n"
-    CALLWORD KEY
-    EXPECT $68, "key 'h'"
-    CALLWORD KEY
-    EXPECT $65, "key 'e'"
-
-    TEST_SET_TEXT "x"
-    CALLWORD TOKEN
-    EXPECT 1, "token 'x'"
-    ppop H,L   ; drop
-
-    TEST_SET_TEXT "xyz"
-    CALLWORD TOKEN
-    EXPECT 3, "token 'xyz'"
-    ppop H,L   ; drop
-
-    TEST_SET_TEXT "a xyz "
-    CALLWORD TOKEN
-    EXPECT 1, "token 'a xyz'"
-    CALLWORD TOKEN
-    EXPECT 3, "token 'a xyz'"
-    ppop H,L   ; drop
-
-    CALLWORD HERE
-    CALLWORD FETCH
-    EXPECT START_USER, "here"
-
-    ppushText "xyz",3
-    CALLWORD CREATE
-    CALLWORD LATEST
-    CALLWORD FETCH
-    EXPECT START_USER, "create xyz latest"
-    CALLWORD HERE
-    CALLWORD FETCH
-    EXPECT START_USER + 6, "create xyz here"
-
-    ppushValue 1
-    TEST_SET_TEXT "dup"
-    CALLWORD INTERPRET
-    EXPECT 1, "1 interpret dup"
-    EXPECT 1, "1 interpret dup 2"
-
-    TEST_SET_TEXT "123"
-    CALLWORD INTERPRET
-    EXPECT 123, "interpret 123"
-
-    ppushValue 999
-    TEST_SET_TEXT "$$123"
-    CALLWORD INTERPRET
-    EXPECT 999, "interpret $$123"
-
-    ppushValue 1
-    ppushValue 2
-    CALLWORD DUP
-    EXPECT 2, "dup 2"
-    EXPECT 2, "dup 2"
-
-    TEST_SET_TEXT "123 constant x123"
-    call INTERPRET
-    TEST_SET_TEXT "x123"
-    call INTERPRET
-    EXPECT 123, "constant x123 = 123"
-
-    TEST_SET_TEXT "variable v1"
-    CALLWORD INTERPRET
-    ppushValue 123
-    TEST_SET_TEXT "123 v1 !"
-    CALLWORD INTERPRET
-
-    TEST_SET_TEXT "v1 @"
-    CALLWORD INTERPRET
-    EXPECT 123, "variable v1 = 123"
-
-
-
-    TEST_SET_TEXT ": dbl dup + ;"
-    CALLWORD INTERPRET
-    ppushValue 2
-    TEST_SET_TEXT "dbl"
-    CALLWORD INTERPRET
-    EXPECT 4, "colon dbl 2 = 4"
-
-    CALLWORD CR
-
-    TEST_SET_TEXT "a xyz"
-    CALLWORD TOKEN
-    EXPECT 1, "token 'a xyz'"
-    CALLWORD TOKEN
-    EXPECT 3, "token 'a xyz'"
-
-    TEST_SET_TEXT "100 100 +"
-    CALLWORD INTERPRET
-    EXPECT 200, "token '100 100 + = 200'"
-
-    ld HL, 12
-    ld C, 10
-    call divideWordByByte
-    ld B, 0
-    ld C, A
-    EXPECT 2, "div 11 / 10 = 1 1"
-
-    TEST_SET_TEXT "100 10 + ."
-    CALLWORD INTERPRET
 
-    TEST_SET_TEXT "16 base ! 20"
-    CALLWORD INTERPRET
-    EXPECT 32, "expect $20 to be 32"
-
-    TEST_SET_TEXT "0A base ! 20"
-    CALLWORD INTERPRET
-    EXPECT 20, "expect decimal 20 to be 32"
-
-    TEST_SET_TEXT "-10 abs"
-    CALLWORD INTERPRET
-    EXPECT 10, "expect abs -10 to be 10"
-
-    TEST_SET_TEXT "10 abs"
-    CALLWORD INTERPRET
-    EXPECT 10, "expect abs 10 to be 10"
-
-    ppushValue -10
-    ppushValue 10
-    CALLWORD STAR
-    EXPECT -100, "expect -10 * 10 to be -100"
-
-    ppushValue -10
-    ppushValue -20
-    CALLWORD STAR
-    EXPECT 200, "expect -10 * -20 to be 200"
-
-    ppushValue 10
-    ppushValue -20
-    CALLWORD STAR
-    EXPECT -200, "expect -10 * -20 to be 200"
-
-    ppushValue -101
-    ppushValue 20
-    CALLWORD SLASHMOD
-    EXPECT -5, "expect -101 / 20 to be -5"
-    EXPECT -1, "expect -101 % 20 to be -1"
-
-    ppushValue -101
-    ppushValue -20
-    CALLWORD SLASHMOD
-    EXPECT 5,  "expect -101 / -20 to be 5"
-    EXPECT -1, "expect -101 % -20 to be -1"
-
-    ppushValue 101
-    ppushValue -20
-    CALLWORD SLASHMOD
-    EXPECT -5,  "expect 101 / -20 to be -5"
-    EXPECT 1, "expect 101 % -20 to be 1"
-
-    TEST_SET_TEXT ": testif2 if 100 then ;"
-
-    CALLWORD INTERPRET
-
-    ppushValue 200
-    ppushValue 1
-
-    TEST_SET_TEXT "testif2"
-    CALLWORD INTERPRET
-    EXPECT 100, "1 if 100 then --> 100"
-
-    ppushValue 0
-
-    TEST_SET_TEXT "testif2"
-    CALLWORD INTERPRET
-    EXPECT 200, "0 if 100 then --> 200"
-
-    TEST_SET_TEXT ": testif3 if 100 else 200 then ;"
-
-    CALLWORD INTERPRET
-
-    ppushValue 0
-
-    TEST_SET_TEXT "testif3"
-    CALLWORD INTERPRET
-    EXPECT 200, "0 --> 200"
-
-    ppushValue 1
-
-    TEST_SET_TEXT "testif3"
-    CALLWORD INTERPRET
-    EXPECT 100, "1 --> 100"
-
-    TEST_SET_TEXT ": testloop begin dup 5 < while dup . 1+ repeat ;"
-
-    CALLWORD INTERPRET
-
-    ppushValue 0
-
-    TEST_SET_TEXT "testloop"
-    CALLWORD INTERPRET
-    EXPECT 5, "Loop until limit < 5"
-
-    ppushPText "xyz"
-    CALLWORD COUNT
-    EXPECT 3, "xyz length 3"
-    CALLWORD CFETCH
-    EXPECT "x" + 0, "xyz --> x"
-
-    ppushValue HEADER_LATEST
-    CALLWORD TCFA
-    EXPECT HEADER_LATEST + 3 + 6, "cfa 3 bytes plus length of name"
-
-    ppushValue 1
-    ppushValue 2
-    ppushValue HEADER_PLUS
-    CALLWORD TCFA
-    CALLWORD EXECUTE
-    EXPECT 3, "1 2 plus = 3"
-
-    ppushText "100",3
-    CALLWORD NUMBER
-    EXPECT 0, "0 = no parse err"
-    EXPECT 100, "parse 100"
-
-    ppushText "latest",6
-    CALLWORD FIND
-    EXPECT HEADER_LATEST, "find header of LATEST"
-
-    TEST_SET_TEXT "100"
-    CALLWORD INTERPRET
-    EXPECT 100, "interpret parse 100"
-
-    TEST_SET_TEXT "base"
-    CALLWORD INTERPRET
-    CALLWORD FETCH
-    EXPECT 10, "expect base to be 10"
-
-    TEST_SET_TEXT "3 2 +"
-    CALLWORD INTERPRET
-    EXPECT 5, "3 + 2 = 5"
-
-    TEST_SET_TEXT ": add + ;"
-    CALLWORD INTERPRET
-
-    ppushValue 2
-    ppushValue 2
-    TEST_SET_TEXT "add"
-    CALLWORD INTERPRET
-    EXPECT 4, "2 2 add = 4"
-
-
-    TEST_SET_TEXT ": dump 16 base ! over + swap begin over over swap < while dup 7 and 0= if cr dup . then dup c@ . 1+ repeat cr 10 base ! ;"
-
-    CALLWORD INTERPRET
-
-    ppushText "add",3
-    CALLWORD FIND
-    ppushValue 64
-
-    TEST_SET_TEXT "dump"
-    CALLWORD INTERPRET
-
-; jp skipXXNOTDef
-
-;     defword "xxnot",3,0,NOT
-;         cIF
-;             DW LIT, 0
-;         cELSE
-;             DW LIT, 1
-;         cENDIF
-;         DW EXIT
-
-; skipXXNOTDef:
-
-    ppushValue 0
-    CALLWORD NOT
-    EXPECT 1, "xxnot 0 = 1"
-    ppushValue 1
-    CALLWORD NOT
-    EXPECT 0, "xxnot 1 = 0"
+; COLD:
+;         dw QUIT                     ; headerless word which never terminates
+
+defconst "version",7,0,VERSION,1
+defconst "r0",2,0,RZ, RET_STACK
+; defconst "docolon",7,0, __DOCOL,DOCOLON
+defconst "msk_immed",9,0,__MSK_IMMED,MSK_IMMED
+defconst "msk_hidden",10,0,__MSK_HIDDEN,MSK_HIDDEN
+defconst "msk_length",10,0,__MSK_LENGTH,MSK_LENGTH
+
+defcode "quit",4,0,QUIT
+    ld SP, RET_STACK
+    call INTERPRET        ; interpret the next word
+    ret
+
+defcode "interpret",6,0,INTERPRET
+    ld A, 0
+    ld (VAR_INTP_STOP), A
+    _do
+        call interp                        ; interpret the next word
+        ld A,(VAR_INTP_STOP)
+        or A
+    _until nz
+    _enddo
+    ret
+
+; defword ">cfa",4,0,TCFA
+;     dw LIT, 2, PLUS
+;     dw COUNT
+;     dw LIT, MSK_LENGTH, AND
+;     dw PLUS
+;     dw EXIT
+
+defcode ">cfa",4,0,TCFA
+    call LIT
+    dw 2
+    call PLUS
+    call COUNT
+    call LIT
+    dw MSK_LENGTH
+    call AND
+    call PLUS
+    ret
+
+; ; COUNT extract string length from pascal string  ( ptr -- ptr+1 len )
+; defword "count",5,0,COUNT
+;     dw DUP, LIT, 1, PLUS            ; ( ptr -- ptr ptr+1)
+;     dw SWAP, CFETCH                 ; ( ptr ptr+1 -- ptr+1 len)
+;     dw EXIT
+
+; COUNT extract string length from pascal string  ( ptr -- ptr+1 len )
+defcode "count",5,0,COUNT
+    call DUP
+    call LIT
+    dw 1
+    call PLUS            ; ( ptr -- ptr ptr+1)
+    call SWAP
+    call CFETCH                 ; ( ptr ptr+1 -- ptr+1 len)
+    ret
+
+; ALLOT                             ( n -- addr ) allocate n bytes of memory
+defcode "allot",5,0,ALLOT
+    ppop D,E
+    ld HL, (VAR_HERE)
+    ppush H,L
+    or A
+    adc HL,DE                       ; adds n to HERE, old value of HERE left on stack
+    ld (VAR_HERE),HL
+    ret
+
+; ; NEGATE  n1 -- n2                        negate n1
+; defword "negate",6,0,NEGATE
+;     dw INVERT
+;     dw ONEPLUS
+;     dw EXIT
+
+; NEGATE  n1 -- n2                        negate n1
+defcode "negate",6,0,NEGATE
+    call INVERT
+    inc BC
+    ret
+
+; ; ABS   n -- u                      absolute value
+; defword "abs",3,0,ABS
+;     dw DUP                      ; copy arg
+;     dw ZEROLESS
+;     cIf
+;         dw NEGATE               ; if signs differ then negate answer
+;     cEndIf
+;     dw EXIT
+
+; ABS   n -- u                      absolute value
+defcode "abs",3,0,ABS
+    call DUP                      ; copy arg
+    call ZEROLESS
+    checkZeroWord B,C
+    ppop0 B,C              ; POP new TOS
+    _if nz
+        call NEGATE               ; if signs differ then negate answer
+    _endif
+    ret
+
+; defword "*",1,0,STAR        ; u1 u2 -- ud
+;     dw OVER, OVER           ; dupe both args
+;     dw ABS, SWAP, ABS       ; remove sign from both args
+;     dw USTAR, DROP          ; unsigned multiply, drop hi-word
+;     dw NROT                 ; move to bottom
+;     dw XOR                  ; zero if signs are the same
+;     dw ZEROLESS             ; if high bit set
+;     cIf
+;         dw NEGATE           ; if signs differ then negate answer
+;     cEndIf
+;     dw EXIT
+
+defcode "*",1,0,STAR            ; u1 u2 -- ud
+    call OVER
+    call OVER                   ; dupe both args
+    call ABS
+    call SWAP
+    call ABS                    ; remove sign from both args
+    call USTAR
+    call DROP                   ; unsigned multiply, drop hi-word
+    call NROT                   ; move to bottom
+    call XOR                    ; zero if signs are the same
+    call ZEROLESS               ; if high bit set
+    checkZeroWord B,C
+    ppop0 B,C              ; POP new TOS
+    _if nz
+        call NEGATE               ; if signs differ then negate answer
+    _endif
+    ret
+
+; defword "/mod",4,0,SLASHMOD       ; dvend dvisr -- rem quot
+;     dw OVER, OVER           ;       u1 u2 -- u1 u2 u1 u2  dupe both args
+;     dw XOR                  ; u1 u2 u1 u2 -- u1 u2 b1     xor hi bits
+;     dw ZEROLESS             ; true if high bit still set
+;     dw NROT                 ;    u1 u2 b1 -- b1 u1 u2     move to bottom
+
+;     dw OVER                 ;    b1 u1 u2 -- b1 u1 u2 u1  dupe dividend
+;     dw ZEROLESS             ; b1 u1 u2 u1 -- b1 u1 u2 b2  zero if signs are the same
+;     dw NROT                 ; b1 u1 u2 b2 -- b1 b2 u1 u2  move to bottom
+
+;     ; dw DOT, DOT, DOT, DOT, CR  ; u2=-20 u1=-101 b2=1 b1=0
+
+;     dw ABS, SWAP, ABS, SWAP ; remove sign from both args
+;     dw USLASHMOD            ; b1 b2 u1 u2 -- b1 b2 r q    unsigned divide (remainder, quotient)
+;     dw SWAP                 ; b1 b2 u1 u2 -- b1 b2 q r
+;     dw ROT                  ; b1 b2 q r -- b1 q r b2      bring to top
+;     cIf
+;         dw NEGATE           ;   b1 q r b2 -- b1 q -r      if -ve then negate answer
+;     cEndIf
+;     dw NROT                 ;     b1 q -r -- -r b1 q     bring to top
+;     dw SWAP                 ;     -r b1 q -- -r q b1      bring to top
+;     cIf
+;         dw NEGATE           ;     -r q b1 -- -r -q       if signs differ then negate answer
+;     cEndIf
+;     dw EXIT
+
+defcode "/mod",4,0,SLASHMOD       ; dvend dvisr -- rem quot
+    call OVER
+    call OVER                    ;       u1 u2 -- u1 u2 u1 u2  dupe both args
+    call XOR                  ; u1 u2 u1 u2 -- u1 u2 b1     xor hi bits
+    call ZEROLESS             ; true if high bit still set
+    call NROT                 ;    u1 u2 b1 -- b1 u1 u2     move to bottom
+
+    call OVER                 ;    b1 u1 u2 -- b1 u1 u2 u1  dupe dividend
+    call ZEROLESS             ; b1 u1 u2 u1 -- b1 u1 u2 b2  zero if signs are the same
+    call NROT                 ; b1 u1 u2 b2 -- b1 b2 u1 u2  move to bottom
+
+    call ABS
+    call SWAP
+    call ABS
+    call SWAP                    ; remove sign from both args
+    call USLASHMOD            ; b1 b2 u1 u2 -- b1 b2 r q    unsigned divide (remainder, quotient)
+    call SWAP                 ; b1 b2 u1 u2 -- b1 b2 q r
+    call ROT                  ; b1 b2 q r -- b1 q r b2      bring to top
+    checkZeroWord B,C
+    ppop0 B,C              ; POP new TOS
+    _if nz
+        call NEGATE           ;   b1 q r b2 -- b1 q -r      if -ve then negate answer
+    _endif
+    call NROT                 ;     b1 q -r -- -r b1 q     bring to top
+    call SWAP                 ;     -r b1 q -- -r q b1      bring to top
+    checkZeroWord B,C
+    ppop0 B,C              ; POP new TOS
+    _if nz
+        call NEGATE           ;     -r q b1 -- -r -q       if signs differ then negate answer
+    _endif
+    ret
+
+; defword "/",1,0,SLASH       ; dvend dvisr -- quot
+;     dw SLASHMOD
+;     dw SWAP, DROP           ; drop remainder
+;     dw EXIT
+
+defcode "mod",3,0,MOD     ; dvend dvisr -- remainder
+    call SLASHMOD
+    call DROP                 ; drop quotient
+    ret
+
+; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; ;;
+; ;; flow control
+; ;;
+; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; defword "if",2,MSK_IMMED,IF
+;     dw LIT, ZBRANCH, COMMA              ; compile 0BRANCH
+;     dw HERE, FETCH, DUP, COMMA          ; compile HERE and also push on stack
+;     dw EXIT
+
+defcode "if",2,MSK_IMMED,IF
+    call LIT
+    dw ZBRANCH
+    call COMMA              ; compile 0BRANCH
+    call HERE
+    call FETCH
+    call DUP
+    call COMMA          ; compile HERE and also push on stack
+    ret
+
+; defword "then",4,MSK_IMMED,THEN
+;     dw DUP
+;     dw HERE, FETCH, SWAP, MINUS            ; calculate the offset from the address saved on the stack
+;     dw SWAP, STORE                        ; store the offset in the back-filled location
+;     dw EXIT
+
+defcode "then",4,MSK_IMMED,THEN
+    call DUP
+    call HERE
+    call FETCH
+    call SWAP
+    call MINUS            ; calculate the offset from the address saved on the stack
+    call SWAP
+    call STORE                        ; store the offset in the back-filled location
+    ret
+
+; defword "else",4,MSK_IMMED,ELSE
+;     dw LIT, BRANCH, COMMA                ; definite branch to just over the false-part
+;     dw HERE, FETCH                        ; save HERE on stack
+;     dw LIT, 0, COMMA                    ; compile a dummy offset
+;     dw SWAP                                ; now back-fill the original (IF) offset
+;     dw THEN
+;     dw EXIT
+
+defcode "else",4,MSK_IMMED,ELSE
+    call LIT
+    dw BRANCH
+    call COMMA                ; definite branch to just over the false-part
+    call HERE
+    call FETCH                        ; save HERE on stack
+    call LIT
+    dw 0
+    call COMMA                    ; compile a dummy offset
+    call SWAP                                ; now back-fill the original (IF) offset
+    call THEN
+    ret
+
+; BEGIN condition WHILE ... REPEAT
+
+; defword "begin",5,MSK_IMMED,BEGIN
+;     dw HERE, FETCH                        ; save HERE on stack (HERE1)
+;     dw EXIT
+
+; defword "while",5,MSK_IMMED,WHILE
+;     dw LIT, ZBRANCH, COMMA              ; compile branch on zero
+;     dw HERE, FETCH                        ; save HERE in stack (HERE2)
+;     dw LIT, 0, COMMA                    ; compile dummy offset
+;     dw EXIT
+
+; defword "repeat",6,MSK_IMMED,REPEAT
+;     dw LIT, BRANCH, COMMA               ; compile branch
+;     dw SWAP                             ; TOS = HERE1
+;     dw HERE, FETCH, MINUS, COMMA        ; compile offset (HERE1 - HERE3)
+;     dw DUP
+;     dw HERE, FETCH, SWAP, MINUS            ; compile offset (HERE2 - HERE3)
+;     dw SWAP, STORE                      ; save offset in HERE2
+;     dw EXIT
+
+; ; DO
+; ; I
+; ; AGAIN
+; ; LOOP
+; ; J
+; ; UNTIL
+
+defcode ":",1,0,COLON
+    call TOKEN                          ; read name
+    call CREATE                         ; create header
+    ld BC,(VAR_LATEST)
+    call HIDDEN                         ; Make the word hidden (see below for definition).
+    call RBRAC                    ; Go into compile mode.
+    ret                        ; Return from the function.
+
+defcode ";",1,MSK_IMMED,SEMICOLON
+    ld HL,(VAR_HERE)
+    ld A,RET_OPCODE                     ; write ret
+    writeByte HL, A
+    ld (VAR_HERE),HL
+
+    ld BC,(VAR_LATEST)
+    call HIDDEN                         ; Make the word hidden (see below for definition).
+    call LBRAC                    ; Go into compile mode.
+
+    ret                                 ; Return from the function.
+
+; CONSTANT   n --      define a Forth constant
+defcode "constant",8,0,CONSTANT         ; ( n -- ) get name from input
+    call TOKEN                          ; read name
+    call CREATE                         ; create header
+    ld HL,(VAR_HERE)
+    ld A,CALL_OPCODE                    ; write call LIT with value TOS
+    writeByte HL, A
+    ld DE, LIT
+    writeWord HL, D,E
+    writeWord HL, B,C                   ; write TOS
+    ld A,RET_OPCODE                     ; write ret
+    writeByte HL, A
+    ld (VAR_HERE),HL
+    ppop0 B,C                           ; clear TOS
+    ret
+
+defcode "variable",8,0,VARIABLE              ; ( n -- ) get name from input
+    ld BC, 2
+    call ALLOT
+    call TOKEN                          ; read name
+    call CREATE                         ; create header
+    ld HL,(VAR_HERE)
+    ld A,CALL_OPCODE                    ; write call LIT with value var address
+    writeByte HL, A
+    ld DE, LIT
+    writeWord HL, D,E
+    writeWord HL, B,C                   ; write addr of variable to word
+    ld A,RET_OPCODE                     ; write ret
+    writeByte HL, A
+    ld (VAR_HERE),HL
+    ppop0 B,C                           ; clear TOS
+    ret
+
+; ; DOES> does
+
+; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; ;;
+; ;; device
+; ;;
+; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+defcode "cr",2,0,CR                  ; ( -- )
+    call printCR
+    ret
+
+defvar "pad",3,0,PAD, VAR_PAD
+defvar "here",4,0,HERE, VAR_HERE
+defvar "intp_stop",9,0,INTP_STOP, VAR_INTP_STOP
+defvar "state",5,0,STATE, VAR_STATE
+defvar "s0",2,0,SZ, VAR_SZ
+defvar "base",4,0,BASE, VAR_BASE
+defvar "latest",6,0,LATEST, VAR_LATEST
