@@ -142,16 +142,18 @@ defword "mod",3,0,MOD     ; dvend dvisr -- remainder
 ; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 defword "if",2,MSK_IMMED,IF
-    call LIT
-    dw CALL_OPCODE
-    call CCOMMA              ; compile 0BRANCH
-    call LIT
-    dw ZBRANCH
-    call COMMA              ; compile 0BRANCH
-    call HERE
-    call FETCH
-    call DUP
-    call COMMA          ; compile HERE and also push on stack
+    ld HL,(VAR_HERE)
+
+    ld A,CALL_OPCODE                    ; write call LIT with value TOS
+    writeByte HL, A
+    ld DE, ZBRANCH
+    writeWord HL, D,E
+
+    loadWord D,E, H,L
+    ppush D,E
+    writeWord HL, D,E                   ; write HERE
+
+    ld (VAR_HERE),HL
     ret
 
 defword "then",4,MSK_IMMED,THEN
