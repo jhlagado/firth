@@ -4,219 +4,298 @@
 ;; Forth word defintions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-
-COLD:
-        DW QUIT                     ; headerless word which never terminates
-
 defconst "version",7,0,VERSION,1
 defconst "r0",2,0,RZ, RET_STACK
-defconst "docolon",7,0, __DOCOL,DOCOLON
 defconst "msk_immed",9,0,__MSK_IMMED,MSK_IMMED
 defconst "msk_hidden",10,0,__MSK_HIDDEN,MSK_HIDDEN
 defconst "msk_length",10,0,__MSK_LENGTH,MSK_LENGTH
 
-defword "quit",4,0,QUIT
-    DW RZ,RSPSTORE        ; reset the return stack R0 RSP!
-    DW INTERPRET        ; interpret the next word
+defcode "quit",4,0,QUIT
+    ld SP, RET_STACK
+    call INTERPRET        ; interpret the next word
+    ret
 
-defword "interpret",6,0,INTERPRET
-    DW LIT, 0
-    DW INTP_STOP, STORE
-    cDO
-        DW interp                        ; interpret the next word
-        DW INTP_STOP, FETCH
-    cUNTIL
-    cENDDO
-    DW EXIT
+defcode "interpret",6,0,INTERPRET
+    ld A, 0
+    ld (VAR_INTP_STOP), A
+    _do
+        call interp                        ; interpret the next word
+        ld A,(VAR_INTP_STOP)
+        or A
+    _until nz
+    _enddo
+    ret
 
-defword ">cfa",4,0,TCFA
-    DW LIT, 2, PLUS
-    DW COUNT
-    DW LIT, MSK_LENGTH, AND
-    DW PLUS
-    DW EXIT
+defcode ">cfa",4,0,TCFA
+    call LIT
+    dw 2
+    call PLUS
+    call COUNT
+    call LIT
+    dw MSK_LENGTH
+    call AND
+    call PLUS
+    ret
 
 ; COUNT extract string length from pascal string  ( ptr -- ptr+1 len )
-defword "count",5,0,COUNT
-    DW DUP, LIT, 1, PLUS            ; ( ptr -- ptr ptr+1)
-    DW SWAP, CFETCH                 ; ( ptr ptr+1 -- ptr+1 len)
-    DW EXIT
+defcode "count",5,0,COUNT
+    call DUP
+    call LIT
+    dw 1
+    call PLUS            ; ( ptr -- ptr ptr+1)
+    call SWAP
+    call CFETCH                 ; ( ptr ptr+1 -- ptr+1 len)
+    ret
 
 ; ALLOT                             ( n -- addr ) allocate n bytes of memory
-defword "allot",5,0,ALLOT
-    DW HERE, FETCH, SWAP        ; here n
-    DW HERE, ADDSTORE                    ; adds n to HERE, old value of HERE left on stack
-    DW EXIT
+defcode "allot",5,0,ALLOT
+    ppop D,E
+    ld HL, (VAR_HERE)
+    ppush H,L
+    or A
+    adc HL,DE                       ; adds n to HERE, old value of HERE left on stack
+    ld (VAR_HERE),HL
+    ret
 
 ; NEGATE  n1 -- n2                        negate n1
-defword "negate",6,0,NEGATE
-    DW INVERT
-    DW ONEPLUS
-    DW EXIT
+defcode "negate",6,0,NEGATE
+    call INVERT
+    inc BC
+    ret
 
 ; ABS   n -- u                      absolute value
-defword "abs",3,0,ABS
-    DW DUP                      ; copy arg
-    DW ZEROLESS
-    cIf
-        DW NEGATE               ; if signs differ then negate answer
-    cEndIf
-    DW EXIT
+defcode "abs",3,0,ABS
+    call DUP                      ; copy arg
+    call ZEROLESS
+    checkZeroWord B,C
+    ppop0 B,C              ; POP new TOS
+    _if nz
+        call NEGATE               ; if signs differ then negate answer
+    _endif
+    ret
 
-defword "*",1,0,STAR        ; u1 u2 -- ud
-    DW OVER, OVER           ; dupe both args
-    DW ABS, SWAP, ABS       ; remove sign from both args
-    DW USTAR, DROP          ; unsigned multiply, drop hi-word
-    DW NROT                 ; move to bottom
-    DW XOR                  ; zero if signs are the same
-    DW ZEROLESS             ; if high bit set
-    cIf
-        DW NEGATE           ; if signs differ then negate answer
-    cEndIf
-    DW EXIT
+defcode "*",1,0,STAR            ; u1 u2 -- ud
+    call OVER
+    call OVER                   ; dupe both args
+    call ABS
+    call SWAP
+    call ABS                    ; remove sign from both args
+    call USTAR
+    call DROP                   ; unsigned multiply, drop hi-word
+    call NROT                   ; move to bottom
+    call XOR                    ; zero if signs are the same
+    call ZEROLESS               ; if high bit set
+    checkZeroWord B,C
+    ppop0 B,C              ; POP new TOS
+    _if nz
+        call NEGATE               ; if signs differ then negate answer
+    _endif
+    ret
 
-defword "/mod",4,0,SLASHMOD       ; dvend dvisr -- rem quot
-    DW OVER, OVER           ;       u1 u2 -- u1 u2 u1 u2  dupe both args
-    DW XOR                  ; u1 u2 u1 u2 -- u1 u2 b1     xor hi bits
-    DW ZEROLESS             ; true if high bit still set
-    DW NROT                 ;    u1 u2 b1 -- b1 u1 u2     move to bottom
+defcode "/mod",4,0,SLASHMOD       ; dvend dvisr -- rem quot
+    call OVER
+    call OVER                    ;       u1 u2 -- u1 u2 u1 u2  dupe both args
+    call XOR                  ; u1 u2 u1 u2 -- u1 u2 b1     xor hi bits
+    call ZEROLESS             ; true if high bit still set
+    call NROT                 ;    u1 u2 b1 -- b1 u1 u2     move to bottom
 
-    DW OVER                 ;    b1 u1 u2 -- b1 u1 u2 u1  dupe dividend
-    DW ZEROLESS             ; b1 u1 u2 u1 -- b1 u1 u2 b2  zero if signs are the same
-    DW NROT                 ; b1 u1 u2 b2 -- b1 b2 u1 u2  move to bottom
+    call OVER                 ;    b1 u1 u2 -- b1 u1 u2 u1  dupe dividend
+    call ZEROLESS             ; b1 u1 u2 u1 -- b1 u1 u2 b2  zero if signs are the same
+    call NROT                 ; b1 u1 u2 b2 -- b1 b2 u1 u2  move to bottom
 
-    ; DW DOT, DOT, DOT, DOT, CR  ; u2=-20 u1=-101 b2=1 b1=0
+    call ABS
+    call SWAP
+    call ABS
+    call SWAP                    ; remove sign from both args
+    call USLASHMOD            ; b1 b2 u1 u2 -- b1 b2 r q    unsigned divide (remainder, quotient)
+    call SWAP                 ; b1 b2 u1 u2 -- b1 b2 q r
+    call ROT                  ; b1 b2 q r -- b1 q r b2      bring to top
+    checkZeroWord B,C
+    ppop0 B,C              ; POP new TOS
+    _if nz
+        call NEGATE           ;   b1 q r b2 -- b1 q -r      if -ve then negate answer
+    _endif
+    call NROT                 ;     b1 q -r -- -r b1 q     bring to top
+    call SWAP                 ;     -r b1 q -- -r q b1      bring to top
+    checkZeroWord B,C
+    ppop0 B,C              ; POP new TOS
+    _if nz
+        call NEGATE           ;     -r q b1 -- -r -q       if signs differ then negate answer
+    _endif
+    ret
 
-    DW ABS, SWAP, ABS, SWAP ; remove sign from both args
-    DW USLASHMOD            ; b1 b2 u1 u2 -- b1 b2 r q    unsigned divide (remainder, quotient)
-    DW SWAP                 ; b1 b2 u1 u2 -- b1 b2 q r
-    DW ROT                  ; b1 b2 q r -- b1 q r b2      bring to top
-    cIf
-        DW NEGATE           ;   b1 q r b2 -- b1 q -r      if -ve then negate answer
-    cEndIf
-    DW NROT                 ;     b1 q -r -- -r b1 q     bring to top
-    DW SWAP                 ;     -r b1 q -- -r q b1      bring to top
-    cIf
-        DW NEGATE           ;     -r q b1 -- -r -q       if signs differ then negate answer
-    cEndIf
-    DW EXIT
+defcode "/",1,0,SLASH       ; dvend dvisr -- quot
+    call SLASHMOD
+    call SWAP
+    call DROP               ; drop remainder
+    ret
 
-defword "/",1,0,SLASH       ; dvend dvisr -- quot
-    DW SLASHMOD
-    DW SWAP, DROP           ; drop remainder
-    DW EXIT
+defcode "mod",3,0,MOD     ; dvend dvisr -- remainder
+    call SLASHMOD
+    call DROP                 ; drop quotient
+    ret
 
-defword "mod",3,0,MOD     ; dvend dvisr -- remainder
-    DW SLASHMOD
-    DW DROP                 ; drop quotient
-    DW EXIT
+; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; ;;
+; ;; flow control
+; ;;
+; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-;; flow control
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+defcode "if",2,MSK_IMMED,IF
+    call LIT
+    dw CALL_OPCODE
+    call CCOMMA              ; compile 0BRANCH
+    call LIT
+    dw ZBRANCH
+    call COMMA              ; compile 0BRANCH
+    call HERE
+    call FETCH
+    call DUP
+    call COMMA          ; compile HERE and also push on stack
+    ret
 
-defword "if",2,MSK_IMMED,IF
-    DW LIT, ZBRANCH, COMMA              ; compile 0BRANCH
-    DW HERE, FETCH, DUP, COMMA          ; compile HERE and also push on stack
-    DW EXIT
+defcode "then",4,MSK_IMMED,THEN
+    call DUP
+    call HERE
+    call FETCH
+    call SWAP
+    call MINUS            ; calculate the offset from the address saved on the stack
+    call SWAP
+    call STORE                        ; store the offset in the back-filled location
+    ret
 
-defword "then",4,MSK_IMMED,THEN
-    DW DUP
-    DW HERE, FETCH, SWAP, MINUS            ; calculate the offset from the address saved on the stack
-    DW SWAP, STORE                        ; store the offset in the back-filled location
-    DW EXIT
-
-defword "else",4,MSK_IMMED,ELSE
-    DW LIT, BRANCH, COMMA                ; definite branch to just over the false-part
-    DW HERE, FETCH                        ; save HERE on stack
-    DW LIT, 0, COMMA                    ; compile a dummy offset
-    DW SWAP                                ; now back-fill the original (IF) offset
-    DW THEN
-    DW EXIT
+defcode "else",4,MSK_IMMED,ELSE
+    call LIT
+    dw CALL_OPCODE
+    call CCOMMA              ; compile 0BRANCH
+    call LIT
+    dw BRANCH
+    call COMMA                ; definite branch to just over the false-part
+    call HERE
+    call FETCH                        ; save HERE on stack
+    call LIT
+    dw CALL_OPCODE
+    call CCOMMA              ; compile 0BRANCH
+    call LIT
+    dw 0
+    call COMMA                    ; compile a dummy offset
+    call SWAP                                ; now back-fill the original (IF) offset
+    call THEN
+    ret
 
 ; BEGIN condition WHILE ... REPEAT
 
-defword "begin",5,MSK_IMMED,BEGIN
-    DW HERE, FETCH                        ; save HERE on stack (HERE1)
-    DW EXIT
+defcode "begin",5,MSK_IMMED,BEGIN
+    call HERE
+    call FETCH                        ; save HERE on stack (HERE1)
+    ret
 
-defword "while",5,MSK_IMMED,WHILE
-    DW LIT, ZBRANCH, COMMA              ; compile branch on zero
-    DW HERE, FETCH                        ; save HERE in stack (HERE2)
-    DW LIT, 0, COMMA                    ; compile dummy offset
-    DW EXIT
+defcode "while",5,MSK_IMMED,WHILE
+    call LIT
+    dw CALL_OPCODE
+    call CCOMMA                             ; compile 0BRANCH
+    call LIT
+    dw ZBRANCH
+    call COMMA                              ; compile branch on zero
+    call HERE
+    call FETCH                              ; save HERE in stack (HERE2)
+    call LIT
+    dw 0
+    call COMMA                              ; compile dummy offset
+    ret
 
-defword "repeat",6,MSK_IMMED,REPEAT
-    DW LIT, BRANCH, COMMA               ; compile branch
-    DW SWAP                             ; TOS = HERE1
-    DW HERE, FETCH, MINUS, COMMA        ; compile offset (HERE1 - HERE3)
-    DW DUP
-    DW HERE, FETCH, SWAP, MINUS            ; compile offset (HERE2 - HERE3)
-    DW SWAP, STORE                      ; save offset in HERE2
-    DW EXIT
+defcode "repeat",6,MSK_IMMED,REPEAT
+    call LIT
+    dw CALL_OPCODE
+    call CCOMMA                             ; compile 0BRANCH
+    call LIT
+    dw BRANCH
+    call COMMA               ; compile branch
+    call SWAP                             ; TOS = HERE1
+    call HERE
+    call FETCH
+    call MINUS
+    call COMMA        ; compile offset (HERE1 - HERE3)
+    call DUP
+    call HERE
+    call FETCH
+    call SWAP
+    call MINUS            ; compile offset (HERE2 - HERE3)
+    call SWAP
+    call STORE                      ; save offset in HERE2
+    ret
 
-; DO
-; I
-; AGAIN
-; LOOP
-; J
-; UNTIL
+; ; DO
+; ; I
+; ; AGAIN
+; ; LOOP
+; ; J
+; ; UNTIL
 
-defword ":",1,0,COLON
-    DW TOKEN                    ; Get the name of the new word
-    DW CREATE                    ; CREATE the dictionary entry / header
-    DW LIT, JP_OPCODE, CCOMMA                ; write Z80 jp OPCODE to word
-    DW LIT, DOCOLON, COMMA        ; Append DOCOLON  (the codeword).
-    DW LATEST, FETCH, HIDDEN    ; Make the word hidden (see below for definition).
-    DW RBRAC                    ; Go into compile mode.
-    DW EXIT                        ; Return from the function.
+defcode ":",1,0,COLON
+    call TOKEN                          ; read name
+    call CREATE                         ; create header
+    ld BC,(VAR_LATEST)
+    call HIDDEN                         ; Make the word hidden (see below for definition).
+    call RBRAC                    ; Go into compile mode.
+    ret                        ; Return from the function.
+
+defcode ";",1,MSK_IMMED,SEMICOLON
+    ld HL,(VAR_HERE)
+    ld A,RET_OPCODE                     ; write ret
+    writeByte HL, A
+    ld (VAR_HERE),HL
+
+    ld BC,(VAR_LATEST)
+    call HIDDEN                         ; Make the word hidden (see below for definition).
+    call LBRAC                    ; Go into compile mode.
+
+    ret                                 ; Return from the function.
 
 ; CONSTANT   n --      define a Forth constant
-defword "constant",8,0,CONSTANT              ; ( n -- ) get name from input
-    DW TOKEN                            ; read name
-    DW CREATE                           ; create header
-    DW LIT, JP_OPCODE, CCOMMA                ; write Z80 jp OPCODE to word
-    DW LIT, DOCOLON, COMMA                ; write addr DOCOLON to word
-    DW LIT, LIT, COMMA                  ; write addr of LIT to word
-    DW COMMA                            ; write TOS to word
-    DW LIT, EXIT, COMMA                  ; write addr of LIT to word
-    DW EXIT
+defcode "constant",8,0,CONSTANT         ; ( n -- ) get name from input
+    call TOKEN                          ; read name
+    call CREATE                         ; create header
+    ld HL,(VAR_HERE)
+    ld A,CALL_OPCODE                    ; write call LIT with value TOS
+    writeByte HL, A
+    ld DE, LIT
+    writeWord HL, D,E
+    writeWord HL, B,C                   ; write TOS
+    ld A,RET_OPCODE                     ; write ret
+    writeByte HL, A
+    ld (VAR_HERE),HL
+    ppop0 B,C                           ; clear TOS
+    ret
 
-defword ";",1,MSK_IMMED,SEMICOLON
-    DW LIT, EXIT, COMMA            ; Append EXIT (so the word will return).
-    DW LATEST, FETCH, HIDDEN    ; Toggle hidden flag -- unhide the word (see below for definition).
-    DW LBRAC                    ; Go back to IMMEDIATE mode.
-    DW EXIT                        ; Return from the function.
+defcode "variable",8,0,VARIABLE              ; ( n -- ) get name from input
+    ld BC, 2
+    call ALLOT
+    call TOKEN                          ; read name
+    call CREATE                         ; create header
+    ld HL,(VAR_HERE)
+    ld A,CALL_OPCODE                    ; write call LIT with value var address
+    writeByte HL, A
+    ld DE, LIT
+    writeWord HL, D,E
+    writeWord HL, B,C                   ; write addr of variable to word
+    ld A,RET_OPCODE                     ; write ret
+    writeByte HL, A
+    ld (VAR_HERE),HL
+    ppop0 B,C                           ; clear TOS
+    ret
 
-defword "variable",8,0,VARIABLE              ; ( n -- ) get name from input
-    DW LIT, 1, CELLS, ALLOT                    ; allocate 1 word, push addr
-    DW TOKEN                            ; read name
-    DW CREATE                           ; create header
-    DW LIT, JP_OPCODE, CCOMMA                ; write Z80 jp OPCODE to word
-    DW LIT, DOCOLON, COMMA             ; write addr DOCOLON to word
-    DW LIT, LIT, COMMA                  ; write addr of LIT to word
-    DW COMMA                            ; write addr of variable to word
-    DW LIT, EXIT, COMMA                 ; write addr of LIT to word
-    DW EXIT
+; ; DOES> does
 
-; DOES> does
+; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; ;;
+; ;; device
+; ;;
+; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-;; device
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-defword "cr",2,0,CR                  ; ( -- )
-    DW LIT                      ; emit cr lf
-    DB "\n", 0
-    DW LIT
-    DB "\r", 0
-    DW EMIT
-    DW EMIT
-    DW EXIT
+defcode "cr",2,0,CR                  ; ( -- )
+    call printCR
+    ret
 
 defvar "pad",3,0,PAD, VAR_PAD
 defvar "here",4,0,HERE, VAR_HERE
@@ -225,10 +304,3 @@ defvar "state",5,0,STATE, VAR_STATE
 defvar "s0",2,0,SZ, VAR_SZ
 defvar "base",4,0,BASE, VAR_BASE
 defvar "latest",6,0,LATEST, VAR_LATEST
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-;; tools
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-

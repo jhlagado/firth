@@ -29,6 +29,8 @@ MSK_HIDDEN      equ     $20
 MSK_LENGTH      equ     $1f                    ; length mask
 
 JP_OPCODE       equ     $C3
+CALL_OPCODE     equ     $CD
+RET_OPCODE      equ     $C9
 
 RTS_HIGH        equ     0D6H                ; 11010110
 RTS_LOW         equ     096H                ; 10010110

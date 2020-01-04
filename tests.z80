@@ -40,8 +40,8 @@
     CALLWORD FETCH
     EXPECT START_USER + 6, "create xyz here"
 
-    TEST_SET_TEXT "dup"
     ppushValue 1
+    TEST_SET_TEXT "dup"
     CALLWORD INTERPRET
     EXPECT 1, "1 interpret dup"
     EXPECT 1, "1 interpret dup 2"
@@ -61,25 +61,23 @@
     EXPECT 2, "dup 2"
     EXPECT 2, "dup 2"
 
+    TEST_SET_TEXT "123 constant x123"
+    call INTERPRET
     TEST_SET_TEXT "x123"
-    ppushValue 123
-    CALLWORD CONSTANT
-    TEST_SET_TEXT "x123"
-    CALLWORD INTERPRET
+    call INTERPRET
     EXPECT 123, "constant x123 = 123"
 
-    TEST_SET_TEXT "v1"
-    CALLWORD VARIABLE
-
+    TEST_SET_TEXT "variable v1"
+    CALLWORD INTERPRET
     ppushValue 123
-    TEST_SET_TEXT "v1"
+    TEST_SET_TEXT "123 v1 !"
     CALLWORD INTERPRET
-    CALLWORD STORE
 
-    TEST_SET_TEXT "v1"
+    TEST_SET_TEXT "v1 @"
     CALLWORD INTERPRET
-    CALLWORD FETCH
     EXPECT 123, "variable v1 = 123"
+
+
 
     TEST_SET_TEXT ": dbl dup + ;"
     CALLWORD INTERPRET
@@ -262,21 +260,21 @@
     TEST_SET_TEXT "dump"
     CALLWORD INTERPRET
 
-jp skipXXNOTDef
+; jp skipXXNOTDef
 
-    defword "xxnot",3,0,NOT
-        cIF
-            DW LIT, 0
-        cELSE
-            DW LIT, 1
-        cENDIF
-        DW EXIT
+;     defword "xxnot",3,0,NOT
+;         cIF
+;             DW LIT, 0
+;         cELSE
+;             DW LIT, 1
+;         cENDIF
+;         DW EXIT
 
-skipXXNOTDef:
+; skipXXNOTDef:
 
-    ppushValue 0
-    CALLWORD NOT
-    EXPECT 1, "xxnot 0 = 1"
-    ppushValue 1
-    CALLWORD NOT
-    EXPECT 0, "xxnot 1 = 0"
+    ; ppushValue 0
+    ; CALLWORD NOT
+    ; EXPECT 1, "xxnot 0 = 1"
+    ; ppushValue 1
+    ; CALLWORD NOT
+    ; EXPECT 0, "xxnot 1 = 0"

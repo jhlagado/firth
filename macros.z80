@@ -5,32 +5,15 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 .macro NEXT
-    ex DE,HL
     NEXT_1
 .endm
 
 .macro NEXT_1
-    readWord HL, D,E
-    ex DE,HL
-    jp (HL)
+    ret
 .endm
 
 ; Store the chain of links.
 link: .set 0
-
-.macro defword, name, namelen, flags, label
-
-HEADER_label:
-    DW link		            ; link
-
-link: .set HEADER_label
-
-    DB flags + namelen	    ; flags + length byte
-    DB name		            ; the name
-label:
-    jp DOCOLON
-    ; list of word pointers follow
-.endm
 
 .macro defcode, name, namelen, flags, label
 
@@ -150,9 +133,13 @@ tpt_text%%M:
 
 ; works with HL, IX+d, IY+d
 .macro writeWord, ptr, regHI, regLO
-    ld (ptr), regLO
-    inc ptr
-    ld (ptr), regHI
+    writeByte ptr, regLO
+    writeByte ptr, regHI
+.endm
+
+; works with HL, IX+d, IY+d
+.macro writeByte, ptr, reg
+    ld (ptr), reg
     inc ptr
 .endm
 
@@ -182,11 +169,7 @@ tpt_text%%M:
 ; params HL=address of word CFA
 ; destroys DE
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-.macro callWord, name
-    ld DE, tf_nextword%%M
-    ld HL, name
-    jp (HL)
-tf_nextword%%M:
-    DW $ + 2
-.endm
 
+.macro callWord, name
+    call name
+.endm
