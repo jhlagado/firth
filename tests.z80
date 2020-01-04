@@ -1,280 +1,261 @@
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; tests
-;;
-;; these tests will evaluate when TESTMODE = 1
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-    TEST_SET_TEXT "hello\r\n"
-    CALLWORD KEY
-    EXPECT $68, "key 'h'"
-    CALLWORD KEY
-    EXPECT $65, "key 'e'"
-
-    TEST_SET_TEXT "x"
-    CALLWORD TOKEN
-    EXPECT 1, "token 'x'"
-    ppop H,L   ; drop
-
-    TEST_SET_TEXT "xyz"
-    CALLWORD TOKEN
-    EXPECT 3, "token 'xyz'"
-    ppop H,L   ; drop
-
-    TEST_SET_TEXT "a xyz "
-    CALLWORD TOKEN
-    EXPECT 1, "token 'a xyz'"
-    CALLWORD TOKEN
-    EXPECT 3, "token 'a xyz'"
-    ppop H,L   ; drop
-
-    CALLWORD HERE
-    CALLWORD FETCH
-    EXPECT START_USER, "here"
-
-    ppushText "xyz",3
-    CALLWORD CREATE
-    CALLWORD LATEST
-    CALLWORD FETCH
-    EXPECT START_USER, "create xyz latest"
-    CALLWORD HERE
-    CALLWORD FETCH
-    EXPECT START_USER + 6, "create xyz here"
-
-    ppushValue 1
-    TEST_SET_TEXT "dup"
-    CALLWORD INTERPRET
-    EXPECT 1, "1 interpret dup"
-    EXPECT 1, "1 interpret dup 2"
-
-    TEST_SET_TEXT "123"
-    CALLWORD INTERPRET
-    EXPECT 123, "interpret 123"
-
-    ppushValue 999
-    TEST_SET_TEXT "$$123"
-    CALLWORD INTERPRET
-    EXPECT 999, "interpret $$123"
-
-    ppushValue 1
-    ppushValue 2
-    CALLWORD DUP
-    EXPECT 2, "dup 2"
-    EXPECT 2, "dup 2"
-
-    TEST_SET_TEXT "123 constant x123"
-    call INTERPRET
-    TEST_SET_TEXT "x123"
-    call INTERPRET
-    EXPECT 123, "constant x123 = 123"
-
-    TEST_SET_TEXT "variable v1"
-    CALLWORD INTERPRET
-    ppushValue 123
-    TEST_SET_TEXT "123 v1 !"
-    CALLWORD INTERPRET
-
-    TEST_SET_TEXT "v1 @"
-    CALLWORD INTERPRET
-    EXPECT 123, "variable v1 = 123"
-
-
-
-    TEST_SET_TEXT ": dbl dup + ;"
-    CALLWORD INTERPRET
-    ppushValue 2
-    TEST_SET_TEXT "dbl"
-    CALLWORD INTERPRET
-    EXPECT 4, "colon dbl 2 = 4"
-
-    CALLWORD CR
-
-    TEST_SET_TEXT "a xyz"
-    CALLWORD TOKEN
-    EXPECT 1, "token 'a xyz'"
-    CALLWORD TOKEN
-    EXPECT 3, "token 'a xyz'"
-
-    TEST_SET_TEXT "100 100 +"
-    CALLWORD INTERPRET
-    EXPECT 200, "token '100 100 + = 200'"
-
-    ld HL, 12
-    ld C, 10
-    call divideWordByByte
-    ld B, 0
-    ld C, A
-    EXPECT 2, "div 11 / 10 = 1 1"
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    ;; tests
+    ;;
+    ;; these tests will evaluate when TESTMODE = 1
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+        TEST_SET_TEXT "hello\r\n"
+        call KEY
+        EXPECT $68, "key 'h'"
+        call KEY
+        EXPECT $65, "key 'e'"
+
+        TEST_SET_TEXT "x"
+        call TOKEN
+        EXPECT 1, "token 'x'"
+        ppop H,L   ; drop
+
+        TEST_SET_TEXT "xyz"
+        call TOKEN
+        EXPECT 3, "token 'xyz'"
+        ppop H,L   ; drop
+
+        TEST_SET_TEXT "a xyz "
+        call TOKEN
+        EXPECT 1, "token 'a xyz'"
+        call TOKEN
+        EXPECT 3, "token 'a xyz'"
+        ppop H,L   ; drop
+
+        call HERE
+        call FETCH
+        EXPECT START_USER, "here"
+
+        ppushText "xyz",3
+        call CREATE
+        call LATEST
+        call FETCH
+        EXPECT START_USER, "create xyz latest"
+        call HERE
+        call FETCH
+        EXPECT START_USER + 6, "create xyz here"
+
+        ppushValue 1
+        TEST_SET_TEXT "dup"
+        call INTERPRET
+        EXPECT 1, "1 interpret dup"
+        EXPECT 1, "1 interpret dup 2"
+
+        TEST_SET_TEXT "123"
+        call INTERPRET
+        EXPECT 123, "interpret 123"
+
+        ppushValue 999
+        TEST_SET_TEXT "$$123"
+        call INTERPRET
+        EXPECT 999, "interpret $$123"
+
+        ppushValue 1
+        ppushValue 2
+        call DUP
+        EXPECT 2, "dup 2"
+        EXPECT 2, "dup 2"
+
+        TEST_SET_TEXT "123 constant x123"
+        call INTERPRET
+        TEST_SET_TEXT "x123"
+        call INTERPRET
+        EXPECT 123, "constant x123 = 123"
+
+        TEST_SET_TEXT "variable v1"
+        call INTERPRET
+        ppushValue 123
+        TEST_SET_TEXT "123 v1 !"
+        call INTERPRET
+
+        TEST_SET_TEXT "v1 @"
+        call INTERPRET
+        EXPECT 123, "variable v1 = 123"
+
+
+
+        TEST_SET_TEXT ": dbl dup + ;"
+        call INTERPRET
+        ppushValue 2
+        TEST_SET_TEXT "dbl"
+        call INTERPRET
+        EXPECT 4, "colon dbl 2 = 4"
+
+        call CR
+
+        TEST_SET_TEXT "a xyz"
+        call TOKEN
+        EXPECT 1, "token 'a xyz'"
+        call TOKEN
+        EXPECT 3, "token 'a xyz'"
+
+        TEST_SET_TEXT "100 100 +"
+        call INTERPRET
+        EXPECT 200, "token '100 100 + = 200'"
+
+        ld HL, 12
+        ld C, 10
+        call divideWordByByte
+        ld B, 0
+        ld C, A
+        EXPECT 2, "div 11 / 10 = 1 1"
 
-    TEST_SET_TEXT "100 10 + ."
-    CALLWORD INTERPRET
+        TEST_SET_TEXT "100 10 + ."
+        call INTERPRET
 
-    TEST_SET_TEXT "16 base ! 20"
-    CALLWORD INTERPRET
-    EXPECT 32, "expect $20 to be 32"
+        TEST_SET_TEXT "16 base ! 20"
+        call INTERPRET
+        EXPECT 32, "expect $20 to be 32"
 
-    TEST_SET_TEXT "0A base ! 20"
-    CALLWORD INTERPRET
-    EXPECT 20, "expect decimal 20 to be 32"
+        TEST_SET_TEXT "0A base ! 20"
+        call INTERPRET
+        EXPECT 20, "expect decimal 20 to be 32"
 
-    TEST_SET_TEXT "-10 abs"
-    CALLWORD INTERPRET
-    EXPECT 10, "expect abs -10 to be 10"
+        TEST_SET_TEXT "-10 abs"
+        call INTERPRET
+        EXPECT 10, "expect abs -10 to be 10"
 
-    TEST_SET_TEXT "10 abs"
-    CALLWORD INTERPRET
-    EXPECT 10, "expect abs 10 to be 10"
+        TEST_SET_TEXT "10 abs"
+        call INTERPRET
+        EXPECT 10, "expect abs 10 to be 10"
 
-    ppushValue -10
-    ppushValue 10
-    CALLWORD STAR
-    EXPECT -100, "expect -10 * 10 to be -100"
+        ppushValue -10
+        ppushValue 10
+        call STAR
+        EXPECT -100, "expect -10 * 10 to be -100"
 
-    ppushValue -10
-    ppushValue -20
-    CALLWORD STAR
-    EXPECT 200, "expect -10 * -20 to be 200"
+        ppushValue -10
+        ppushValue -20
+        call STAR
+        EXPECT 200, "expect -10 * -20 to be 200"
 
-    ppushValue 10
-    ppushValue -20
-    CALLWORD STAR
-    EXPECT -200, "expect -10 * -20 to be 200"
+        ppushValue 10
+        ppushValue -20
+        call STAR
+        EXPECT -200, "expect -10 * -20 to be 200"
 
-    ppushValue -101
-    ppushValue 20
-    CALLWORD SLASHMOD
-    EXPECT -5, "expect -101 / 20 to be -5"
-    EXPECT -1, "expect -101 % 20 to be -1"
+        ppushValue -101
+        ppushValue 20
+        call SLASHMOD
+        EXPECT -5, "expect -101 / 20 to be -5"
+        EXPECT -1, "expect -101 % 20 to be -1"
 
-    ppushValue -101
-    ppushValue -20
-    CALLWORD SLASHMOD
-    EXPECT 5,  "expect -101 / -20 to be 5"
-    EXPECT -1, "expect -101 % -20 to be -1"
+        ppushValue -101
+        ppushValue -20
+        call SLASHMOD
+        EXPECT 5,  "expect -101 / -20 to be 5"
+        EXPECT -1, "expect -101 % -20 to be -1"
 
-    ppushValue 101
-    ppushValue -20
-    CALLWORD SLASHMOD
-    EXPECT -5,  "expect 101 / -20 to be -5"
-    EXPECT 1, "expect 101 % -20 to be 1"
+        ppushValue 101
+        ppushValue -20
+        call SLASHMOD
+        EXPECT -5,  "expect 101 / -20 to be -5"
+        EXPECT 1, "expect 101 % -20 to be 1"
 
-    TEST_SET_TEXT ": testif2 if 100 then ;"
+        TEST_SET_TEXT ": testif2 if 100 then ;"
 
-    CALLWORD INTERPRET
+        call INTERPRET
 
-    ppushValue 200
-    ppushValue 1
+        ppushValue 200
+        ppushValue 1
 
-    TEST_SET_TEXT "testif2"
-    CALLWORD INTERPRET
-    EXPECT 100, "1 if 100 then --> 100"
+        TEST_SET_TEXT "testif2"
+        call INTERPRET
+        EXPECT 100, "1 if 100 then --> 100"
 
-    ppushValue 0
+        ppushValue 0
 
-    TEST_SET_TEXT "testif2"
-    CALLWORD INTERPRET
-    EXPECT 200, "0 if 100 then --> 200"
+        TEST_SET_TEXT "testif2"
+        call INTERPRET
+        EXPECT 200, "0 if 100 then --> 200"
 
-    TEST_SET_TEXT ": testif3 if 100 else 200 then ;"
+        TEST_SET_TEXT ": testif3 if 100 else 200 then ;"
 
-    CALLWORD INTERPRET
+        call INTERPRET
 
-    ppushValue 0
+        ppushValue 0
 
-    TEST_SET_TEXT "testif3"
-    CALLWORD INTERPRET
-    EXPECT 200, "0 --> 200"
+        TEST_SET_TEXT "testif3"
+        call INTERPRET
+        EXPECT 200, "0 --> 200"
 
-    ppushValue 1
+        ppushValue 1
 
-    TEST_SET_TEXT "testif3"
-    CALLWORD INTERPRET
-    EXPECT 100, "1 --> 100"
+        TEST_SET_TEXT "testif3"
+        call INTERPRET
+        EXPECT 100, "1 --> 100"
 
-    TEST_SET_TEXT ": testloop begin dup 5 < while dup . 1+ repeat ;"
+        TEST_SET_TEXT ": testloop begin dup 5 < while dup . 1+ repeat ;"
 
-    CALLWORD INTERPRET
+        call INTERPRET
 
-    ppushValue 0
+        ppushValue 0
 
-    TEST_SET_TEXT "testloop"
-    CALLWORD INTERPRET
-    EXPECT 5, "Loop until limit < 5"
+        TEST_SET_TEXT "testloop"
+        call INTERPRET
+        EXPECT 5, "Loop until limit < 5"
 
-    ppushPText "xyz"
-    CALLWORD COUNT
-    EXPECT 3, "xyz length 3"
-    CALLWORD CFETCH
-    EXPECT "x" + 0, "xyz --> x"
+        ppushPText "xyz"
+        call COUNT
+        EXPECT 3, "xyz length 3"
+        call CFETCH
+        EXPECT "x" + 0, "xyz --> x"
 
-    ppushValue HEADER_LATEST
-    CALLWORD TCFA
-    EXPECT HEADER_LATEST + 3 + 6, "cfa 3 bytes plus length of name"
+        ppushValue HEADER_LATEST
+        call TCFA
+        EXPECT HEADER_LATEST + 3 + 6, "cfa 3 bytes plus length of name"
 
-    ppushValue 1
-    ppushValue 2
-    ppushValue HEADER_PLUS
-    CALLWORD TCFA
-    CALLWORD EXECUTE
-    EXPECT 3, "1 2 plus = 3"
+        ppushValue 1
+        ppushValue 2
+        ppushValue HEADER_PLUS
+        call TCFA
+        call EXECUTE
+        EXPECT 3, "1 2 plus = 3"
 
-    ppushText "100",3
-    CALLWORD NUMBER
-    EXPECT 0, "0 = no parse err"
-    EXPECT 100, "parse 100"
+        ppushText "100",3
+        call NUMBER
+        EXPECT 0, "0 = no parse err"
+        EXPECT 100, "parse 100"
 
-    ppushText "latest",6
-    CALLWORD FIND
-    EXPECT HEADER_LATEST, "find header of LATEST"
+        ppushText "latest",6
+        call FIND
+        EXPECT HEADER_LATEST, "find header of LATEST"
 
-    TEST_SET_TEXT "100"
-    CALLWORD INTERPRET
-    EXPECT 100, "interpret parse 100"
+        TEST_SET_TEXT "100"
+        call INTERPRET
+        EXPECT 100, "interpret parse 100"
 
-    TEST_SET_TEXT "base"
-    CALLWORD INTERPRET
-    CALLWORD FETCH
-    EXPECT 10, "expect base to be 10"
+        TEST_SET_TEXT "base"
+        call INTERPRET
+        call FETCH
+        EXPECT 10, "expect base to be 10"
 
-    TEST_SET_TEXT "3 2 +"
-    CALLWORD INTERPRET
-    EXPECT 5, "3 + 2 = 5"
+        TEST_SET_TEXT "3 2 +"
+        call INTERPRET
+        EXPECT 5, "3 + 2 = 5"
 
-    TEST_SET_TEXT ": add + ;"
-    CALLWORD INTERPRET
+        TEST_SET_TEXT ": add + ;"
+        call INTERPRET
 
-    ppushValue 2
-    ppushValue 2
-    TEST_SET_TEXT "add"
-    CALLWORD INTERPRET
-    EXPECT 4, "2 2 add = 4"
+        ppushValue 2
+        ppushValue 2
+        TEST_SET_TEXT "add"
+        call INTERPRET
+        EXPECT 4, "2 2 add = 4"
 
 
-    TEST_SET_TEXT ": dump 16 base ! over + swap begin over over swap < while dup 7 and 0= if cr dup . then dup c@ . 1+ repeat cr 10 base ! ;"
+        TEST_SET_TEXT ": dump 16 base ! over + swap begin over over swap < while dup 7 and 0= if cr dup . then dup c@ . 1+ repeat cr 10 base ! ;"
 
-    CALLWORD INTERPRET
+        call INTERPRET
 
-    ppushText "add",3
-    CALLWORD FIND
-    ppushValue 64
+        ppushText "add",3
+        call FIND
+        ppushValue 64
 
-    TEST_SET_TEXT "dump"
-    CALLWORD INTERPRET
-
-; jp skipXXNOTDef
-
-;     defword "xxnot",3,0,NOT
-;         cIF
-;             DW LIT, 0
-;         cELSE
-;             DW LIT, 1
-;         cENDIF
-;         DW EXIT
-
-; skipXXNOTDef:
-
-    ; ppushValue 0
-    ; CALLWORD NOT
-    ; EXPECT 1, "xxnot 0 = 1"
-    ; ppushValue 1
-    ; CALLWORD NOT
-    ; EXPECT 0, "xxnot 1 = 0"
+        TEST_SET_TEXT "dump"
+        call INTERPRET

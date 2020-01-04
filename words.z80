@@ -10,12 +10,12 @@ defconst "msk_immed",9,0,__MSK_IMMED,MSK_IMMED
 defconst "msk_hidden",10,0,__MSK_HIDDEN,MSK_HIDDEN
 defconst "msk_length",10,0,__MSK_LENGTH,MSK_LENGTH
 
-defcode "quit",4,0,QUIT
+defword "quit",4,0,QUIT
     ld SP, RET_STACK
     call INTERPRET        ; interpret the next word
     ret
 
-defcode "interpret",6,0,INTERPRET
+defword "interpret",6,0,INTERPRET
     ld A, 0
     ld (VAR_INTP_STOP), A
     _do
@@ -26,7 +26,7 @@ defcode "interpret",6,0,INTERPRET
     _enddo
     ret
 
-defcode ">cfa",4,0,TCFA
+defword ">cfa",4,0,TCFA
     call LIT
     dw 2
     call PLUS
@@ -38,7 +38,7 @@ defcode ">cfa",4,0,TCFA
     ret
 
 ; COUNT extract string length from pascal string  ( ptr -- ptr+1 len )
-defcode "count",5,0,COUNT
+defword "count",5,0,COUNT
     call DUP
     call LIT
     dw 1
@@ -48,7 +48,7 @@ defcode "count",5,0,COUNT
     ret
 
 ; ALLOT                             ( n -- addr ) allocate n bytes of memory
-defcode "allot",5,0,ALLOT
+defword "allot",5,0,ALLOT
     ppop D,E
     ld HL, (VAR_HERE)
     ppush H,L
@@ -58,13 +58,13 @@ defcode "allot",5,0,ALLOT
     ret
 
 ; NEGATE  n1 -- n2                        negate n1
-defcode "negate",6,0,NEGATE
+defword "negate",6,0,NEGATE
     call INVERT
     inc BC
     ret
 
 ; ABS   n -- u                      absolute value
-defcode "abs",3,0,ABS
+defword "abs",3,0,ABS
     call DUP                      ; copy arg
     call ZEROLESS
     checkZeroWord B,C
@@ -74,7 +74,7 @@ defcode "abs",3,0,ABS
     _endif
     ret
 
-defcode "*",1,0,STAR            ; u1 u2 -- ud
+defword "*",1,0,STAR            ; u1 u2 -- ud
     call OVER
     call OVER                   ; dupe both args
     call ABS
@@ -92,7 +92,7 @@ defcode "*",1,0,STAR            ; u1 u2 -- ud
     _endif
     ret
 
-defcode "/mod",4,0,SLASHMOD       ; dvend dvisr -- rem quot
+defword "/mod",4,0,SLASHMOD       ; dvend dvisr -- rem quot
     call OVER
     call OVER                    ;       u1 u2 -- u1 u2 u1 u2  dupe both args
     call XOR                  ; u1 u2 u1 u2 -- u1 u2 b1     xor hi bits
@@ -124,13 +124,13 @@ defcode "/mod",4,0,SLASHMOD       ; dvend dvisr -- rem quot
     _endif
     ret
 
-defcode "/",1,0,SLASH       ; dvend dvisr -- quot
+defword "/",1,0,SLASH       ; dvend dvisr -- quot
     call SLASHMOD
     call SWAP
     call DROP               ; drop remainder
     ret
 
-defcode "mod",3,0,MOD     ; dvend dvisr -- remainder
+defword "mod",3,0,MOD     ; dvend dvisr -- remainder
     call SLASHMOD
     call DROP                 ; drop quotient
     ret
@@ -141,7 +141,7 @@ defcode "mod",3,0,MOD     ; dvend dvisr -- remainder
 ; ;;
 ; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-defcode "if",2,MSK_IMMED,IF
+defword "if",2,MSK_IMMED,IF
     call LIT
     dw CALL_OPCODE
     call CCOMMA              ; compile 0BRANCH
@@ -154,7 +154,7 @@ defcode "if",2,MSK_IMMED,IF
     call COMMA          ; compile HERE and also push on stack
     ret
 
-defcode "then",4,MSK_IMMED,THEN
+defword "then",4,MSK_IMMED,THEN
     call DUP
     call HERE
     call FETCH
@@ -164,7 +164,7 @@ defcode "then",4,MSK_IMMED,THEN
     call STORE                        ; store the offset in the back-filled location
     ret
 
-defcode "else",4,MSK_IMMED,ELSE
+defword "else",4,MSK_IMMED,ELSE
     call LIT
     dw CALL_OPCODE
     call CCOMMA              ; compile 0BRANCH
@@ -185,12 +185,12 @@ defcode "else",4,MSK_IMMED,ELSE
 
 ; BEGIN condition WHILE ... REPEAT
 
-defcode "begin",5,MSK_IMMED,BEGIN
+defword "begin",5,MSK_IMMED,BEGIN
     call HERE
     call FETCH                        ; save HERE on stack (HERE1)
     ret
 
-defcode "while",5,MSK_IMMED,WHILE
+defword "while",5,MSK_IMMED,WHILE
     call LIT
     dw CALL_OPCODE
     call CCOMMA                             ; compile 0BRANCH
@@ -204,7 +204,7 @@ defcode "while",5,MSK_IMMED,WHILE
     call COMMA                              ; compile dummy offset
     ret
 
-defcode "repeat",6,MSK_IMMED,REPEAT
+defword "repeat",6,MSK_IMMED,REPEAT
     call LIT
     dw CALL_OPCODE
     call CCOMMA                             ; compile 0BRANCH
@@ -232,7 +232,7 @@ defcode "repeat",6,MSK_IMMED,REPEAT
 ; ; J
 ; ; UNTIL
 
-defcode ":",1,0,COLON
+defword ":",1,0,COLON
     call TOKEN                          ; read name
     call CREATE                         ; create header
     ld BC,(VAR_LATEST)
@@ -240,7 +240,7 @@ defcode ":",1,0,COLON
     call RBRAC                    ; Go into compile mode.
     ret                        ; Return from the function.
 
-defcode ";",1,MSK_IMMED,SEMICOLON
+defword ";",1,MSK_IMMED,SEMICOLON
     ld HL,(VAR_HERE)
     ld A,RET_OPCODE                     ; write ret
     writeByte HL, A
@@ -253,7 +253,7 @@ defcode ";",1,MSK_IMMED,SEMICOLON
     ret                                 ; Return from the function.
 
 ; CONSTANT   n --      define a Forth constant
-defcode "constant",8,0,CONSTANT         ; ( n -- ) get name from input
+defword "constant",8,0,CONSTANT         ; ( n -- ) get name from input
     call TOKEN                          ; read name
     call CREATE                         ; create header
     ld HL,(VAR_HERE)
@@ -268,7 +268,7 @@ defcode "constant",8,0,CONSTANT         ; ( n -- ) get name from input
     ppop0 B,C                           ; clear TOS
     ret
 
-defcode "variable",8,0,VARIABLE              ; ( n -- ) get name from input
+defword "variable",8,0,VARIABLE              ; ( n -- ) get name from input
     ld BC, 2
     call ALLOT
     call TOKEN                          ; read name
@@ -293,7 +293,7 @@ defcode "variable",8,0,VARIABLE              ; ( n -- ) get name from input
 ; ;;
 ; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-defcode "cr",2,0,CR                  ; ( -- )
+defword "cr",2,0,CR                  ; ( -- )
     call printCR
     ret
 
