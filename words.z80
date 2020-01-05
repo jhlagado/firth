@@ -149,9 +149,8 @@ defword "if",2,MSK_IMMED,IF
     ld DE, ZBRANCH
     writeWord HL, D,E
 
-    loadWord D,E, H,L
-    ppush D,E
-    writeWord HL, D,E                   ; write HERE
+    ppush H,L                           ; TOS = HERE
+    writeWord HL, B,C                   ; write HERE
 
     ld (VAR_HERE),HL
     ret
@@ -183,43 +182,47 @@ defword "then",4,MSK_IMMED,THEN
 ; BEGIN condition WHILE ... REPEAT
 
 defword "begin",5,MSK_IMMED,BEGIN
-    call HERE
-    call FETCH                        ; save HERE on stack (HERE1)
+    ld HL,(VAR_HERE)                    ; save HERE on stack (HERE1)
+    ppush H,L
     ret
 
 defword "while",5,MSK_IMMED,WHILE
-    call LIT
-    dw CALL_OPCODE
-    call CCOMMA                             ; compile 0BRANCH
-    call LIT
-    dw ZBRANCH
-    call COMMA                              ; compile branch on zero
-    call HERE
-    call FETCH                              ; save HERE in stack (HERE2)
-    call LIT
-    dw 0
-    call COMMA                              ; compile dummy offset
+    ld HL,(VAR_HERE)
+    ld A,CALL_OPCODE                    ; write call BRANCH
+    writeByte HL, A
+    ld DE, ZBRANCH
+    writeWord HL, D,E
+
+    ppush H,L                           ; save HERE on stack under TOS
+
+    ld DE,0                             ; write bogus offset for branch
+    writeWord HL, D,E
+
+    ld (VAR_HERE),HL
     ret
 
 defword "repeat",6,MSK_IMMED,REPEAT
-    call LIT
-    dw CALL_OPCODE
-    call CCOMMA                             ; compile 0BRANCH
-    call LIT
-    dw BRANCH
-    call COMMA               ; compile branch
-    call SWAP                             ; TOS = HERE1
-    call HERE
-    call FETCH
-    call MINUS
-    call COMMA        ; compile offset (HERE1 - HERE3)
-    call DUP
-    call HERE
-    call FETCH
-    call SWAP
-    call MINUS            ; compile offset (HERE2 - HERE3)
-    call SWAP
-    call STORE                      ; save offset in HERE2
+    ld HL,(VAR_HERE)
+    ld A,CALL_OPCODE                    ; write call BRANCH
+    writeByte HL, A
+    ld DE, BRANCH
+    writeWord HL, D,E
+
+    ppop0 D,E
+    ex DE,HL
+    or A
+    sbc HL,DE
+    ex DE,HL
+    writeWord HL, D,E
+    ld (VAR_HERE),HL
+
+    loadWord D,E,B,C                    ; bc = herex, de = herex
+    or A
+    sbc HL,DE                           ; hl = diff
+    ex DE,HL                            ; de = diff, hl = herex
+    writeWord HL, D,E                   ; write diff to herex
+
+    ppop0 B,C                           ; clear TOS
     ret
 
 ; ; DO

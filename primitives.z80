@@ -1,15 +1,22 @@
 defword "words", 5, 0, WORDS
-    SAVE_REGS B,C
+    push BC
+    push DE
+    push HL
     call listWords
-    RESTORE_REGS B,C
+    pop HL
+    pop DE
+    pop BC
     ret
 
 defword "find",4,0,FIND
-    SAVE_REGS B,C
+    push DE
+    push HL
     ppop0 H,L
     call lookup                     ; params: HL = string address, BC = string length
                                     ; returns: DE = found header ptr or 0
-    RESTORE_REGS D,E
+    loadWord B,C, D,E
+    pop HL
+    pop DE
     ret
 
 defword "execute",7,0,EXECUTE
@@ -17,20 +24,24 @@ defword "execute",7,0,EXECUTE
     jp (hl)                         ; go do Forth word
 
 defword "number",6,0,NUMBER             ; ( ptr len -- num err )
-    SAVE_REGS B,C
+    push DE
+    push HL
     ppop0 H,L
 	call toNumber                   ; params: HL = string address, BC = string length
 			                        ; Returns the parsed number in DE,
 	                                ; BC = 0, success
     ppush0 D,E
-    RESTORE_REGS B,C
+    pop HL
+    pop DE
     ret
 
 defword "print",5,0,PRINT
-    SAVE_REGS D,E
+    push DE
+    push HL
+    ppop D,E
     call printPStr
-    exx
-    ppop0 B,C
+    pop HL
+    pop DE
     ret
 
 defword "token",5,0,TOKEN               ; -- c-addr length  ; NOT STANDARD
@@ -416,8 +427,10 @@ defword "dup",3,0,DUP        ; x -- x x
 
 ; SWAP     x1 x2 -- x2 x1    swap top two items
 defword "swap",4,0,SWAP      ; x1 x2 -- x2 x1
+    push HL
     ppop0 H,L
     ppush H,L
+    pop HL
     ret
 
 defword "rot",3,0,ROT        ; x1 x2 x3 -- x2 x3 x1
@@ -594,5 +607,3 @@ defword "interp",6,0,interp              ; ( -- c )
         _endcase
     _endswitch
     ret
-
-
