@@ -144,7 +144,7 @@ defword "mod",3,0,MOD     ; dvend dvisr -- remainder
 defword "if",2,MSK_IMMED,IF
     ld HL,(VAR_HERE)
 
-    ld A,CALL_OPCODE                    ; write call LIT with value TOS
+    ld A,CALL_OPCODE                    ; write call ZBRANCH with value TOS
     writeByte HL, A
     ld DE, ZBRANCH
     writeWord HL, D,E
@@ -156,33 +156,28 @@ defword "if",2,MSK_IMMED,IF
     ld (VAR_HERE),HL
     ret
 
-defword "then",4,MSK_IMMED,THEN
-    call DUP
-    call HERE
-    call FETCH
-    call SWAP
-    call MINUS            ; calculate the offset from the address saved on the stack
-    call SWAP
-    call STORE                        ; store the offset in the back-filled location
-    ret
-
 defword "else",4,MSK_IMMED,ELSE
-    call LIT
-    dw CALL_OPCODE
-    call CCOMMA              ; compile 0BRANCH
-    call LIT
-    dw BRANCH
-    call COMMA                ; definite branch to just over the false-part
-    call HERE
-    call FETCH                        ; save HERE on stack
-    call LIT
-    dw CALL_OPCODE
-    call CCOMMA              ; compile 0BRANCH
-    call LIT
-    dw 0
-    call COMMA                    ; compile a dummy offset
-    call SWAP                                ; now back-fill the original (IF) offset
-    call THEN
+    ld HL,(VAR_HERE)
+    ld A,CALL_OPCODE                    ; write call BRANCH
+    writeByte HL, A
+    ld DE, BRANCH
+    writeWord HL, D,E
+
+    ppush0 H,L                          ; save HERE on stack under TOS
+
+    ld DE,0                             ; write bogus offset for branch
+    writeWord HL, D,E
+
+    ld (VAR_HERE),HL
+    jp THEN
+
+defword "then",4,MSK_IMMED,THEN
+    ld HL,(VAR_HERE)
+    ppop D,E
+    or A
+    sbc HL,DE
+    ex DE,HL
+    writeWord HL, D,E
     ret
 
 ; BEGIN condition WHILE ... REPEAT
