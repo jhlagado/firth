@@ -49,12 +49,12 @@ defword "count",5,0,COUNT
 
 ; ALLOT                             ( n -- addr ) allocate n bytes of memory
 defword "allot",5,0,ALLOT
-    ppop D,E
     ld HL, (VAR_HERE)
-    ppush H,L
+    ppush0 H,L
     or A
-    adc HL,DE                       ; adds n to HERE, old value of HERE left on stack
+    adc HL,BC                       ; adds n to HERE, old value of HERE left on stack
     ld (VAR_HERE),HL
+    ppop0 B,C
     ret
 
 ; NEGATE  n1 -- n2                        negate n1
@@ -142,6 +142,7 @@ defword "mod",3,0,MOD     ; dvend dvisr -- remainder
 ; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 defword "if",2,MSK_IMMED,IF
+    push DE
     ld HL,(VAR_HERE)
 
     ld A,CALL_OPCODE                    ; write call ZBRANCH with value TOS
@@ -153,9 +154,11 @@ defword "if",2,MSK_IMMED,IF
     writeWord HL, B,C                   ; write HERE
 
     ld (VAR_HERE),HL
+    pop DE
     ret
 
 defword "else",4,MSK_IMMED,ELSE
+    push DE
     ld HL,(VAR_HERE)
     ld A,CALL_OPCODE                    ; write call BRANCH
     writeByte HL, A
@@ -168,15 +171,18 @@ defword "else",4,MSK_IMMED,ELSE
     writeWord HL, D,E
 
     ld (VAR_HERE),HL
+    pop DE
     jp THEN
 
 defword "then",4,MSK_IMMED,THEN
+    push DE
     ld HL,(VAR_HERE)
     ppop D,E
     or A
     sbc HL,DE
     ex DE,HL
     writeWord HL, D,E
+    pop DE
     ret
 
 ; BEGIN condition WHILE ... REPEAT
@@ -187,6 +193,7 @@ defword "begin",5,MSK_IMMED,BEGIN
     ret
 
 defword "while",5,MSK_IMMED,WHILE
+    push DE
     ld HL,(VAR_HERE)
     ld A,CALL_OPCODE                    ; write call BRANCH
     writeByte HL, A
@@ -199,9 +206,11 @@ defword "while",5,MSK_IMMED,WHILE
     writeWord HL, D,E
 
     ld (VAR_HERE),HL
+    pop DE
     ret
 
 defword "repeat",6,MSK_IMMED,REPEAT
+    push DE
     ld HL,(VAR_HERE)
     ld A,CALL_OPCODE                    ; write call BRANCH
     writeByte HL, A
@@ -223,6 +232,7 @@ defword "repeat",6,MSK_IMMED,REPEAT
     writeWord HL, D,E                   ; write diff to herex
 
     ppop0 B,C                           ; clear TOS
+    pop DE
     ret
 
 ; ; DO
@@ -254,6 +264,7 @@ defword ";",1,MSK_IMMED,SEMICOLON
 
 ; CONSTANT   n --      define a Forth constant
 defword "constant",8,0,CONSTANT         ; ( n -- ) get name from input
+    push DE
     call TOKEN                          ; read name
     call CREATE                         ; create header
     ld HL,(VAR_HERE)
@@ -266,9 +277,11 @@ defword "constant",8,0,CONSTANT         ; ( n -- ) get name from input
     writeByte HL, A
     ld (VAR_HERE),HL
     ppop0 B,C                           ; clear TOS
+    pop DE
     ret
 
 defword "variable",8,0,VARIABLE              ; ( n -- ) get name from input
+    push DE
     ld BC, 2
     call ALLOT
     call TOKEN                          ; read name
@@ -283,6 +296,7 @@ defword "variable",8,0,VARIABLE              ; ( n -- ) get name from input
     writeByte HL, A
     ld (VAR_HERE),HL
     ppop0 B,C                           ; clear TOS
+    pop DE
     ret
 
 ; ; DOES> does
