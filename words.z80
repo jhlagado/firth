@@ -142,47 +142,49 @@ defword "mod",3,0,MOD     ; dvend dvisr -- remainder
 ; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 defword "if",2,MSK_IMMED,IF
-    push DE
     ld HL,(VAR_HERE)
 
     ld A,CALL_OPCODE                    ; write call ZBRANCH with value TOS
     writeByte HL, A
+
+    push DE
     ld DE, ZBRANCH
     writeWord HL, D,E
+    pop DE
 
     ppush H,L                           ; TOS = HERE
     writeWord HL, B,C                   ; write HERE
 
     ld (VAR_HERE),HL
-    pop DE
     ret
 
 defword "else",4,MSK_IMMED,ELSE
-    push DE
     ld HL,(VAR_HERE)
     ld A,CALL_OPCODE                    ; write call BRANCH
     writeByte HL, A
+
+    push DE
     ld DE, BRANCH
     writeWord HL, D,E
-
     ppush0 H,L                          ; save HERE on stack under TOS
-
     ld DE,0                             ; write bogus offset for branch
     writeWord HL, D,E
+    pop DE
 
     ld (VAR_HERE),HL
-    pop DE
     jp THEN
 
 defword "then",4,MSK_IMMED,THEN
-    push DE
     ld HL,(VAR_HERE)
+
+    push DE
     ppop D,E
     or A
     sbc HL,DE
     ex DE,HL
     writeWord HL, D,E
     pop DE
+
     ret
 
 ; BEGIN condition WHILE ... REPEAT
@@ -193,10 +195,11 @@ defword "begin",5,MSK_IMMED,BEGIN
     ret
 
 defword "while",5,MSK_IMMED,WHILE
-    push DE
     ld HL,(VAR_HERE)
     ld A,CALL_OPCODE                    ; write call BRANCH
     writeByte HL, A
+
+    push DE
     ld DE, ZBRANCH
     writeWord HL, D,E
 
@@ -204,16 +207,17 @@ defword "while",5,MSK_IMMED,WHILE
 
     ld DE,0                             ; write bogus offset for branch
     writeWord HL, D,E
+    pop DE
 
     ld (VAR_HERE),HL
-    pop DE
     ret
 
 defword "repeat",6,MSK_IMMED,REPEAT
-    push DE
     ld HL,(VAR_HERE)
     ld A,CALL_OPCODE                    ; write call BRANCH
     writeByte HL, A
+
+    push DE
     ld DE, BRANCH
     writeWord HL, D,E
 
@@ -230,9 +234,9 @@ defword "repeat",6,MSK_IMMED,REPEAT
     sbc HL,DE                           ; hl = diff
     ex DE,HL                            ; de = diff, hl = herex
     writeWord HL, D,E                   ; write diff to herex
+    pop DE
 
     ppop0 B,C                           ; clear TOS
-    pop DE
     ret
 
 ; ; DO
@@ -264,24 +268,25 @@ defword ";",1,MSK_IMMED,SEMICOLON
 
 ; CONSTANT   n --      define a Forth constant
 defword "constant",8,0,CONSTANT         ; ( n -- ) get name from input
-    push DE
     call TOKEN                          ; read name
     call CREATE                         ; create header
     ld HL,(VAR_HERE)
     ld A,CALL_OPCODE                    ; write call LIT with value TOS
     writeByte HL, A
+
+    push DE
     ld DE, LIT
     writeWord HL, D,E
+    pop DE
+
     writeWord HL, B,C                   ; write TOS
     ld A,RET_OPCODE                     ; write ret
     writeByte HL, A
     ld (VAR_HERE),HL
     ppop0 B,C                           ; clear TOS
-    pop DE
     ret
 
 defword "variable",8,0,VARIABLE              ; ( n -- ) get name from input
-    push DE
     ld BC, 2
     call ALLOT
     call TOKEN                          ; read name
@@ -289,14 +294,17 @@ defword "variable",8,0,VARIABLE              ; ( n -- ) get name from input
     ld HL,(VAR_HERE)
     ld A,CALL_OPCODE                    ; write call LIT with value var address
     writeByte HL, A
+
+    push DE
     ld DE, LIT
     writeWord HL, D,E
+    pop DE
+
     writeWord HL, B,C                   ; write addr of variable to word
     ld A,RET_OPCODE                     ; write ret
     writeByte HL, A
     ld (VAR_HERE),HL
     ppop0 B,C                           ; clear TOS
-    pop DE
     ret
 
 ; ; DOES> does
