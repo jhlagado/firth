@@ -10,12 +10,14 @@ defword "words", 5, 0, WORDS
     ret
 
 defword "find",4,0,FIND
-    push DE
     ppop0 H,L
+
+    push DE
     call lookup                     ; params: HL = string address, BC = string length
                                     ; returns: DE = found header ptr or 0
     loadWord B,C, D,E
     pop DE
+
     ret
 
 defword "execute",7,0,EXECUTE
@@ -23,13 +25,15 @@ defword "execute",7,0,EXECUTE
     jp (hl)                         ; go do Forth word
 
 defword "number",6,0,NUMBER             ; ( ptr len -- num err )
-    push DE
     ppop0 H,L
+
+    push DE
 	call toNumber                   ; params: HL = string address, BC = string length
 			                        ; Returns the parsed number in DE,
 	                                ; BC = 0, success
     ppush0 D,E
     pop DE
+
     ret
 
 defword "print",5,0,PRINT
@@ -40,8 +44,8 @@ defword "print",5,0,PRINT
     ret
 
 defword "token",5,0,TOKEN               ; -- c-addr length  ; NOT STANDARD
-    push DE
     ppush0 B,C                         ; save TOS
+    push DE
     call getToken
     ppush0 D,E                         ; DE = str ptr
     pop DE
@@ -106,11 +110,15 @@ defword "0branch",7,0,ZBRANCH
 
 defword "branch",6,0,BRANCH         ; relative branching
     pop HL                          ; add the offset to the instruction pointer
+
+    push DE
     ld E,(HL)
     inc HL
     ld D,(HL)
     dec HL
     add HL,DE
+    pop DE
+
     jp (HL)
 
 ; U*   u1 u2 -- ud   unsigned mutliply
@@ -261,8 +269,9 @@ defword "u/mod",5,0,USLASHMOD
     ppop D,E                ; DE = divisor
                             ; BC = dividend
     call divideWordByWord
-    ppush0 H,L           ; PUSH remainder,
     pop DE
+
+    ppush0 H,L           ; PUSH remainder,
     ret
 
 ; 2/      x1 -- x2                  arithmetic right shift
@@ -432,27 +441,23 @@ defword "swap",4,0,SWAP      ; x1 x2 -- x2 x1
 
 defword "rot",3,0,ROT       ; x1 x2 x3 -- x2 x3 x1
     push DE
-    push HL
                             ; x3 in BC
     ppop0 D,E               ; x2 in DE
     ppop0 H,L               ; x1 in HL
     ppush0 D,E              ; x2 on stack
     ppush H,L               ; PUSH x1 - x2 x3 x1
                             ; x1 in BC
-    pop HL
     pop DE
     ret
 
 defword "-rot",4,0,NROT     ; x1 x2 x3 -- x3 x1 x2
     push DE
-    push HL
                             ; x3 in BC
     ppop0 D,E               ; x2 in DE
     ppop0 H,L               ; x1 in HL
     ppush H,L               ; PUSH x1 - x3 x1
     ppush D,E               ; PUSH x2 - x3 x1 x2
                             ; x2 in BC
-    pop HL
     pop DE
     ret
 
@@ -470,9 +475,9 @@ defword "drop",4,0,DROP      ; x --
 
 ; OVER    x1 x2 -- x1 x2 x1
 defword "over",4,0,OVER
-    ppop0 D,E
-    ppush0 D,E
-    ppush D,E
+    ppop0 H,L
+    ppush0 H,L
+    ppush H,L
     ret
 
 ; R>    ( -- x ) ( R: x -- )  Move x from the return stack to TOS
@@ -599,11 +604,13 @@ defword "interp",6,0,interp              ; ( -- c )
         or A
         _case z
             loadWord B,C, D,E
+            pop DE
         _endcase
 
         cp 1
         _case z
             ppop0 B,C                ; clear TOS
+            pop DE
         _endcase
 
         cp 2
@@ -615,7 +622,6 @@ defword "interp",6,0,interp              ; ( -- c )
         _endcase
     _endswitch
 
-    pop DE
     ret
 
 
