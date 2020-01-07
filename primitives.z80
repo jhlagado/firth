@@ -47,7 +47,7 @@ defword "token",5,0,TOKEN               ; -- c-addr length  ; NOT STANDARD
     ppush0 B,C                         ; save TOS
     push DE
     call getToken
-    ppush0 D,E                         ; DE = str ptr, BC = length
+    ppush0 D,E                         ; DE = str ptr
     pop DE
     ret
 

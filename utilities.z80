@@ -1,8 +1,5 @@
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; primitives
-;;
-;; low-level machine code routines
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; utilities
+; low-level machine code routines
 
 TXT_NEWLINE:    .pstr "\r\n"
 TXT_PROMPT:     .pstr "\r\n> "
@@ -55,7 +52,8 @@ serialIn:
     ret
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; getc - input
+; getc - input
+; returns: A = input char
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 getc:
@@ -100,8 +98,8 @@ getc:
 .endif
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; putc - output a character
-;; params: A = char to output
+; putc - output a character
+; params: A = char to output
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 putc:
@@ -123,18 +121,14 @@ inputReady:
     ret
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; getline - input line of text
-;; params: HL = addr, DE = max (currently up to 255)
-;; returns: BC = length - up to 255
+; getline - input line of text ***
+; params: HL = addr, DE = max (currently up to 255)
+; returns: BC = length - up to 255
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 getline:
     push AF
     push HL
-    ; call printCR
-    ; PRINT_STR StackPrompt
-    ; call printStack
-    ; call printCR
     PRINT_STR TXT_PROMPT
     pop HL
     push HL
@@ -194,9 +188,43 @@ printRoutine:
     ret
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; Output pascal string
+; getKey -  inputs a line buffered character
+; params: none
+; returns: A = character,
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+getKey:
+    push HL
+    push DE
+    push BC
+    ld HL, (currkey)
+    ld DE, (lineBufTop)
+    or A
+    sbc HL, DE                  ; exhausted the input lineBuf?
+    _if nc
+        ld HL, lineBuf
+        ld DE, LINE_BUFSIZE
+        call getline
+        ld HL, lineBuf
+        ld (currkey), HL
+        or A
+        adc HL, BC              ; lineBuf+DE = lineBufTop
+        ld (lineBufTop),HL
+    _endif
+    ld HL, (currkey)
+    ld A,(HL)               ; get next key from input lineBuf
+    inc HL
+    ld (currkey),HL         ; increment currkey
+    pop BC
+    pop DE
+    pop HL
+    ret
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Output pascal string ***
 ; params: DE = addr
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 printPStr:
     push AF
     push BC
@@ -215,6 +243,7 @@ printPStr:
 ; Output string
 ; params: DE = addr, BC = length
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 printStr:
     push AF
     push BC
@@ -237,22 +266,6 @@ printSpace:
     ld A," "
     call putc
     pop AF
-    ret
-
-printNum:
-    push HL
-    push DE
-    push BC
-    loadWord H,L, B,C
-    ld A,(VAR_BASE)
-    ld C,A
-    ld DE, wordBuf
-    call formatNum
-    call printStr
-    call printSpace
-    pop BC
-    pop DE
-    pop HL
     ret
 
 printStack:
@@ -282,9 +295,27 @@ printStack:
     pop BC
     ret
 
+printNum:
+    push HL
+    push DE
+    push BC
+    loadWord H,L, B,C
+    ld A,(VAR_BASE)
+    ld C,A
+    ld DE, wordBuf
+    call formatNum
+    call printStr
+    call printSpace
+    pop BC
+    pop DE
+    pop HL
+    ret
 
-; HL = data, DE = ptr to lineBuf, C = base
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; HL = data, DE = ptr to lineBuf, C = base ***
 ; DE = ptr to string, BC = length
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 formatNum:
     ; Detect sign of HL.
     bit 7, H
@@ -324,7 +355,11 @@ formatNum:
     loadWord B,C, H,L
     ret
 
-; negate HL
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; negate ***
+; params: HL = number
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 negateNum:
     ; Negate HL (using two's complement)
     xor A
@@ -335,7 +370,13 @@ negateNum:
     ld H, A
     ret
 
-; HL / C remainder in A
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; divide word by byte ***
+; params: HL = dividend, C = divisor
+; returns: HL = result, A = remainder
+; destroys: ?
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 divideWordByByte:
     ld B, 16
     xor A
@@ -356,11 +397,12 @@ divideWordByByte:
     ret
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; Divide word by word
-; params: BC divided by DE
+; Divide word by word ***
+; params: BC = dividend, DE = divisor
 ; returns: BC = result, HL = remainder
 ; destroys: ?
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 divideWordByWord:
     push DE
     ld HL,0
@@ -395,133 +437,13 @@ divideWordByWord:
     pop DE
     ret
 
-
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; getKey -  inputs a line buffered character
-;; params: none
-;; returns: A = character,
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-getKey:
-    push HL
-    push DE
-    push BC
-    ld HL, (currkey)
-    ld DE, (lineBufTop)
-    or A
-    sbc HL, DE                  ; exhausted the input lineBuf?
-    _if nc
-        ld HL, lineBuf
-        ld DE, LINE_BUFSIZE
-        call getline
-        ld HL, lineBuf
-        ld (currkey), HL
-        or A
-        adc HL, BC              ; lineBuf+DE = lineBufTop
-        ld (lineBufTop),HL
-    _endif
-    ld HL, (currkey)
-    ld A,(HL)               ; get next key from input lineBuf
-    inc HL
-    ld (currkey),HL         ; increment currkey
-    pop BC
-    pop DE
-    pop HL
-    ret
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; getToken -  returns a word string as delimited by spaces
-;; ignores leading spaces, ignores comments starting with /
-;;
-;; params: none
-;; returns: DE = address of wordBuf, BC = length,
-;; destroys: AF
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-getToken:
-    ; Search for first non-blank character.
-    ; Also skip \ comments.
-    push HL
-    push AF
-
-    _do
-        call getKey                 ; get next key, returned in A
-
-        _switch
-
-            bit 7, A                    ; check end of input
-            _if nz
-                ld BC, 0
-                pop AF
-                pop HL
-                ret
-            _endif
-
-            cp $5C                      ; \ start of a comment?
-            _case z                       ; if yes skip to end of line
-                _do
-                    call getKey
-                    cp "\r"             ; end of line yet?
-                    _if nz
-                        cp "\n"         ; end of line yet?
-                    _endif
-                _until z
-                _enddo
-            _endcase
-
-            cp " " + 1                      ; <= space?
-            _case nc
-                ld E,31
-                ld HL, wordBuf      ; pointer to return lineBuf
-                _do
-                    ld (HL), A          ; add character to return lineBuf
-                    inc HL
-                    call getKey            ; get next key
-                    cp ' ' + 1            ; <= space?
-                _until c
-                    dec E
-                _until z
-                _enddo
-                ; Return the word (well, the static lineBuf) and length.
-                ld DE, wordBuf
-                or A
-                sbc HL, DE     ; return length of the word
-                loadWord B,C, H,L
-                pop AF
-                pop HL
-                ret
-            _endcase
-
-        _endswitch
-
-    _enddo
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; toLowercase -  converts ASCII value register A
-;; to lowercase
-;;
-;; params: A = ASCII char
-;; returns: A = lowercase ASCII char
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-toLowercase:
-    cp 'A'
-    _if nc
-        cp 'Z' + 1
-        _if c
-            or $20      ; set bit 6
-        _endif
-    _endif
-    ret
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; toNumber -  converts string to number in the
-;; base strored in VAR_BASE
-;;
-;; params: HL = string address, BC = string length
-;; returns: DE = parsed number, BC = 0: success, not 0, uparsed chars
-;; destroys: AF
+; toNumber -  converts string to number in the ***
+; base strored in VAR_BASE
+;
+; params: HL = string address, BC = string length
+; returns: DE = parsed number, BC = 0: success, not 0, uparsed chars
+; destroys: AF
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 toNumber:
@@ -611,11 +533,11 @@ toNumberExit:
     ret                 ; de = number, BC = err
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; unsignedMultiply -  unsigned multiply
-;;
-;; params:  u1 in BC, u2 in DE
-;; returns: result in HLDE
-;; destroys: AF
+; unsignedMultiply -  unsigned multiply ***
+;
+; params:  u1 in BC, u2 in DE
+; returns: result in HLDE
+; destroys: AF
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 unsignedMultiply:
@@ -636,72 +558,10 @@ unsignedMultiply:
     ret
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; reverseLookup - CFA -> header
-;;
-;; params: BC = CFA of word
-;; returns: DE = found header ptr or 0
-;; destroys: AF, HL
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-reverseLookup:
-    ld DE, (VAR_LATEST)             ; search dictionary backwards from LATEST
-    _do
-        checkZeroWord D,E                ; NULL pointer?  (end of the linked list)
-    _until z
-        push DE                     ; save ptr to header
-        inc DE                      ; skip over first field
-        inc DE
-        ld A, (DE)                  ; a = flags+length field
-        and MSK_HIDDEN | MSK_LENGTH ; %al = name length
-        ld H,0
-        ld L,A
-        add HL,DE
-        or A
-        sbc HL,BC
-        pop DE
-    _until z
-        ex DE, HL                   ; load HL with link to previous header
-        ld E,(HL)                   ; in dictionary
-        inc HL
-        ld D,(HL)
-    _enddo
-    ret
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; listWords - prints all the words in dictionary
-;;
-;; destroys: ?
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-listWords:
-    ld DE, (VAR_LATEST)             ; search dictionary backwards from LATEST
-    _do
-        checkZeroWord D,E                ; NULL pointer?  (end of the linked list)
-    _until z
-        push DE                     ; save ptr to header
-        inc DE                      ; skip over first field
-        inc DE
-        ld A, (DE)                  ; a = flags+length field
-        and MSK_HIDDEN | MSK_LENGTH ; %al = name length
-        ld B,0
-        ld C,A
-        inc DE
-        call printStr
-        call printSpace
-        call putc
-        pop HL                      ; HL = link to previous header
-        ld E,(HL)
-        inc HL
-        ld D,(HL)                   ; DE = previous word
-    _enddo
-    call printCR
-    ret
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; compareStr - string equal
-;; params: de = string1, HL = string2, BC = length
-;; returns: a = -1, 0, 1, HL = mismatch char if a != 0
-;; destroys: de, HL, BC
+; compareStr - string equal
+; params: de = string1, HL = string2, BC = length
+; returns: a = -1, 0, 1, HL = mismatch char if a != 0
+; destroys: de, HL, BC
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 compareStr:
@@ -726,105 +586,30 @@ compareStr:
     ld A,0          ; a=0 (s1=s2)
     ret
 
-; params: DE = ptr to word, BC = length
-; returns: A =  0 (pushed literal), 1 (compiled), 2 (to execute), BC = ptr to word,
-interpToken:
-    checkZeroWord B,C
-    _if z
-        ld BC, 1
-        ld (VAR_INTP_STOP),BC                             ; INTP_STOPPING:
-        ld A,1
-    _else
-        push BC                 ; save token length
-        push DE                 ; save token ptr
-        loadWord H,L, D,E
-        call lookup
-        checkZeroWord D,E       ; DE = header ptr or zero
-        _if nz
-            pop BC              ; drop token ptr
-            pop BC              ; drop token length
-            ex DE,HL
-            call interpForthWord
-        _else
-            pop HL              ; HL = token ptr
-            pop BC              ; BC = token length
-            call interpNumber
-        _endif
-    _endif
-    ret
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; toLowercase -  converts ASCII value register A
+; to lowercase
+;
+; params: A = ASCII char
+; returns: A = lowercase ASCII char
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-; params: HL = ptr to header
-; returns: A = 1 (compiled), 2 (to execute), BC = ptr to word,
-; effect: either execute or compier word
-interpForthWord:
-    inc HL              ; skip "previous word" ptr in header
-    inc HL
-
-    ld A,(VAR_STATE)    ; load compile state
-    or A
-    _if nz              ; if compile then override with immed
-        ld A,(HL)       ; A = flags + length
-        and MSK_IMMED   ; if immediate flag <> 0
-        _if nz
-            ld A,0      ; dont' compile
-        _else
-            ld A,1
+toLowercase:
+    cp 'A'
+    _if nc
+        cp 'Z' + 1
+        _if c
+            or $20      ; set bit 6
         _endif
-        or a
-    _endif
-    ex AF,AF'           ; save z flag
-
-    ld A,(HL)           ; A = flags + length
-    and MSK_LENGTH
-    ld C,A
-    ld B,0
-    inc HL
-    add HL,BC           ; HL = cfa
-    loadWord B,C, H,L
-    ex AF,AF'           ; restore z flag
-    _if nz              ; if compile <> 0
-        ld HL,(VAR_HERE)
-        ld A, CALL_OPCODE
-        writeByte HL, A
-        writeWord HL, B,C
-        ld (VAR_HERE),HL
-        ld A,1
-    _else
-        ld A,2
-    _endif
-    ret
-; params: HL = token ptr BC = token length
-; returns: A = 0 (pushed literal), 1 (compiled)
-interpNumber:
-    call toNumber
-    checkZeroWord B,C       ; DE = number, BC = error if > 0
-    _if z
-        ld A,(VAR_STATE)
-        or A                ; if compile, then compile number
-        _if nz
-            ld HL,(VAR_HERE)
-            ld A, CALL_OPCODE
-            writeByte HL, A
-            ld BC, LIT
-            writeWord HL, B,C
-            writeWord HL, D,E
-            ld (VAR_HERE),HL
-            ld A,1
-        _else
-            ld A,0
-        _endif
-    _else
-        Print_Str TXT_ERROR
-        ld A,1
     _endif
     ret
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; lookup - lookup header in dictionary
-;;
-;; params: HL = string address, BC = string length
-;; returns: DE = found header ptr or 0
-;; destroys: AF
+; lookup - lookup header in dictionary ***
+;
+; params: HL = string address, BC = string length
+; returns: DE = found header ptr or 0
+; destroys: AF
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 lookup:
@@ -871,4 +656,225 @@ lookup:
         ex AF,AF'
         ld E,A
     _enddo
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; reverseLookup - CFA -> header
+;
+; params: BC = CFA of word
+; returns: DE = found header ptr or 0
+; destroys: AF, HL
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+reverseLookup:
+    ld DE, (VAR_LATEST)             ; search dictionary backwards from LATEST
+    _do
+        checkZeroWord D,E                ; NULL pointer?  (end of the linked list)
+    _until z
+        push DE                     ; save ptr to header
+        inc DE                      ; skip over first field
+        inc DE
+        ld A, (DE)                  ; a = flags+length field
+        and MSK_HIDDEN | MSK_LENGTH ; %al = name length
+        ld H,0
+        ld L,A
+        add HL,DE
+        or A
+        sbc HL,BC
+        pop DE
+    _until z
+        ex DE, HL                   ; load HL with link to previous header
+        ld E,(HL)                   ; in dictionary
+        inc HL
+        ld D,(HL)
+    _enddo
+    ret
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; listWords - prints all the words in dictionary
+;
+; destroys: ?
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+listWords:
+    ld DE, (VAR_LATEST)             ; search dictionary backwards from LATEST
+    _do
+        checkZeroWord D,E                ; NULL pointer?  (end of the linked list)
+    _until z
+        push DE                     ; save ptr to header
+        inc DE                      ; skip over first field
+        inc DE
+        ld A, (DE)                  ; a = flags+length field
+        and MSK_HIDDEN | MSK_LENGTH ; %al = name length
+        ld B,0
+        ld C,A
+        inc DE
+        call printStr
+        call printSpace
+        call putc
+        pop HL                      ; HL = link to previous header
+        ld E,(HL)
+        inc HL
+        ld D,(HL)                   ; DE = previous word
+    _enddo
+    call printCR
+    ret
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; getToken -  returns a word string as delimited by spaces
+; ignores leading spaces, ignores comments starting with /
+;
+; params: none
+; returns: DE = address of wordBuf, BC = length,
+; destroys: AF
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+getToken:
+    ; Search for first non-blank character.
+    ; Also skip \ comments.
+    push HL
+    push AF
+
+    _do
+        call getKey                 ; get next key, returned in A
+
+        _switch
+
+            bit 7, A                    ; check end of input
+            _if nz
+                ld BC, 0
+                pop AF
+                pop HL
+                ret
+            _endif
+
+            cp $5C                      ; \ start of a comment?
+            _case z                       ; if yes skip to end of line
+                _do
+                    call getKey
+                    cp "\r"             ; end of line yet?
+                    _if nz
+                        cp "\n"         ; end of line yet?
+                    _endif
+                _until z
+                _enddo
+            _endcase
+
+            cp " " + 1                      ; <= space?
+            _case nc
+                ld E,31
+                ld HL, wordBuf      ; pointer to return lineBuf
+                _do
+                    ld (HL), A          ; add character to return lineBuf
+                    inc HL
+                    call getKey            ; get next key
+                    cp ' ' + 1            ; <= space?
+                _until c
+                    dec E
+                _until z
+                _enddo
+                ; Return the word (well, the static lineBuf) and length.
+                ld DE, wordBuf
+                or A
+                sbc HL, DE     ; return length of the word
+                loadWord B,C, H,L
+                pop AF
+                pop HL
+                ret
+            _endcase
+
+        _endswitch
+
+    _enddo
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; params: DE = ptr to word, BC = length
+; returns: A =  0 (pushed literal), 1 (compiled), 2 (to execute), BC = ptr to word,
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+interpToken:
+    checkZeroWord B,C
+    _if z
+        ld BC, 1
+        ld (VAR_INTP_STOP),BC                             ; INTP_STOPPING:
+        ld A,1
+    _else
+        push BC                 ; save token length
+        push DE                 ; save token ptr
+        loadWord H,L, D,E
+        call lookup
+        checkZeroWord D,E       ; DE = header ptr or zero
+        _if nz
+            pop BC              ; drop token ptr
+            pop BC              ; drop token length
+            ex DE,HL
+            call interpForthWord
+        _else
+            pop HL              ; HL = token ptr
+            pop BC              ; BC = token length
+            call interpNumber
+        _endif
+    _endif
+    ret
+
+interpForthWord:
+    inc HL              ; skip "previous word" ptr in header
+    inc HL
+
+    ld A,(VAR_STATE)    ; load compile state
+    or A
+    _if nz              ; if compile then override with immed
+        ld A,(HL)       ; A = flags + length
+        and MSK_IMMED   ; if immediate flag <> 0
+        _if nz
+            ld A,0      ; dont' compile
+        _else
+            ld A,1
+        _endif
+        or a
+    _endif
+    ex AF,AF'           ; save z flag
+
+    ld A,(HL)           ; A = flags + length
+    and MSK_LENGTH
+    ld C,A
+    ld B,0
+    inc HL
+    add HL,BC           ; HL = cfa
+    loadWord B,C, H,L
+    ex AF,AF'           ; restore z flag
+    _if nz              ; if compile <> 0
+        ld HL,(VAR_HERE)
+        ld A, CALL_OPCODE
+        writeByte HL, A
+        writeWord HL, B,C
+        ld (VAR_HERE),HL
+        ld A,1
+    _else
+        ld A,2
+    _endif
+    ret
+
+interpNumber:
+    call toNumber
+    checkZeroWord B,C       ; DE = number, BC = error if > 0
+    _if z
+        ld A,(VAR_STATE)
+        or A                ; if compile, then compile number
+        _if nz
+            ld HL,(VAR_HERE)
+            ld A, CALL_OPCODE
+            writeByte HL, A
+            ld BC, LIT
+            writeWord HL, B,C
+            writeWord HL, D,E
+            ld (VAR_HERE),HL
+            ld A,1
+        _else
+            ld A,0
+        _endif
+    _else
+        Print_Str TXT_ERROR
+        ld A,1
+    _endif
+    ret
 
