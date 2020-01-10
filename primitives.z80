@@ -103,22 +103,35 @@ defword "0branch",7,0,ZBRANCH
     checkZeroWord B,C               ; test old TOS
     ppop0 B,C                       ; POP new TOS
     jr z,BRANCH                     ; if old TOS=0, branch
-    pop HL
-    inc HL                          ; else skip inline value
-    inc HL
+    pop HL                          ; ret address = FORTH
+    pop DE
+    inc DE                          ; else skip inline value
+    inc DE
+    push DE
     jp (HL)
 
 defword "branch",6,0,BRANCH         ; relative branching
+    pop HL
     pop HL                          ; add the offset to the instruction pointer
-
-    push DE
     ld E,(HL)
     inc HL
     ld D,(HL)
     dec HL
     add HL,DE
-    pop DE
+    push HL
+    jp FORTH
 
+defword "lit",3,0,LIT
+
+	; IP points to the next command, But in this case it points to the next
+	; literal 16 bit integer.  Get that literal, increment IP.
+
+	ppush0 B,C         ; pushTOS
+    pop DE
+	pop HL
+	readWord HL, B,C
+    push HL
+    ex DE,HL
     jp (HL)
 
 ; U*   u1 u2 -- ud   unsigned mutliply
@@ -140,16 +153,6 @@ defword "0<",2,0,ZEROLESS
     ld b,0
     ld c,a
     ret
-
-defword "lit",3,0,LIT
-
-	; IP points to the next command, But in this case it points to the next
-	; literal 16 bit integer.  Get that literal, increment IP.
-
-	ppush0 B,C         ; pushTOS
-	pop HL
-	readWord HL, B,C
-    jp (HL)
 
 ;z RSP!  a-addr --                  set return stack pointer
 defword "rsp!",4,0,RSPSTORE
@@ -623,5 +626,3 @@ defword "interp",6,0,interp              ; ( -- c )
     _endswitch
 
     ret
-
-

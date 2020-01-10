@@ -844,8 +844,6 @@ interpForthWord:
     ex AF,AF'           ; restore z flag
     _if nz              ; if compile <> 0
         ld HL,(VAR_HERE)
-        ld A, CALL_OPCODE
-        writeByte HL, A
         writeWord HL, B,C
         ld (VAR_HERE),HL
         ld A,1
@@ -862,8 +860,6 @@ interpNumber:
         or A                ; if compile, then compile number
         _if nz
             ld HL,(VAR_HERE)
-            ld A, CALL_OPCODE
-            writeByte HL, A
             ld BC, LIT
             writeWord HL, B,C
             writeWord HL, D,E
@@ -878,3 +874,18 @@ interpNumber:
     _endif
     ret
 
+FORTH:
+    pop HL
+    ld E,(HL)
+    inc HL
+    ld D,(HL)
+    inc HL
+    push HL
+    ex DE,HL
+    ld DE, forth
+    push DE
+    jp (HL)
+
+EXIT:
+    pop HL
+    ret
