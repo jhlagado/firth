@@ -581,11 +581,6 @@ defword ".",1,0,DOT                 ; print top of stack in BASE
     ppop0 B,C
     ret
 
-; defword ".s",2,0,DOTS                  ; ( -- )
-;     call printStack
-;     call printNum                   ; print tos
-;     ret
-
 defword "type",4,0,TYPE             ; ( str len -- )
     push DE
     ppop0 D,E                    ; DE = str BC = length

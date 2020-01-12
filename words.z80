@@ -310,10 +310,30 @@ defword "test1",5,0,TEST1                  ; ( -- )
     nop
     ret
 
+defword ".s",2,0,DOTS                  ; ( -- )
+    call FORTH
+    dw SPFETCH
+    dw SP0, FETCH
+    dw MINUS, ZEQUAL, ZEQUAL
+    cIF
+        dw SP0, FETCH, LIT, 2, PLUS
+        cDO
+            dw DUP
+            dw SPFETCH, LIT, 2, MINUS
+            dw SWAP, MINUS, ZEQUAL
+        cUNTIL
+            dw DUP, FETCH, DOT
+            dw LIT, 2, PLUS
+        cENDDO
+        dw DROP
+    cENDIF
+    dw EXIT
+    ret
+
 defvar "pad",3,0,PAD, VAR_PAD
 defvar "here",4,0,HERE, VAR_HERE
 defvar "intp_stop",9,0,INTP_STOP, VAR_INTP_STOP
 defvar "state",5,0,STATE, VAR_STATE
-defvar "sp0",2,0,SPZ, VAR_SPZ
+defvar "sp0",3,0,SPZ, VAR_SPZ
 defvar "base",4,0,BASE, VAR_BASE
 defvar "latest",6,0,LATEST, VAR_LATEST
