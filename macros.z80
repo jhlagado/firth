@@ -35,17 +35,17 @@ ret
 
 ; Macros to deal with the param stack.
 .macro ppush0, regHI, regLO
-    dec IX              ; PUSH register pair on ret stack
-    ld (IX+0),regHI
-    dec IX
-    ld (IX+0),regLO
+    ld (IX+0), regLO     ; POP register pair from ret stk
+    inc IX
+    ld (IX+0), regHI
+    inc IX
 .endm
 
 .macro ppop0, regHI, regLO
-    ld regLO,(IX+0)     ; POP register pair from ret stk
-    inc IX
-    ld regHI,(IX+0)
-    inc IX
+    dec IX              ; PUSH register pair on ret stack
+    ld regHI, (IX+0)
+    dec IX
+    ld regLO, (IX+0)
 .endm
 
 ; Macros to deal with the param stack with TOS in BC
