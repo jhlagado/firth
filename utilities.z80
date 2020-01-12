@@ -268,33 +268,6 @@ printSpace:
     pop AF
     ret
 
-; printStack:
-;     push BC
-;     push DE
-;     push IX
-;     pop DE
-;     ld HL,PAR_STACK - 4
-;     or A
-;     sbc HL,DE
-;     _if nc
-;         ld HL,PAR_STACK - 4
-;         _do
-;             ld C,(HL)
-;             dec HL
-;             ld B,(HL)
-;             dec HL
-;             call printNum
-;             push HL
-;             or A
-;             sbc HL,DE
-;             pop HL
-;         _until c
-;         _enddo
-;     _endif
-;     pop DE
-;     pop BC
-;     ret
-
 printNum:
     push HL
     push DE
