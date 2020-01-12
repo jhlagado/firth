@@ -26,117 +26,150 @@ defword "interpret",6,0,INTERPRET
     _enddo
     ret
 
+defword "interpz",7,0,interpz
+    call FORTH
+    DW TOKEN                        ; ( -- ptr len)
+    DW DUP, ZEQUAL
+    cIf
+                                    ; INTP_STOPPING:
+        DW DROP, DROP                   ; (ptr len -- )
+        DW LIT, 1
+        DW LIT, VAR_INTP_STOP, STORE    ; VAR_INTP_STOP = 1
+        DW EXIT
+    cEndIf
+    DW OVER, OVER, FIND             ; ( ptr len -- ptr len headPtrOrZero )
+    DW DUP
+    cIf
+        DW SWAP, DROP, SWAP, DROP       ; ( ptr len headPtr -- headPtr ) found
+
+        DW DUP, LIT, 2, PLUS, CFETCH    ; ( headPtr -- headPtr flags ) add 2 to headPtr
+        DW LIT, MSK_IMMED, AND          ; ( headPtr flags -- headPtr immedFlag )
+        DW ZEQUAL
+        cIf
+            DW LIT, VAR_STATE, FETCH        ; (headPtr -- headPtr state), if state = 1 compile
+            cIf
+                DW TCFA, COMMA                  ; compile headPtr
+                DW EXIT
+            cEndIf
+        cEndIf
+        DW TCFA, EXECUTE                ; execute headPtr
+        DW EXIT
+    cEndIf
+    DW DROP                         ; ( ptr len zero -- ptr len ), not found
+
+    DW NUMBER                       ; ( ptr len -- val err )
+    cIf
+        DW DROP                         ; ( ptr len zero -- ptr len ), not found
+        DW LIT, TXT_ERROR               ; err != 0, parse error
+        DW PRINT
+        DW EXIT
+    cEndIf
+    DW LIT, VAR_STATE, FETCH        ; (val -- val state)
+    cIf
+        DW LIT, LIT                     ; (val -- val "LIT" )
+        DW COMMA, COMMA                 ; compile "LIT" val
+    cEndIf
+    DW EXIT
+    ret
+
 defword ">cfa",4,0,TCFA
     call FORTH
-    dw LIT
-    dw 2
-    dw PLUS
-    dw COUNT
-    dw LIT
-    dw MSK_LENGTH
-    dw AND
-    dw PLUS
-    dw EXIT
+    DW LIT, 2, PLUS
+    DW COUNT
+    DW LIT, MSK_LENGTH, AND
+    DW PLUS
+    DW EXIT
     ret
 
 ; COUNT extract string length from pascal string  ( ptr -- ptr+1 len )
 defword "count",5,0,COUNT
     call FORTH
-    dw DUP
-    dw LIT
-    dw 1
-    dw PLUS            ; ( ptr -- ptr ptr+1)
-    dw SWAP
-    dw CFETCH                 ; ( ptr ptr+1 -- ptr+1 len)
-    dw EXIT
+    DW DUP, LIT, 1, PLUS            ; ( ptr -- ptr ptr+1)
+    DW SWAP, CFETCH                 ; ( ptr ptr+1 -- ptr+1 len)
+    DW EXIT
     ret
 
 ; ALLOT                             ( n -- addr ) allocate n bytes of memory
 defword "allot",5,0,ALLOT
-    ld HL, (VAR_HERE)
-    ppush0 H,L
-    or A
-    adc HL,BC                       ; adds n to HERE, old value of HERE left on stack
-    ld (VAR_HERE),HL
-    ppop0 B,C
+    call FORTH
+    DW HERE, FETCH, SWAP        ; here n
+    DW HERE, ADDSTORE                    ; adds n to HERE, old value of HERE left on stack
+    DW EXIT
     ret
 
 ; NEGATE  n1 -- n2                        negate n1
 defword "negate",6,0,NEGATE
-    call INVERT
-    inc BC
+    call FORTH
+    DW INVERT
+    DW ONEPLUS
+    DW EXIT
     ret
 
 ; ABS   n -- u                      absolute value
 defword "abs",3,0,ABS
-    call DUP                      ; copy arg
-    call ZEROLESS
-    checkZeroWord B,C
-    ppop0 B,C              ; POP new TOS
-    _if nz
-        call NEGATE               ; if signs differ then negate answer
-    _endif
+    call FORTH
+    DW DUP                      ; copy arg
+    DW ZEROLESS
+    cIf
+        DW NEGATE               ; if signs differ then negate answer
+    cEndIf
+    DW EXIT
     ret
 
 defword "*",1,0,STAR            ; u1 u2 -- ud
-    call OVER
-    call OVER                   ; dupe both args
-    call ABS
-    call SWAP
-    call ABS                    ; remove sign from both args
-    call USTAR
-    call DROP                   ; unsigned multiply, drop hi-word
-    call NROT                   ; move to bottom
-    call XOR                    ; zero if signs are the same
-    call ZEROLESS               ; if high bit set
-    checkZeroWord B,C
-    ppop0 B,C              ; POP new TOS
-    _if nz
-        call NEGATE               ; if signs differ then negate answer
-    _endif
+    call FORTH
+    DW OVER, OVER           ; dupe both args
+    DW ABS, SWAP, ABS       ; remove sign from both args
+    DW USTAR, DROP          ; unsigned multiply, drop hi-word
+    DW NROT                 ; move to bottom
+    DW XOR                  ; zero if signs are the same
+    DW ZEROLESS             ; if high bit set
+    cIf
+        DW NEGATE           ; if signs differ then negate answer
+    cEndIf
+    DW EXIT
     ret
 
 defword "/mod",4,0,SLASHMOD       ; dvend dvisr -- rem quot
-    call OVER
-    call OVER                    ;       u1 u2 -- u1 u2 u1 u2  dupe both args
-    call XOR                  ; u1 u2 u1 u2 -- u1 u2 b1     xor hi bits
-    call ZEROLESS             ; true if high bit still set
-    call NROT                 ;    u1 u2 b1 -- b1 u1 u2     move to bottom
+    call FORTH
+    DW OVER, OVER           ;       u1 u2 -- u1 u2 u1 u2  dupe both args
+    DW XOR                  ; u1 u2 u1 u2 -- u1 u2 b1     xor hi bits
+    DW ZEROLESS             ; true if high bit still set
+    DW NROT                 ;    u1 u2 b1 -- b1 u1 u2     move to bottom
 
-    call OVER                 ;    b1 u1 u2 -- b1 u1 u2 u1  dupe dividend
-    call ZEROLESS             ; b1 u1 u2 u1 -- b1 u1 u2 b2  zero if signs are the same
-    call NROT                 ; b1 u1 u2 b2 -- b1 b2 u1 u2  move to bottom
+    DW OVER                 ;    b1 u1 u2 -- b1 u1 u2 u1  dupe dividend
+    DW ZEROLESS             ; b1 u1 u2 u1 -- b1 u1 u2 b2  zero if signs are the same
+    DW NROT                 ; b1 u1 u2 b2 -- b1 b2 u1 u2  move to bottom
 
-    call ABS
-    call SWAP
-    call ABS
-    call SWAP                    ; remove sign from both args
-    call USLASHMOD            ; b1 b2 u1 u2 -- b1 b2 r q    unsigned divide (remainder, quotient)
-    call SWAP                 ; b1 b2 u1 u2 -- b1 b2 q r
-    call ROT                  ; b1 b2 q r -- b1 q r b2      bring to top
-    checkZeroWord B,C
-    ppop0 B,C              ; POP new TOS
-    _if nz
-        call NEGATE           ;   b1 q r b2 -- b1 q -r      if -ve then negate answer
-    _endif
-    call NROT                 ;     b1 q -r -- -r b1 q     bring to top
-    call SWAP                 ;     -r b1 q -- -r q b1      bring to top
-    checkZeroWord B,C
-    ppop0 B,C              ; POP new TOS
-    _if nz
-        call NEGATE           ;     -r q b1 -- -r -q       if signs differ then negate answer
-    _endif
+    ; DW DOT, DOT, DOT, DOT, CR  ; u2=-20 u1=-101 b2=1 b1=0
+
+    DW ABS, SWAP, ABS, SWAP ; remove sign from both args
+    DW USLASHMOD            ; b1 b2 u1 u2 -- b1 b2 r q    unsigned divide (remainder, quotient)
+    DW SWAP                 ; b1 b2 u1 u2 -- b1 b2 q r
+    DW ROT                  ; b1 b2 q r -- b1 q r b2      bring to top
+    cIf
+        DW NEGATE           ;   b1 q r b2 -- b1 q -r      if -ve then negate answer
+    cEndIf
+    DW NROT                 ;     b1 q -r -- -r b1 q     bring to top
+    DW SWAP                 ;     -r b1 q -- -r q b1      bring to top
+    cIf
+        DW NEGATE           ;     -r q b1 -- -r -q       if signs differ then negate answer
+    cEndIf
+    DW EXIT
     ret
 
 defword "/",1,0,SLASH       ; dvend dvisr -- quot
-    call SLASHMOD
-    call SWAP
-    call DROP               ; drop remainder
+    call FORTH
+    DW SLASHMOD
+    DW SWAP, DROP           ; drop remainder
+    DW EXIT
     ret
 
 defword "mod",3,0,MOD     ; dvend dvisr -- remainder
-    call SLASHMOD
-    call DROP                 ; drop quotient
+    call FORTH
+    DW SLASHMOD
+    DW DROP                 ; drop quotient
+    DW EXIT
     ret
 
 ; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -281,6 +314,6 @@ defvar "pad",3,0,PAD, VAR_PAD
 defvar "here",4,0,HERE, VAR_HERE
 defvar "intp_stop",9,0,INTP_STOP, VAR_INTP_STOP
 defvar "state",5,0,STATE, VAR_STATE
-defvar "s0",2,0,SZ, VAR_SZ
+defvar "sp0",2,0,SPZ, VAR_SPZ
 defvar "base",4,0,BASE, VAR_BASE
 defvar "latest",6,0,LATEST, VAR_LATEST

@@ -39,13 +39,15 @@ RST66:
 
 START:
     ld SP, RET_STACK                        ; Initialise the return stack.
-    ld IX, PAR_STACK                        ; Initialise the param stack.
+    ld IX, DATA_STACK                        ; Initialise the param stack.
+    ld (VAR_SPZ), IX
+    ld IY, FORTH
     ld BC, 0                                ; TOS
     ld HL,serBuf
     ld (serInPtr),HL
     ld (serRdPtr),HL
-    xor A                                   ; 0 to accumulator
-    ld (serBufUsed),A
+    ld HL,0                                   ; 0 to accumulator
+    ld (serBufUsed),HL
     ld A,RTS_LOW
     out ($80),A                             ; Initialise ACIA
     im 1

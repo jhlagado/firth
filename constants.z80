@@ -7,7 +7,7 @@
 ROM_SIZE        equ     $2000
 RAM_SIZE        equ     $10000 - ROM_SIZE
 RET_STACK_SIZE  equ     $80 ; return stack
-PAR_STACK_SIZE  equ     $80 ; parameter stack
+DATA_STACK_SIZE equ     $80 ; data stack
 PAD_SIZE        equ     $80 ; user scratch pad
 
 SER_BUFSIZE     equ     3FH
@@ -19,7 +19,6 @@ START_ROM       equ     0
 START_RAM       equ     START_ROM + ROM_SIZE
 END_RAM         equ     START_RAM + RAM_SIZE
 RET_STACK       equ     END_RAM             ; return stack, 128 B, grows down
-PAR_STACK       equ     RET_STACK - 128     ; parameter stack, 128B, grows down
 
 IO_DATA         equ     $81
 IO_CTRL         equ     $80

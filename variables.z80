@@ -15,16 +15,16 @@ lineBuf:        ds LINE_BUFSIZE
 ; A static lineBuf TOKEN fills.  Subsequent calls
 ; overwrite this lineBuf.  Maximum word length is 32 chars.
 
-wordBuf:    ds 32
-
-IS_LITERAL:     db 0            ; Flag used to record if reading a literal
+wordBuf:        ds 32
+DATA_STACK:     ds DATA_STACK_SIZE
 
 VAR_PAD:        ds PAD_SIZE
+IS_LITERAL:     db 0            ; Flag used to record if reading a literal
 VAR_HERE:       dw START_USER
 VAR_INTP_STOP:
                 dw 0
 VAR_STATE:      dw 0
-VAR_SZ:         dw RET_STACK
+VAR_SPZ:        dw 0            ;PAR_STACK
 VAR_BASE:       dw 10
 VAR_LATEST:     dw HEADER_LATEST
 
