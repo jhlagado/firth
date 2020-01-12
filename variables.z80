@@ -24,7 +24,7 @@ VAR_HERE:       dw START_USER
 VAR_INTP_STOP:
                 dw 0
 VAR_STATE:      dw 0
-VAR_SPZ:        dw 0            ;PAR_STACK
+VAR_SP0:        dw 0            ;PAR_STACK
 VAR_BASE:       dw 10
 VAR_LATEST:     dw HEADER_LATEST
 

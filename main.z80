@@ -40,7 +40,7 @@ RST66:
 START:
     ld SP, RET_STACK                        ; Initialise the return stack.
     ld IX, DATA_STACK                        ; Initialise the param stack.
-    ld (VAR_SPZ), IX
+    ld (VAR_SP0), IX
     ld IY, FORTH
     ld BC, 0                                ; TOS
     ld HL,serBuf

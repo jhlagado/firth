@@ -334,6 +334,6 @@ defvar "pad",3,0,PAD, VAR_PAD
 defvar "here",4,0,HERE, VAR_HERE
 defvar "intp_stop",9,0,INTP_STOP, VAR_INTP_STOP
 defvar "state",5,0,STATE, VAR_STATE
-defvar "sp0",3,0,SPZ, VAR_SPZ
+defvar "sp0",3,0,SP0, VAR_SP0
 defvar "base",4,0,BASE, VAR_BASE
 defvar "latest",6,0,LATEST, VAR_LATEST
