@@ -65,14 +65,17 @@ After considering and rejecting building a BASIC interpreter for the TEC-1 I dec
 
 This is where Firth comes from. It is named after the [Firth of Forth](https://en.wikipedia.org/wiki/Firth_of_Forth) an estuary on the river Forth in Scotland -- for no other reason than it's a cool-sounding name!
 
+[Back to contents](#contents)
 ## License
 
 Firth is released until the GNU General Public License Version 3. See the `LICENSE` file in the root folder.
 
+[Back to contents](#contents)
 ## Binaries
 
 TODO: Create a folder containing ROM images for various configurations.
 
+[Back to contents](#contents)
 ## Building
 
 Firth can be built using the ASM80 assembler and can be built at the [ASM80](https://www.asm80.com/) site by the following steps:
@@ -82,6 +85,7 @@ Firth can be built using the ASM80 assembler and can be built at the [ASM80](htt
 3. Select the `main.z80` file
 4. Download a .bin format binary by clicking on the "Download BIN" button. There are also buttons for downloading binaries in the .sna and .tap formats.
 
+[Back to contents](#contents)
 ## Emulating
 
 Firth can be emulated online by the following steps:
@@ -111,6 +115,8 @@ You can type Forth commands into it. e.g
 
 You can exit the Forth interpreter by pressing the `Back to IDE` button on the top right corner.
 
+[Back to contents](#contents)
+
 ## Hardware requirements
 
 Firth is design to be run in ROM of a Z80 computer board like the TEC-1. It could also be easily adapted to run on a similar system such as the RC2014 homebrew Z80 single-board computer.
@@ -118,6 +124,7 @@ Firth is design to be run in ROM of a Z80 computer board like the TEC-1. It coul
 To run on a TEC-1 it requires additional hardware. **TODO: details of this additional hardware.** it requires a Motorola 6850 ACIA serial chip mapped to ports `$80` and `$81` (or `0x80` and `0x81`) as per the hardware arrangement designed by Grant Searle for his [7-chip Z80 computer](http://zx80.netai.net/grant/z80/SimpleZ80.html). See the circuit diagram below and note how the 6850 ACIA chip is wired up.
 ![Grant Searle's serial interface](Z80SbcSchematic1.2.gif)
 
+[Back to contents](#contents)
 ## File layout
 
 Here is a listing of Firth's source files with a brief description.
@@ -140,6 +147,7 @@ words.z80               Forth words which written in Forth
 
 You can start by examining `main.z80` which is the root file which includes all the other files.
 
+[Back to contents](#contents)
 ## Why Forth?
 
 Forth as a programming system has many characteristics which set it apart from other programming languages. It would be wrong to simple describe it as a compiled language like C or an interpreted language BASIC. It some sits in the middle between compiler and interpreter. It is its own unique thing with its own execution model.
@@ -154,6 +162,7 @@ There is a cost to this compactness however. Forth is slower than assembly but n
 
 Forth integrates well with assembly language and always offer the developer the ability to drop back down to assembly for performance sensitive sections. Forth does not take the developer far "from the metal" and however it does offer them control and looping structures and a unified approach to parameter passing which are features more normally associated with high-level languages. Forth brings structured programming to low-level programming.
 
+[Back to contents](#contents)
 ## The Z80 instruction set
 ```
 opcode    t-states    explanation
@@ -450,3 +459,4 @@ XOR   (HL)      7 Exclusive OR value at location (HL) and accumulator.
 XOR   (IX+d)   19 Exclusive OR value at location (IX+d) and accumulator.
 XOR   (IY+d)   19 Exclusive OR value at location (IY+d) and accumulator.
 ```
+[Back to contents](#contents)
