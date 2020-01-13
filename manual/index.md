@@ -41,6 +41,7 @@
   - Debugging
 - [Appendices](#Appendices)
   - Z80 instruction set
-  - Hardware requirements
+  - Hardware
   - Utility functions
   - Further reading
+
