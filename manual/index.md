@@ -6,11 +6,13 @@
 * Z80 assembly language
 * Assembler macros
 * Forth architecture
-* Utility functions
-* Primitives
-* Words
+* Firth
+* Forth compiler
 * Dictionary
-* Immediate words
+* Words
+ * Primitives
+ * Composite words
+ * Immediate words
 * Control structures
 * Looping structures
 * Firth environment
@@ -18,3 +20,4 @@
 * Appendices
   * Z80 instructions
   * Hardware requirements
+  * Utility functions
