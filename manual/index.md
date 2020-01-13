@@ -16,5 +16,5 @@
 * Firth environment
 * Debugging in Firth
 * Appendices
-** Z80 instructions
-** Hardware requirements
+  * Z80 instructions
+  * Hardware requirements
