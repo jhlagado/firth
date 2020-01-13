@@ -13,7 +13,7 @@ Firth is a minimal (~4K) implementation of Forth for the Z80.
   - [Hardware requirements](#Hardware-requirements)
   - [File layout](#File-layout)
 - [The Forth architecture](#Forth-architecture)
-  - [Why Forth?](#Why-Forth?)
+  - [Why Forth?](#Why-forth?)
   - Data stack
   - Execution model
   - Forth in Assembly
@@ -48,6 +48,7 @@ Firth is a minimal (~4K) implementation of Forth for the Z80.
   - Further reading
 
 ## Motivation
+
 Back in 1983, I designed a kit with Ken Stone which we called the TEC-1. It was a single-board computer kit which we published in Talking Electronics, a Melbourne-based electronics hobbyist magazine.
 
 The configuration of the TEC-1 was a Z80 CPU with 2K of ROM and 2K of RAM. It also included a hexidecimal keyboard and a 6 digit 7-segment display.
@@ -118,6 +119,7 @@ To run on a TEC-1 it requires additional hardware. **TODO: details of this addit
 ![Grant Searle's serial interface](Z80SbcSchematic1.2.gif)
 
 ## File layout
+
 Here is a listing of Firth's source files with a brief description.
 
 ```
@@ -139,6 +141,7 @@ words.z80               Forth words which written in Forth
 You can start by examining `main.z80` which is the root file which includes all the other files.
 
 ## Why Forth?
+
 Forth as a programming system has many characteristics which set it apart from other programming languages. It would be wrong to simple describe it as a compiled language like C or an interpreted language BASIC. It some sits in the middle between compiler and interpreter. It is its own unique thing with its own execution model.
 
 Forth is often described as a "bottom-up" language as opposed to a "top-down" language more easily associated with "high-level languages. Forth is a series of abstractions that are built up piece by piece from assembly language primitives. Forth can be bootstrapped to run from less than 2K of assembly language. Most of the Forth system is written in Forth itself. Forth is self-hosting.
