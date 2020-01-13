@@ -2,25 +2,49 @@
 
 ## Contents
 * [Introduction](#Introduction)
+    * Background
+    * Motivation
 * [Z80 architecture](#Z80-architecture)
+    * Registers
+    * Stack pointer
+    * Index registers
+    * Alternative registers
+    * Memory addressing
+    * Flags
+    * I/O ports
 * [Z80 assembly language](#Z80-assembly-language)
-* [Assembler macros](#Assembler-macros)
-* [Forth architecture](#Forth-architecture)
+    * Assembler macros
+    * Structured assembler
 * [Firth](Firth)
-* [Forth compiler](#Forth-compiler)
+    * Hardware requirements
+    * Installation
+    * File layout
+* [Forth architecture](#Forth-architecture)
+    * Why Forth?
+    * Data stack
+    * Dictionary
+    * Execution model
 * [Dictionary](#Dictionary)
+    * Headers
+        * Link to previous word
+        * Flags & length
+        * Name
+    * Body
 * [Words](#Words)
-  * [Primitives](#Primitives)
-  * [Composite words](#Composite-words)
-  * [Immediate words](#Immediate-words)
-* [Control structures](#Control-structures)
-* [Looping structures](#Looping-structures)
+  * Primitive words
+  * Composite words
+  * Immediate words
+  * Compilation
+  * Control structures
+  * Looping structures
 * [Firth environment](#Firth-environment)
 * [Debugging in Firth](#Debugging-in-Firth)
 * [Appendices](#Appendices)
-  * [Z80 instructions](#Z80-instructions)
-  * [Hardware requirements](#Hardware-requirements)
-  * [Utility functions](#Utility-functions)
+  * Z80 instruction set
+  * Hardware requirements
+  * Utility functions
+  * Further reading
+  * Credits
 
 ## Introduction
 ## Z80 architecture
