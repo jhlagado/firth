@@ -13,7 +13,7 @@ Firth is a minimal (~4K) implementation of Forth for the Z80.
   - [Hardware requirements](#Hardware-requirements)
   - [File layout](#File-layout)
 - [The Forth architecture](#Forth-architecture)
-  - So why Forth?
+  - [Why Forth?](#Why-Forth?)
   - Data stack
   - Execution model
   - Forth in Assembly
@@ -125,7 +125,7 @@ compiler-macros.z80     macros used to enable Forth control and loop structures 
 constants.z80           most of the constants need by Firth
 dloop-macros.z80        macros used to enable Assembly language looping structures
 macros.z80              macros used to implement repetitive Assembly language elements
-main.z80                the root file of Firth (start here)
+main.z80                the main file of Firth (start here)
 mycomputer.emu          engine configuration file for the asm80 online emulator
 primitives.z80          Forth words which are written in assembly language
 struct-macros.z80       macros used to enable Assembly language control structures
@@ -136,10 +136,17 @@ variables.z80           Memory locations defined in RAM
 words.z80               Forth words which written in Forth
 ```
 
-You can start by examining `main.z80` which includes all the other files. The first line contains the .engine directive
+You can start by examining `main.z80` which is the root file which includes all the other files.
 
-```
-.engine mycomputer
-```
+## Why Forth?
+Forth as a programming system has many characteristics which set it apart from other programming languages. It would be wrong to simple describe it as a compiled language like C or an interpreted language BASIC. It some sits in the middle between compiler and interpreter. It is its own unique thing with its own execution model.
 
+Forth is often described as a "bottom-up" language as opposed to a "top-down" language more easily associated with "high-level languages. Forth is a series of abstractions that are built up piece by piece from assembly language primitives. Forth can be bootstrapped to run from less than 2K of assembly language. Most of the Forth system is written in Forth itself. Forth is self-hosting.
 
+So why Forth? Because Forth can be written from a small amount of assembly language, it becomes a relative simple task to get Forth running on diverse range of CPUs. Forth irons out the quirks and differences between instruction sets and presents the programmer with a much smaller programming surface than assembly langauge does. Forth unifies low level programming tasks.
+
+Forth is lightweight. Even a language designed for systems programming such as C is much more high-level than Forth and adds considerably more overhead in terms of program size, memory size and computational overhead. Forth programs are extremely compact and are often smaller than the same code written in assembly language.
+
+There is a cost to this compactness however. Forth is slower than assembly but not greatly so. Forth is pretty fast and comparable with compiled high-level languages.
+
+Forth integrates well with assembly language and always offer the developer the ability to drop back down to assembly for performance sensitive sections. Forth does not take the developer far "from the metal" and however it does offer them control and looping structures and a unified approach to parameter passing which are features more normally associated with high-level languages. Forth brings structured programming to low-level programming.
