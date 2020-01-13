@@ -5,7 +5,7 @@ TXT_NEWLINE:    .pstr "\r\n"
 TXT_PROMPT:     .pstr "\r\n> "
 StackPrompt:    .pstr "=> "
 
-TXT_INTRO:      .pstr "Firth of Forth Z80\r\n\r\n"
+TXT_INTRO:      .pstr "Firth Z80\r\n\r\n"
 TXT_ERROR:      .pstr "PARSE ERROR: "
 TXT_STACK_UNDERFLOW:
                 .pstr "Error: Stack underflow\r\n"

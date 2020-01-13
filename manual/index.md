@@ -1,4 +1,4 @@
-# Firth of Forth manual
+# Firth manual
 
 Firth is a minimal (~4K) implementation of Forth for the Z80.
 
@@ -108,7 +108,7 @@ This will cause ASM80 to start emulating the computer hardware specified in the 
 The emulator will start up a green screen serial terminal emulation and present you with a prompt
 
 ```
-Firth of Forth Z80
+Firth Z80
 
 >
 ```

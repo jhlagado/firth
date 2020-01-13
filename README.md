@@ -12,8 +12,7 @@ This will cause ASM80 to start emulating the computer hardware specified in the 
 The emulator will start up a green screen serial terminal emulation and present you with a prompt
 
 ```
-Firth of Forth Z80
-by John Hardy (c) 2019
+Firth Z80
 
 >
 ```
