@@ -4,16 +4,19 @@ Firth is a minimal (~4K) implementation of Forth for the Z80.
 
 ## Contents
 
-- [Introduction](#Introduction)
-  - Background
-  - Motivation
+- [Motivation](#Motivation)
 - [Firth](#Firth)
   - [License](#License)
   - [Binaries](#Binaries)
   - [Building](#Building)
   - [Emulating](#emulating)
   - [Hardware requirements](#Hardware-requirements)
-  - File layout
+  - [File layout](#File-layout)
+- [The Forth architecture](#Forth-architecture)
+  - So why Forth?
+  - Data stack
+  - Execution model
+  - Forth in Assembly
 - [Z80 architecture](#Z80-architecture)
   - Registers
   - Stack pointer
@@ -28,11 +31,6 @@ Firth is a minimal (~4K) implementation of Forth for the Z80.
   - Variables
   - Macros
   - Structured assembler
-- [Forth architecture](#Forth-architecture)
-  - Why Forth?
-  - Data stack
-  - Execution model
-  - Forth in Assembly
 - [Dictionary](#Dictionary)
   - Word headers
   - Primitive words
@@ -49,7 +47,7 @@ Firth is a minimal (~4K) implementation of Forth for the Z80.
   - Utility functions
   - Further reading
 
-## Introduction
+## Motivation
 Back in 1983, I designed a kit with Ken Stone which we called the TEC-1. It was a single-board computer kit which we published in Talking Electronics, a Melbourne-based electronics hobbyist magazine.
 
 The configuration of the TEC-1 was a Z80 CPU with 2K of ROM and 2K of RAM. It also included a hexidecimal keyboard and a 6 digit 7-segment display.
@@ -68,7 +66,7 @@ This is where Firth comes from. It is named after the [Firth of Forth](https://e
 
 ## License
 
-`Firth` is released until the GNU General Public License Version 3. See the `LICENSE` file in the root folder.
+Firth is released until the GNU General Public License Version 3. See the `LICENSE` file in the root folder.
 
 ## Binaries
 
@@ -85,7 +83,7 @@ Firth can be built using the ASM80 assembler and can be built at the [ASM80](htt
 
 ## Emulating
 
-`Firth` can be emulated online by the following steps:
+Firth can be emulated online by the following steps:
 
 1. Press the `Import repo from GitHub` button
 2. Paste the following repo name `https://github.com/jhlagado/firth` and click OK
@@ -114,7 +112,34 @@ You can exit the Forth interpreter by pressing the `Back to IDE` button on the t
 
 ## Hardware requirements
 
-`Firth` is design to be run in ROM of a Z80 computer board like the TEC-1. It could also be easily adapted to run on a similar system such as the RC2014 homebrew Z80 single-board computer.
+Firth is design to be run in ROM of a Z80 computer board like the TEC-1. It could also be easily adapted to run on a similar system such as the RC2014 homebrew Z80 single-board computer.
 
-To run on a TEC-1 it requires additional hardware. **TODO: details of this additional hardware.** it requires a Motorola 6850 ACIA serial chip mapped to ports $80 and $81 as per the hardware arrangement designed by Grant Searle for his [7-chip Z80 computer](http://zx80.netai.net/grant/z80/SimpleZ80.html). See the circuit diagram below and note how the 6850 ACIA chip is wired up.
+To run on a TEC-1 it requires additional hardware. **TODO: details of this additional hardware.** it requires a Motorola 6850 ACIA serial chip mapped to ports `$80` and `$81` (or `0x80` and `0x81`) as per the hardware arrangement designed by Grant Searle for his [7-chip Z80 computer](http://zx80.netai.net/grant/z80/SimpleZ80.html). See the circuit diagram below and note how the 6850 ACIA chip is wired up.
 ![Grant Searle's serial interface](Z80SbcSchematic1.2.gif)
+
+## File layout
+Here is a listing of Firth's source files with a brief description.
+
+```
+compiler-macros.z80     macros used to enable Forth control and loop structures in ROM
+constants.z80           most of the constants need by Firth
+dloop-macros.z80        macros used to enable Assembly language looping structures
+macros.z80              macros used to implement repetitive Assembly language elements
+main.z80                the root file of Firth (start here)
+mycomputer.emu          engine configuration file for the asm80 online emulator
+primitives.z80          Forth words which are written in assembly language
+struct-macros.z80       macros used to enable Assembly language control structures
+test-macros.z80         macros used to enable unit tests
+tests.z80               unit tests to test various aspects of the Forth engine
+utilities.z80           Utility subroutines used by
+variables.z80           Memory locations defined in RAM
+words.z80               Forth words which written in Forth
+```
+
+You can start by examining `main.z80` which includes all the other files. The first line contains the .engine directive
+
+```
+.engine mycomputer
+```
+
+
