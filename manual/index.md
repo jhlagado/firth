@@ -10,9 +10,9 @@
 * Forth compiler
 * Dictionary
 * Words
- * Primitives
- * Composite words
- * Immediate words
+  * Primitives
+  * Composite words
+  * Immediate words
 * Control structures
 * Looping structures
 * Firth environment
