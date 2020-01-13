@@ -13,7 +13,7 @@ Firth is a minimal (~4K) implementation of Forth for the Z80.
   - [Hardware requirements](#Hardware-requirements)
   - [File layout](#File-layout)
 - [The Forth architecture](#Forth-architecture)
-  - [Why Forth?](#Why-forth?)
+  - [Why Forth?](#Why-forth)
   - Data stack
   - Execution model
   - Forth in Assembly
