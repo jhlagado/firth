@@ -38,7 +38,7 @@
   - Control structures
   - Looping structures
 - [Firth environment](#Firth-environment)
-- [Debugging in Firth](#Debugging-in-Firth)
+  - Debugging
 - [Appendices](#Appendices)
   - Z80 instruction set
   - Hardware requirements
