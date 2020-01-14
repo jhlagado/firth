@@ -173,15 +173,19 @@ There is a cost to this compactness however. Forth is usually slower than assemb
 
 Forth integrates well with assembly language and offers the developer the ability to drop back down to assembly for performance sensitive sections of code. Forth never takes the developer far "from the metal". It does however offer them structured flow control and a unified approach to parameter passing which are features more normally associated with high-level languages. Forth brings structured programming to low-level programming.
 
+### Data stack
+
+[Back to contents](#contents)
+
 ### Execution model
 
 In Forth, subroutines are called "words". A word is a piece of reusable code which can be called with parameters, executes and then returns with one or more results. Forth doesn't assume that the user of a word knows where it is located, instead, the word is looked up in a data structure known as the "Dictionary".
 
-The Dictionary is a singly linked list which starts at the most recently defined word. Each word in the dictionary has a header record in the form:
+The dictionary is a singly linked list which starts at the most recently defined word. Each word in the dictionary has a header record in the form:
 
-| previous word  | flags & name length | name          | body |
-| -------------- | ------------------- | ------------- | ---- |
-| 16 bit pointer | byte                | array of char | code |
+| previous word | flags & name length | name   | body   |
+| ------------- | ------------------- | ------ | ------ |
+| 2 bytes       | 1 byte              | char[] | byte[] |
 
 The word header starts with a pointer to the previous word in the dictionary followed by a byte which contains some boolean flags in the upper bits
 
@@ -194,11 +198,135 @@ The lower 6 bits of this byte are used to store the length of the word's name. t
 
 After this byte comes an array chars for storing the name and finally the body of the word which consists of either machine code or a sequence of other Forth words.
 
-The process of looking up a word consists of starting with the latest word (which is pointed to by the global variable LATEST) and working backwards through the list, jumping from word to word comparing the name until a match is found. If the previous word pointer is null then the search terminates.
+The process of looking up a word consists of starting with the latest word (which is pointed to by a global variable in Firth called LATEST) and working backwards through the list, jumping from word to word comparing the name until a match is found. If the previous word pointer is null then the search terminates.
+
+When a word is found, it can be executed by moving to the first address after the header which is conventionally called the "Code Field Address" or "CFA" but which I'll just call the body. To convert from word address to the start of the body, simply add the size of the header to the address:
+
+```
+body_address = word_address + 2 + 1 + name_length
+```
+
+The body can contain conventional Z80 machine code but the thing that makes Forth much more powerful is its ability to compose Forth words out of other Forth words. We'll return to the structure of a word's body shortly.
 
 [Back to contents](#contents)
 
-### Data stack
+### Defining words
+
+Words are added to the dictionary dynamically over the course of time. A user can type into a terminal a command of the following structure:
+
+```
+: word_name word1 word2 word3 ... wordn ;
+```
+
+for example, a word that doubles the value on the stack could defined like this
+Firth will parse the command, define the word, compile its body and add it to the dictionary. If a word of the same name is already in the dictionary, the new word will replace the old one in future definitions. The older definition will continue to be used by older definitions.
+
+### Firth words
+
+```
+latest
+base
+sp0
+state
+intp_stop
+here
+pad
+.s
+cr
+variable
+constant
+;
+:
+repeat
+while
+begin
+then
+else
+if
+mod
+/
+/mod
+_
+abs
+negate
+allot
+count
+>cfa
+interpz
+interp
+quit
+msk_length
+msk_hidden
+msk_immed
+r0
+version
+interp
+type
+.
+key?
+emit
+key
+accept
+immediate
+create
+'
+r>
+over
+drop
+>r
+-rot
+rot
+swap
+dup
+rshift
+false
+xor
+or
+>
+<
+=
+lshift
+true
+invert
+and
+0=
+2/
+u/mod
+-
+2_
++
+chars
+char+
+c@
+c
+c!
+cells
+cell+
+@
+,
+!
+sp!
+sp@
+rsp!
+0<
+u*
+lit
+branch
+0branch
+noop
+2+
+1+
+hidden
+]
+[
++!
+token
+print
+number
+execute
+find
+words
+```
 
 [Back to contents](#contents)
 
