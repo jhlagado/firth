@@ -231,6 +231,7 @@ Output:
 ```
 8
 ```
+
 Forth uses a stack and reverse Polish notation to radically simply its syntax. When the Forth parser encounters a literal number it pushes it on the stack. When it comes across the anything else it assumes it's an operation to be performed. These operations are called words and they command Forth to do things.
 
 For example, when Forth encounters the word `+` it calls Forth's addition subroutine. When it encounters the word `*` it calls the multiply subroutine. The word `.` means print the item left on the stack.
@@ -241,26 +242,26 @@ For example, when Forth encounters the word `+` it calls Forth's addition subrou
 
 A word is a piece of reusable code which can be called with parameters which are pushed onto the stack, executes and then returns one or more results on the stack. Forth doesn't assume that the user of a word knows where it is located in memory, instead, the word is looked up in a data structure known as the "dictionary".
 
-The dictionary is a singly linked list which starts at the most recently defined word. Each word in the dictionary has a header record in the form:
+The dictionary is a singly linked list which starts at the most recently defined word. Each word in the dictionary has a header record of the form:
 
 | previous word | flags & name length | name   | body   |
 | ------------- | ------------------- | ------ | ------ |
 | 2 bytes       | 1 byte              | char[] | byte[] |
 
-The word header starts with a pointer to the previous word in the dictionary followed by a byte which contains some boolean flags in the upper bits
+The header starts with a pointer to the previous word in the dictionary and is followed by a byte which contains some boolean flags in its upper bits:
 
 - bit 7 - Immediate flag
 - bit 6 - Hidden flag
 
-The Immediate flag marks this word as one that will execute immediately rather than being compiled for later use. The hidden flag marks this word as being invisible to searches. Words are marked hidden while they are still being compiled and therefore incomplete.
+The Immediate flag marks this word as one that will execute immediately rather than being compiled for later use. The Hidden flag marks this word as being invisible to searches. This is usually done to indicate that the word has not yet been completely defined and is probably in the processs of being parsed and compiled.
 
 The lower 6 bits of this byte are used to store the length of the word's name. this means that the maxiumum length of a word is limited to 63 ASCII characters.
 
-After this byte comes an array chars for storing the name and finally the body of the word which consists of either machine code or a sequence of other Forth words.
+After this byte comes an array chars which store the actual name and finally the body of the word which consists of either a subroutine written in machine code or is a sequence of other Forth words.
 
-The process of looking up a word consists of starting with the latest word (which is pointed to by a global variable in Firth called LATEST) and working backwards through the list, jumping from word to word comparing the name until a match is found. If the previous word pointer is null then the search terminates.
+The process of looking up a word consists of starting with the latest word (which is pointed to by a global variable in Firth called LATEST) and working backwards through the list, jumping from word to word comparing the name of the word with what we are looking for until a match is found. If the dictionary cannot provide a match then Forth will finally encounter a pointer with a value of 0 and the search terminates.
 
-When a word is found, it can be executed by moving to the first address after the header which is conventionally called the "Code Field Address" or "CFA" but which I'll just call the body. To convert from word address to the start of the body, simply add the size of the header to the address:
+When a word is found, it can be executed by locating the first address after the header which is conventionally called the "Code Field Address" or "CFA" but which I'll just call the body. To convert from word address to the start of the body, simply add the size of the header to the address:
 
 ```
 body_address = word_address + 2 + 1 + name_length
@@ -275,11 +276,41 @@ The body can contain conventional Z80 machine code but the thing that makes Fort
 Words are added to the dictionary dynamically over the course of time. A user can type into a terminal a command of the following structure:
 
 ```
-: word_name word1 word2 word3 ... wordn ;
+: word_name word1 word2 ... wordn ;
 ```
 
 for example, a word that doubles the value on the stack could defined like this
-Firth will parse the command, define the word, compile its body and add it to the dictionary. If a word of the same name is already in the dictionary, the new word will replace the old one in future definitions. The older definition will continue to be used by older definitions.
+
+```
+: double dup + ;
+```
+
+When Forth see the `:` word it goes into word definition mode and stays there until it encounters a `;`. It then reads the next word from the input i.e "double" and treats it as the name of the new word. At this point it:
+
+- creates a new header for this word
+- adds this header to the dictionary
+- marks the word as "hidden"
+- enters "compile" mode
+
+In "compile" mode, Forth reads each word from the input and compiles it to the word being defined. Compiled words don't execute right away but will only do so when the defined word gets called. Some words do not work this way and always execute when they are encountered, these are called "Immediate" words and will be discussed later.
+
+To complete the word, when Forth encounters the word `;` it jumps out of compile mode and marks the word as unhidden and available in the dictionary. Now when Forth sees this in the input:
+
+```
+3 double .
+```
+
+It pushes 3 on the stack and looks up `double`. When it finds it in the dictionary it executes the words body which contains the words `dup` and `+`. `dup` is a built in Forth word which means duplicate the item on the top of the stack. So now the stack has two number 3s. Next Forth executes the `+` and adds the two numbers on the stack and replaces them with the sum i.e. 6
+
+Then the `double` word ends and Forth executes `.` which means print the top of the stack.
+
+Output:
+
+```
+6
+```
+
+In summary: Forth will parse the command, define the word, compile its body and add it to the dictionary. If a word of the same name is already in the dictionary, the new word will replace the old one in future definitions. The older definition will continue to be used by older definitions.
 
 ### Firth words
 
