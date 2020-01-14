@@ -14,8 +14,8 @@ Firth is a minimal (~4K) implementation of Forth for the Z80.
   - [File layout](#File-layout)
 - [The Forth architecture](#Forth-architecture)
   - [Why Forth?](#Why-forth)
-  - Data stack
   - Execution model
+  - Data stack
   - Forth in Assembly
 - [The Z80 architecture](#The-Z80-architecture)
   - Registers
@@ -25,7 +25,7 @@ Firth is a minimal (~4K) implementation of Forth for the Z80.
   - Memory addressing
   - Flags
   - I/O ports
-- [Z80 assembly language](#Z80-assembly-language)
+- [Z80 Assembly language](#Z80-assembly-language)
   - Asm80
   - Directives
   - Variables
@@ -51,25 +51,23 @@ Firth is a minimal (~4K) implementation of Forth for the Z80.
 
 ## Motivation
 
-Back in 1983, I designed a kit with Ken Stone which we called the TEC-1. It was a single-board computer kit which we published in Talking Electronics, a Melbourne-based electronics hobbyist magazine.
+Back in 1983, I designed a computer kit with my friend Ken Stone which we called the TEC-1. It was a single-board computer kit which we published in Talking Electronics, a Melbourne-based electronics hobbyist magazine.
 
 The configuration of the TEC-1 was a Z80 CPU with 2K of ROM and 2K of RAM. It also included a hexidecimal keyboard and a 6 digit 7-segment display.
 
-The kit was very successful and was released at a critical time in computer history. A few thousand TEC-1 kits were sold as we learned over the years from people who remember the kit, it introduced a great many people to computing for the first time.
+The kit was quite successful and was released at a critical time in Australian computer history. A few thousand TEC-1 kits were sold and, as we learned over the years from people who remember the kit, it introduced many people to computing and programming for the very first time.
 
-The kit continues on to this day with other people creating TEC-1 boards and new TEC-1s continue to be built by hobbyists to this day. If they install the version 1 montitor ROM then they are greeted with a 37-year-old message from me:
+The kit continues on to this day with other people creating TEC-1 boards and new TEC-1s continue to be built by hobbyists. If they install the version 1 monitor ROM thta came with the original kit they are greeted with a 37-year-old message from me:
 
-`hello there this is the tec-1...designed by john hardy for TE!`
+`hello there this is the tec-1 ... designed by john hardy for TE!`
 
-Looking back, I'm really happy that the TEC-1 lives on however I do have one regret. That the TEC-1 was so damned hard to program! In its original form, the TEC-1 offered very little to a beginner programmer. All code need to be hand assembled and fed in via the hexadecimal keyboard. I always wanted to provide the TEC-1 one with a proper programming environment.
+Looking back, I'm really happy that the TEC-1 continues to live. I do have one regret however: that the TEC-1 was so damned hard to program! In its original form, the TEC-1 offered very little to a programmer. All code needs to be hand assembled and fed in via the hexadecimal keyboard. I always wanted to provide the TEC-1 one with a proper programming environment.
 
-After considering and rejecting building a BASIC interpreter for the TEC-1 I decided to persue another longtime interest (which also dated from that era). I decided that what the TEC-1 needed was a self-hosted programming based on Chuck Moore's Forth language.
+After looking into augmenting the TEC-1 circuit with a proper serial inmterface I then went to consider before rejecting adding a BASIC interpreter to the TEC-1. Instead I decided to pursue another longtime interest of mine (which also dates from that era), I decided that what the TEC-1 needed was a self-hosted programming system based on Charles Moore's Forth language.
 
-This is where Firth comes from. It is named after the [Firth of Forth](https://en.wikipedia.org/wiki/Firth_of_Forth) an estuary on the river Forth in Scotland -- for no other reason than it's a cool-sounding name!
+This is where Firth comes from. "Firth" is named after the [Firth of Forth](https://en.wikipedia.org/wiki/Firth_of_Forth) an estuary on the river Forth in Scotland -- for no other reason than it's a cool-sounding name although it could also be because this is my "first Forth".
 
 ## Firth
-
-[Back to contents](#contents)
 
 ### License
 
@@ -127,9 +125,9 @@ You can exit the Forth interpreter by pressing the `Back to IDE` button on the t
 
 ### Hardware requirements
 
-Firth is design to be run in ROM of a Z80 computer board like the TEC-1. It could also be easily adapted to run on a similar system such as the RC2014 homebrew Z80 single-board computer.
+Firth is design to be run in ROM of a Z80 computer board like the TEC-1. It could also be easily adapted to run on similar systems such as [Grant Searle's 7-chip Z80 computer](http://zx80.netai.net/grant/z80/SimpleZ80.html) and the [RC2014 Z80 single-board computer](https://rc2014.co.uk/).
 
-To run on a TEC-1 it requires additional hardware. **TODO: details of this additional hardware.** it requires a Motorola 6850 ACIA serial chip mapped to ports `$80` and `$81` (or `0x80` and `0x81`) as per the hardware arrangement designed by Grant Searle for his [7-chip Z80 computer](http://zx80.netai.net/grant/z80/SimpleZ80.html). See the circuit diagram below and note how the 6850 ACIA chip is wired up.
+To run Firth on a TEC-1 it some requires additional hardware to expand the memory and run the serial interface. **TODO: details of this additional hardware.** Firth is designed to run using a Motorola 6850 ACIA serial chip mapped to ports `$80` and `$81` (or `0x80` and `0x81`) as per the hardware arrangement designed by Grant Searle. See the circuit diagram below and note how the 6850 ACIA chip is wired up.
 ![Grant Searle's serial interface](Z80SbcSchematic1.2.gif)
 
 [Back to contents](#contents)
@@ -162,21 +160,27 @@ You can start by examining `main.z80` which is the root file which includes all 
 
 ### Why Forth?
 
-Forth as a programming system has many characteristics which set it apart from other programming languages. It would be wrong to simple describe it as a compiled language like C or an interpreted language BASIC. It some sits in the middle between compiler and interpreter. It is its own unique thing with its own execution model.
+Forth as a programming system has many characteristics which set it apart from other programming languages. It would be wrong to simply describe it as a language compiler like C or an interpreter as with traditional BASIC. It sits in the middle between compiler and interpreter and is its own unique thing with its own execution model.
 
-Forth is often described as a "bottom-up" language as opposed to a "top-down" language more easily associated with "high-level languages. Forth is a series of abstractions that are built up piece by piece from assembly language primitives. Forth can be bootstrapped to run from less than 2K of assembly language. Most of the Forth system is written in Forth itself. Forth is self-hosting.
+Forth has been described as a "bottom-up" language because it builds up directly from a small number of assembly language primitives without imposing a significant number of abstractions. Forth can be bootstrapped to run from less than 2K of assembly language. Most of the Forth system is written in Forth itself.
 
-So why Forth? Because Forth can be written from a small amount of assembly language, it becomes a relative simple task to get Forth running on diverse range of CPUs. Forth irons out the quirks and differences between instruction sets and presents the programmer with a much smaller programming surface than assembly langauge does. Forth unifies low level programming tasks.
+Forth is self-hosting which means that it is possible to write and edit code within the Forth system itself as opposed to targeting it from another system. Forth's abstraction is easy to understand, simplifies the process of writing for the CPU and, unlike conventional compiler languages, imposes very in the way of system overhead.
 
-Forth is lightweight. Even a language designed for systems programming such as C is much more high-level than Forth and adds considerably more overhead in terms of program size, memory size and computational overhead. Forth programs are extremely compact and are often smaller than the same code written in assembly language.
+So why Forth? Because Forth can be written from a low base of assembly language it becomes a relative simple task to get Forth running on diverse range of CPUs. Fort is very portable. Forth irons out the quirks and differences between instruction sets and presents the developer with a much smaller programming surface than assembly language does. Forth unifies many low level programming tasks.
 
-There is a cost to this compactness however. Forth is slower than assembly but not greatly so. Forth is pretty fast and comparable with compiled high-level languages.
+Forth is lightweight. Even a language designed for systems programming such as C is much more "high-level" than Forth and adds considerably more overhead in terms of program size, memory size and computational overhead. Forth programs are extremely compact and are often smaller than the same code written in assembly language.
 
-Forth integrates well with assembly language and always offer the developer the ability to drop back down to assembly for performance sensitive sections. Forth does not take the developer far "from the metal" and however it does offer them control and looping structures and a unified approach to parameter passing which are features more normally associated with high-level languages. Forth brings structured programming to low-level programming.
+There is a cost to this compactness however. Forth is usually slower than assembly but not greatly so. Forth is pretty fast and comparable with compiled high-level languages. On some CPUs, Forth can be as efficient as machine code itself. This is not the case with 8-bit CPUs however but Forth does still significantly improve the productivity of programmers who target the Z80.
+
+Forth integrates well with assembly language and offers the developer the ability to drop back down to assembly for performance sensitive sections of code. Forth never takes the developer far "from the metal". It does however offer them structured flow control and a unified approach to parameter passing which are features more normally associated with high-level languages. Forth brings structured programming to low-level programming.
+
+### Execution model
+
+[Back to contents](#contents)
 
 ### Data stack
 
-### Execution model
+[Back to contents](#contents)
 
 ### Forth in Assembly
 
@@ -184,23 +188,37 @@ Forth integrates well with assembly language and always offer the developer the 
 
 ## The Z80 architecture
 
+[Back to contents](#contents)
+
 ### Registers
+
+[Back to contents](#contents)
 
 ### Stack pointer
 
+[Back to contents](#contents)
+
 ### Index registers
+
+[Back to contents](#contents)
 
 ### Alternative registers
 
+[Back to contents](#contents)
+
 ### Memory addressing
 
+[Back to contents](#contents)
+
 ### Flags
+
+[Back to contents](#contents)
 
 ### I/O ports
 
 [Back to contents](#contents)
 
-## Z80 assembly language
+## Z80 Assembly language
 
 ### Asm80
 
