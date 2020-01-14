@@ -17,7 +17,6 @@ Firth is a minimal (~4K) implementation of Forth for the Z80.
   - [Data stack](#Data-stack)
   - [Execution model](#Execution-model)
   - [Defining words](#Defining-words)
-- [Compilation](#Compilation)
   - Immediate words
   - Control structures
   - Looping structures
@@ -312,8 +311,6 @@ Output:
 ```
 
 In summary, Forth will parse the command, define the word, compile its body and add it to the dictionary. If a word of the same name is already in the dictionary, the new word will replace the old one in future definitions. The older definition will continue to be used by older definitions.
-
-## Compilation
 
 ### Immediate words
 
