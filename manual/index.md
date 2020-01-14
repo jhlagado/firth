@@ -175,6 +175,27 @@ Forth integrates well with assembly language and offers the developer the abilit
 
 ### Execution model
 
+In Forth, subroutines are called "words". A word is a piece of reusable code which can be called with parameters, executes and then returns with one or more results. Forth doesn't assume that the user of a word knows where it is located, instead, the word is looked up in a data structure known as the "Dictionary".
+
+The Dictionary is a singly linked list which starts at the most recently defined word. Each word in the dictionary has a header record in the form:
+
+| previous word  | flags & name length | name          | body |
+| -------------- | ------------------- | ------------- | ---- |
+| 16 bit pointer | byte                | array of char | code |
+
+The word header starts with a pointer to the previous word in the dictionary followed by a byte which contains some boolean flags in the upper bits
+
+- bit 7 - Immediate flag
+- bit 6 - Hidden flag
+
+The Immediate flag marks this word as one that will execute immediately rather than being compiled for later use. The hidden flag marks this word as being invisible to searches. Words are marked hidden while they are still being compiled and therefore incomplete.
+
+The lower 6 bits of this byte are used to store the length of the word's name. this means that the maxiumum length of a word is limited to 63 ASCII characters.
+
+After this byte comes an array chars for storing the name and finally the body of the word which consists of either machine code or a sequence of other Forth words.
+
+The process of looking up a word consists of starting with the latest word (which is pointed to by the global variable LATEST) and working backwards through the list, jumping from word to word comparing the name until a match is found. If the previous word pointer is null then the search terminates.
+
 [Back to contents](#contents)
 
 ### Data stack

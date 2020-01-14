@@ -24,8 +24,8 @@ IO_DATA         equ     $81
 IO_CTRL         equ     $80
 
 MSK_IMMED       equ     $80
-MSK_HIDDEN      equ     $20
-MSK_LENGTH      equ     $1f                    ; length mask
+MSK_HIDDEN      equ     $40
+MSK_LENGTH      equ     $3f                    ; length mask
 
 JP_OPCODE       equ     $C3
 CALL_OPCODE     equ     $CD
