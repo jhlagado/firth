@@ -17,6 +17,7 @@ Firth is a minimal (~4K) implementation of Forth for the Z80.
   - [Data stack](#Data-stack)
   - [Execution model](#Execution-model)
   - [Defining words](#Defining-words)
+  - [Common words](#Common-words)
   - [Compilation](#Compilation)
   - Immediate words
   - Control structures
@@ -313,13 +314,19 @@ Output:
 
 In summary, Forth will parse the command, create the header using the name passed, hide it from the dictopnary, go into compile mode, compile its body, exit compile mode and show it in the dictionary. NOTE: If a word with the same name is already in the dictionary, the new word will replace the old one for future definitions. The older definition will continue to be used by older definitions.
 
+### Common words
+
+[Back to contents](#contents)
+
 ### Compilation
 
 Forth has two modes, "interpret" and "compile". When in interpret mode, the system parses the input and when it comes across a literal value i.e. number it immediately pushes it on the stack. When it comes across a word, it looks it up in the dictionary and, if it finds it, it immediately executes it. Otherwise it will signal an error to the user.
 
 Sometimes a command will put Forth into compile mode which behaves differently. The purpose of compile mode in to define new words. Usually in compile mode, Forth will be defining a new word, it will have already created a new header in memory and linked it to the dictionary and be ready to fill in its body. Now when Forth accepts input it will write this parsed content into the body of the new word.
 
-The structure of thee body.....
+The structure of the body.....
+
+[Back to contents](#contents)
 
 ### Immediate words
 
