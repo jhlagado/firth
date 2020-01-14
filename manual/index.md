@@ -44,10 +44,9 @@ Firth is a minimal (~4K) implementation of Forth for the Z80.
   - Listing words
   - Debugging
 - [Appendices](#Appendices)
-  - [The Z80 instruction set](#The-Z80-instruction-set)
-  - Hardware
-  - Utility functions
-  - Further reading
+  - I. [The Z80 instruction set](#The-Z80-instruction-set)
+  - II. Utility functions
+  - III. Further reading
 
 ## Motivation
 
@@ -280,7 +279,7 @@ Forth integrates well with assembly language and offers the developer the abilit
 
 ## Appendices
 
-### The Z80 instruction set
+### I. The Z80 instruction set
 
 ```
 opcode    t-states    explanation
@@ -577,5 +576,13 @@ XOR   (HL)      7 Exclusive OR value at location (HL) and accumulator.
 XOR   (IX+d)   19 Exclusive OR value at location (IX+d) and accumulator.
 XOR   (IY+d)   19 Exclusive OR value at location (IY+d) and accumulator.
 ```
+
+[Back to contents](#contents)
+
+### II. Utility functions
+
+[Back to contents](#contents)
+
+### III. Further reading
 
 [Back to contents](#contents)
