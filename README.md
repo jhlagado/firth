@@ -14,9 +14,10 @@ Firth is a minimal (~4K) implementation of Forth for the Z80.
   - [File layout](#File-layout)
 - [The Forth architecture](#Forth-architecture)
   - [Why Forth?](#Why-forth)
-  - Execution model
-  - Data stack
-  - Forth in Assembly
+  - [Data stack](#Data-stack)
+  - [Execution model](#Execution-model)
+  - [Defining words](#Defining-words)
+- [Forth in Z80 Assembly](#Forth-in-Z80-Assembly)
 - [The Z80 architecture](#The-Z80-architecture)
   - Registers
   - Stack pointer
@@ -44,9 +45,10 @@ Firth is a minimal (~4K) implementation of Forth for the Z80.
   - Listing words
   - Debugging
 - [Appendices](#Appendices)
-  - I. [The Z80 instruction set](#The-Z80-instruction-set)
-  - II. Utility functions
-  - III. Further reading
+  - [The Z80 instruction set](#The-Z80-instruction-set)
+  - [Utility functions](#Utility-functions)
+  - [Further reading](#Further-reading)
+  - [Running unit tests](#Running-unit-tests)
 
 ## Motivation
 
@@ -124,7 +126,7 @@ You can exit the Forth interpreter by pressing the `Back to IDE` button on the t
 
 ### Hardware requirements
 
-Firth is design to be run in ROM of a Z80 computer board like the TEC-1. It could also be easily adapted to run on similar systems such as [Grant Searle's 7-chip Z80 computer](http://zx80.netai.net/grant/z80/SimpleZ80.html) and the [RC2014 Z80 single-board computer](https://rc2014.co.uk/).
+Firth is designed to be run in ROM of a Z80 computer board like the TEC-1. It could also be easily adapted to run on similar systems such as [Grant Searle's 7-chip Z80 computer](http://zx80.netai.net/grant/z80/SimpleZ80.html) and the [RC2014 Z80 single-board computer](https://rc2014.co.uk/).
 
 To run Firth on a TEC-1 it some requires additional hardware to expand the memory and run the serial interface. **TODO: details of this additional hardware.** Firth is designed to run using a Motorola 6850 ACIA serial chip mapped to ports `$80` and `$81` (or `0x80` and `0x81`) as per the hardware arrangement designed by Grant Searle. See the circuit diagram below and note how the 6850 ACIA chip is wired up.
 ![Grant Searle's serial interface](searle.gif)
@@ -193,7 +195,7 @@ The `.` command pops the last item off the stack and prints it. Therefore to pri
 1 2 3 . . .
 ```
 
-Remember to use spaces between. Firth with responds with the following output:
+Remember to use spaces between. Forth with responds with the following output:
 
 ```
 3 2 1
@@ -259,7 +261,7 @@ The lower 6 bits of this byte are used to store the length of the word's name. t
 
 After this byte comes an array chars which store the actual name and finally the body of the word which consists of either a subroutine written in machine code or is a sequence of other Forth words.
 
-The process of looking up a word consists of starting with the latest word (which is pointed to by a global variable in Firth called LATEST) and working backwards through the list, jumping from word to word comparing the name of the word with what we are looking for until a match is found. If the dictionary cannot provide a match then Forth will finally encounter a pointer with a value of 0 and the search terminates.
+The process of looking up a word consists of starting with the latest word (which in Firth is pointed to by a global variable called LATEST) and working backwards through the list, jumping from word to word comparing the name of the word with what we are looking for until a match is found. If the dictionary cannot provide a match then Forth will finally encounter a pointer with a value of 0 and the search terminates.
 
 When a word is found, it can be executed by locating the first address after the header which is conventionally called the "Code Field Address" or "CFA" but which I'll just call the body. To convert from word address to the start of the body, simply add the size of the header to the address:
 
@@ -267,7 +269,7 @@ When a word is found, it can be executed by locating the first address after the
 body_address = word_address + 2 + 1 + name_length
 ```
 
-The body can contain conventional Z80 machine code but the thing that makes Forth much more powerful is its ability to compose Forth words out of other Forth words. We'll return to the structure of a word's body shortly.
+The body can contain conventional Z80 machine code but the thing that makes Forth much more powerful is its ability to compose Forth words out of other Forth words.
 
 [Back to contents](#contents)
 
@@ -310,7 +312,7 @@ Output:
 6
 ```
 
-In summary: Forth will parse the command, define the word, compile its body and add it to the dictionary. If a word of the same name is already in the dictionary, the new word will replace the old one in future definitions. The older definition will continue to be used by older definitions.
+In summary, Forth will parse the command, define the word, compile its body and add it to the dictionary. If a word of the same name is already in the dictionary, the new word will replace the old one in future definitions. The older definition will continue to be used by older definitions.
 
 ### Firth words
 
@@ -419,7 +421,7 @@ xor
 
 [Back to contents](#contents)
 
-### Forth in Assembly
+## Forth in Z80 Assembly
 
 [Back to contents](#contents)
 
@@ -517,7 +519,7 @@ xor
 
 ## Appendices
 
-### I. The Z80 instruction set
+### The Z80 instruction set
 
 ```
 opcode    t-states    explanation
@@ -817,42 +819,15 @@ XOR   (IY+d)   19 Exclusive OR value at location (IY+d) and accumulator.
 
 [Back to contents](#contents)
 
-### II. Utility functions
+### Utility functions
 
 [Back to contents](#contents)
 
-### III. Further reading
+### Further reading
 
 [Back to contents](#contents)
 
-Firth is a minimal (~4K) implementation of Forth for the Z80.
-
-It uses the ASM80 assembler and can be emulated at the [ASM80](https://www.asm80.com/) site by the following steps:
-
-1. Press the `Import repo from GitHub` button
-2. Paste the following repo name `https://github.com/jhlagado/firth` and click OK
-3. Select the `main.z80` file
-4. Press the `Emulator [F10]` button
-
-This will cause ASM80 to start emulating the computer hardware specified in the mycomputer.emu file which includes a Z80 CPU and a Motorola 6850 serial chip mapped to ports $80 and $81.
-
-The emulator will start up a green screen serial terminal emulation and present you with a prompt
-
-```
-Firth Z80
-
->
-```
-
-You can type Forth commands into it. e.g
-
-```
-> 1 2 3 * + .
-
-7
-```
-
-You can exit the Forth interpreter by pressing the `Back to IDE` button on the top right corner.
+### Running unit tests
 
 You can run the unit tests which exercise all the important functions of the Forth interpreter by setting line 3 to:
 
@@ -867,3 +842,5 @@ I you are interesting in seeing how the code executes, ASM80 gives you the abili
 ```
 
 This turns off the emulator and shows you the internal state of the CPU. Step through code by pressing `Single step(F8)` and `Step over (F7)`.
+
+[Back to contents](#contents)
