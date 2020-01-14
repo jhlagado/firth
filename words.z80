@@ -26,52 +26,6 @@ defword "interpret",6,0,INTERPRET
     _enddo
     ret
 
-defword "interpz",7,0,interpz
-    call FORTH
-    DW TOKEN                        ; ( -- ptr len)
-    DW DUP, ZEQUAL
-    cIf
-                                    ; INTP_STOPPING:
-        DW DROP, DROP                   ; (ptr len -- )
-        DW LIT, 1
-        DW LIT, VAR_INTP_STOP, STORE    ; VAR_INTP_STOP = 1
-        DW EXIT
-    cEndIf
-    DW OVER, OVER, FIND             ; ( ptr len -- ptr len headPtrOrZero )
-    DW DUP
-    cIf
-        DW SWAP, DROP, SWAP, DROP       ; ( ptr len headPtr -- headPtr ) found
-
-        DW DUP, LIT, 2, PLUS, CFETCH    ; ( headPtr -- headPtr flags ) add 2 to headPtr
-        DW LIT, MSK_IMMED, AND          ; ( headPtr flags -- headPtr immedFlag )
-        DW ZEQUAL
-        cIf
-            DW LIT, VAR_STATE, FETCH        ; (headPtr -- headPtr state), if state = 1 compile
-            cIf
-                DW TCFA, COMMA                  ; compile headPtr
-                DW EXIT
-            cEndIf
-        cEndIf
-        DW TCFA, EXECUTE                ; execute headPtr
-        DW EXIT
-    cEndIf
-    DW DROP                         ; ( ptr len zero -- ptr len ), not found
-
-    DW NUMBER                       ; ( ptr len -- val err )
-    cIf
-        DW DROP                         ; ( ptr len zero -- ptr len ), not found
-        DW LIT, TXT_ERROR               ; err != 0, parse error
-        DW PRINT
-        DW EXIT
-    cEndIf
-    DW LIT, VAR_STATE, FETCH        ; (val -- val state)
-    cIf
-        DW LIT, LIT                     ; (val -- val "LIT" )
-        DW COMMA, COMMA                 ; compile "LIT" val
-    cEndIf
-    DW EXIT
-    ret
-
 defword ">cfa",4,0,TCFA
     call FORTH
     DW LIT, 2, PLUS
