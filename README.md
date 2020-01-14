@@ -17,7 +17,17 @@ Firth is a minimal (~4K) implementation of Forth for the Z80.
   - [Data stack](#Data-stack)
   - [Execution model](#Execution-model)
   - [Defining words](#Defining-words)
+- [Compilation](#Compilation)
+  - Immediate words
+  - Control structures
+  - Looping structures
+- [Firth environment](#Firth-environment)
+  - Vocabularies
+  - Listing words
+  - Debugging
 - [Forth in Z80 Assembly](#Forth-in-Z80-Assembly)
+  - Primitive words
+  - Composite words
 - [The Z80 architecture](#The-Z80-architecture)
   - Registers
   - Stack pointer
@@ -32,19 +42,8 @@ Firth is a minimal (~4K) implementation of Forth for the Z80.
   - Variables
   - Macros
   - Structured assembler
-- [Dictionary](#Dictionary)
-  - Word headers
-  - Primitive words
-  - Composite words
-  - Immediate words
-- [Compilation](#Compilation)
-  - Control structures
-  - Looping structures
-- [Firth environment](#Firth-environment)
-  - Vocabularies
-  - Listing words
-  - Debugging
 - [Appendices](#Appendices)
+  - [Firth words](#Firth-words)
   - [The Z80 instruction set](#The-Z80-instruction-set)
   - [Utility functions](#Utility-functions)
   - [Further reading](#Further-reading)
@@ -314,6 +313,101 @@ Output:
 
 In summary, Forth will parse the command, define the word, compile its body and add it to the dictionary. If a word of the same name is already in the dictionary, the new word will replace the old one in future definitions. The older definition will continue to be used by older definitions.
 
+## Compilation
+
+### Immediate words
+
+[Back to contents](#contents)
+
+### Control structures
+
+[Back to contents](#contents)
+
+### Looping structures
+
+[Back to contents](#contents)
+
+## Firth environment
+
+### Vocabularies
+
+[Back to contents](#contents)
+
+### Listing words
+
+[Back to contents](#contents)
+
+### Debugging
+
+[Back to contents](#contents)
+
+## Forth in Z80 Assembly
+
+### Primitive words
+
+[Back to contents](#contents)
+
+### Composite words
+
+[Back to contents](#contents)
+
+
+## The Z80 architecture
+
+[Back to contents](#contents)
+
+### Registers
+
+[Back to contents](#contents)
+
+### Stack pointer
+
+[Back to contents](#contents)
+
+### Index registers
+
+[Back to contents](#contents)
+
+### Alternative registers
+
+[Back to contents](#contents)
+
+### Memory addressing
+
+[Back to contents](#contents)
+
+### Flags
+
+[Back to contents](#contents)
+
+### I/O ports
+
+[Back to contents](#contents)
+
+## Z80 Assembly language
+
+### Asm80
+
+[Back to contents](#contents)
+
+### Directives
+
+[Back to contents](#contents)
+
+### Variables
+
+[Back to contents](#contents)
+
+### Macros
+
+[Back to contents](#contents)
+
+### Structured assembler
+
+[Back to contents](#contents)
+
+## Appendices
+
 ### Firth words
 
 ```
@@ -418,106 +512,7 @@ while
 words
 xor
 ```
-
 [Back to contents](#contents)
-
-## Forth in Z80 Assembly
-
-[Back to contents](#contents)
-
-## The Z80 architecture
-
-[Back to contents](#contents)
-
-### Registers
-
-[Back to contents](#contents)
-
-### Stack pointer
-
-[Back to contents](#contents)
-
-### Index registers
-
-[Back to contents](#contents)
-
-### Alternative registers
-
-[Back to contents](#contents)
-
-### Memory addressing
-
-[Back to contents](#contents)
-
-### Flags
-
-[Back to contents](#contents)
-
-### I/O ports
-
-[Back to contents](#contents)
-
-## Z80 Assembly language
-
-### Asm80
-
-[Back to contents](#contents)
-
-### Directives
-
-[Back to contents](#contents)
-
-### Variables
-
-[Back to contents](#contents)
-
-### Macros
-
-[Back to contents](#contents)
-
-### Structured assembler
-
-[Back to contents](#contents)
-
-## Dictionary
-
-### Word headers
-
-[Back to contents](#contents)
-
-### Primitive words
-
-[Back to contents](#contents)
-
-### Composite words
-
-[Back to contents](#contents)
-
-### Immediate words
-
-[Back to contents](#contents)
-
-## Compilation
-
-### Control structures
-
-[Back to contents](#contents)
-
-### Looping structures
-
-[Back to contents](#contents)
-
-## Firth environment
-
-### Vocabularies
-
-### Listing words
-
-### Debugging
-
-[Back to contents](#contents)
-
-## Appendices
 
 ### The Z80 instruction set
 
