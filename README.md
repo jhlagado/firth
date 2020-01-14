@@ -186,20 +186,60 @@ For example:
 ```
 1 2 3
 ```
+
 The `.` command pops the last item off the stack and prints it. Therefore to print the numbers pushed on the stack in the reverse order simply type:
+
 ```
 1 2 3 . . .
 ```
-Remember to use spaces between. Firth with responds this way:
+
+Remember to use spaces between. Firth with responds with the following output:
+
 ```
 3 2 1
 ```
+
+To demonstrate Forth's reverse polish nature consider this Forth code for adding two numbers:
+
+```
+1 2 + .
+```
+
+Output:
+
+```
+3
+```
+
+This should be understood as:
+
+- push 1 on the stack
+- push 2 on the stack
+- add the two items on the stack and push the result
+- print the top of the stack
+
+To see the power of this consider a sum that would normally need parentheses to express operator precedence. E.g. (3 + 1) \* 2
+
+In Forth's reverse Polish, we write:
+
+```
+2 3 1 + * .
+```
+
+Output:
+
+```
+8
+```
+Forth uses a stack and reverse Polish notation to radically simply its syntax. When the Forth parser encounters a literal number it pushes it on the stack. When it comes across the anything else it assumes it's an operation to be performed. These operations are called words and they command Forth to do things.
+
+For example, when Forth encounters the word `+` it calls Forth's addition subroutine. When it encounters the word `*` it calls the multiply subroutine. The word `.` means print the item left on the stack.
 
 [Back to contents](#contents)
 
 ### Execution model
 
-In Forth, subroutines are called "words". A word is a piece of reusable code which can be called with parameters, executes and then returns with one or more results. Forth doesn't assume that the user of a word knows where it is located, instead, the word is looked up in a data structure known as the "Dictionary".
+A word is a piece of reusable code which can be called with parameters which are pushed onto the stack, executes and then returns one or more results on the stack. Forth doesn't assume that the user of a word knows where it is located in memory, instead, the word is looked up in a data structure known as the "dictionary".
 
 The dictionary is a singly linked list which starts at the most recently defined word. Each word in the dictionary has a header record in the form:
 
@@ -754,7 +794,6 @@ XOR   (IY+d)   19 Exclusive OR value at location (IY+d) and accumulator.
 
 [Back to contents](#contents)
 
-
 Firth is a minimal (~4K) implementation of Forth for the Z80.
 
 It uses the ASM80 assembler and can be emulated at the [ASM80](https://www.asm80.com/) site by the following steps:
@@ -773,20 +812,27 @@ Firth Z80
 
 >
 ```
+
 You can type Forth commands into it. e.g
+
 ```
 > 1 2 3 * + .
 
 7
 ```
+
 You can exit the Forth interpreter by pressing the `Back to IDE` button on the top right corner.
 
 You can run the unit tests which exercise all the important functions of the Forth interpreter by setting line 3 to:
+
 ```
 TESTMODE        equ     1
 ```
+
 I you are interesting in seeing how the code executes, ASM80 gives you the ability to single-step through it an instruction at a time. The easiest way to do that is to comment out line 1:
+
 ```
 ; .engine mycomputer
 ```
+
 This turns off the emulator and shows you the internal state of the CPU. Step through code by pressing `Single step(F8)` and `Step over (F7)`.
