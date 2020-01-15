@@ -348,21 +348,21 @@ So the compilation of FtoC works like this:
 2. create a word header for FtoC and adds it to the dictionary
 3. mark the word as hidden because it's still being compiled
 4. put Forth into compile mode
-5. write a command to call the Forth interpreter
+5. write a Z80 instruction to call the Forth interpreter
 6. read the literal number 32 from the input
 7. write a command to the body to push the number 32 onto the stack
-8. looks up `-` in the dictionary a gets the address of subtract (MINUS) subroutine
+8. looks up `-` in the dictionary a gets the address of the subtract (MINUS) subroutine
 9. write a command to the body to call SUBTRACT
 10. read the literal number 5 from the input
 11. write a command to the body of the word to push the number 5 onto the stack to the word
-12. looks up `*` in the dictionary a gets the address of multiply (STAR) subroutine
+12. looks up `*` in the dictionary a gets the address of the multiply (STAR) subroutine
 13. write a command to the body to call the STAR subroutine to the word
 14. read the literal number 9 from the input
 15. write a command to the body of the word to push the number 9 onto the stack to the word
-16. looks up `/` in the dictionary a gets the address of divide (SLASH) subroutine
+16. looks up `/` in the dictionary a gets the address of the divide (SLASH) subroutine
 17. write a command to the body to call the SLASH subroutine to the word
 18. write a command to exit the Forth interpreter
-19. write a command to return from this subroutine
+19. write a Z80 instruction to return from this subroutine
 20. the ; word puts Forth back into interpret mode
 21. marks the word as not hidden
 
@@ -377,12 +377,14 @@ The structure of the completed word looks like this:
 | *body:*
 | ------------------
 | call FORTH
-| LIT, 32, MINUS, LIT, 5, STAR, LIT, 9, SLASH, EXIT
+| LIT 32, MINUS
+| LIT 5, STAR
+| LIT 9, SLASH, EXIT
 | ret
 
 The body can contain any machine code but a compiled word begins with a call to the FORTH interpreter which then interprets the data following this call as an array of pointers to Forth words.
 
-The first two bytes after the call contains a pointer to the Forth word `LIT` which means "take the word following this one and push it onto the Forth data stack". The word following `LIT` is 32 so 32 will be pushed onto the data stack. After this the interpreter encounters `MINUS` which takes the top two values on the data stack and subtracts the topmost from the second topmost stack items. It pushes its result back on the stack.
+The first two bytes after the call contains a pointer to the Forth word `LIT` which means "take the word following this one and push it on to the Forth data stack". The word following `LIT` is 32 so 32 will be pushed onto the data stack. After this the interpreter encounters `MINUS` which takes the top two values on the data stack and subtracts the topmost from the second topmost stack items. It pushes its result back on the stack.
 
 The interpreter then pushes 5 on the stack and multiplies the top two items and pushes
 
