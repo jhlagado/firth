@@ -380,6 +380,16 @@ In the stack column of the table below, items on the left of the `--` represent 
 | char+ | addr1 -- addr2 | add size of char (1) to addr  |
 | chars | n1 -- n2       | size of n1 chars (n1)         |
 
+#### Device
+
+| word | stack     | definition                         |
+| ---- | --------- | ---------------------------------- |
+| .    | x --      | print top of stack                 |
+| type | addr n -- | print n chars from addr            |
+| .s   | x -- x    | non-destructively prints the stack |
+
+TODO: finish input words
+
 [Back to contents](#contents)
 
 ### Compilation
