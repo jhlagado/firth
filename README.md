@@ -17,14 +17,12 @@ Firth is a minimal (~4K) implementation of Forth for the Z80.
   - [Data stack](#Data-stack)
   - [Execution model](#Execution-model)
   - [Defining words](#Defining-words)
-  - [Common words](#Common-words)
   - [Compilation](#Compilation)
-  - Immediate words
+  - [Immediate words](#Immediate-words)
   - Control structures
   - Looping structures
 - [Firth environment](#Firth-environment)
-  - Vocabularies
-  - Listing words
+  - [Listing words](#Listing-words)
   - Debugging
 - [Forth in Z80 Assembly](#Forth-in-Z80-Assembly)
   - Primitive words
@@ -58,15 +56,15 @@ The configuration of the TEC-1 was a Z80 CPU with 2K of ROM and 2K of RAM. It al
 
 The kit was quite successful and was released at a critical time in Australian computer history. A few thousand TEC-1 kits were sold and, as we learned over the years from people who remember the kit, it introduced many people to computing and programming for the very first time.
 
-The kit continues on to this day with other people creating TEC-1 boards and new TEC-1s continue to be built by hobbyists. If they install the version 1 monitor ROM thta came with the original kit they are greeted with a 37-year-old message from me:
+The kit continues on to this day with other people creating TEC-1 boards and new TEC-1s continue to be built by hobbyists. If they install version 1 of the monitor ROM that came with the original kit they are greeted with a 37-year-old message from me:
 
 `hello there this is the tec-1 ... designed by john hardy for TE!`
 
-Looking back, I'm really happy that the TEC-1 continues to live. I do have one regret however: that the TEC-1 was so damned hard to program! In its original form, the TEC-1 offered very little to a programmer. All code needs to be hand assembled and fed in via the hexadecimal keyboard. I always wanted to provide the TEC-1 one with a proper programming environment.
+Looking back, I'm really happy that the TEC-1 continues to live. I do have one regret however: that the TEC-1 was so damned hard to program! In its original form, the TEC-1 offered very little to the programmer. All code needs to be hand assembled and hand entered in via the hexadecimal keyboard. I always wanted to provide the TEC-1 one with a proper programming environment.
 
-After looking into augmenting the TEC-1 circuit with a proper serial inmterface I then went to consider before rejecting adding a BASIC interpreter to the TEC-1. Instead I decided to pursue another longtime interest of mine (which also dates from that era), I decided that what the TEC-1 needed was a self-hosted programming system based on Charles Moore's Forth language.
+Fast-forward to the modern era, I started to think about augmenting the TEC-1 circuit with a proper serial interface. I then went to consider (before rejecting) adding a BASIC interpreter to the TEC-1. Instead I decided to pursue another longtime interest of mine (which also dates from the early 80s) I decided that what the TEC-1 needed was a self-hosted programming environment based on Charles Moore's [Forth](https://en.wikipedia.org/wiki/Forth) programming language.
 
-This is where Firth comes from. "Firth" is named after the [Firth of Forth](https://en.wikipedia.org/wiki/Firth_of_Forth) an estuary on the river Forth in Scotland -- for no other reason than it's a cool-sounding name although it could also be because this is my "first Forth".
+This is where Firth comes from. "Firth" is named after the [Firth of Forth](https://en.wikipedia.org/wiki/Firth_of_Forth) an estuary on the river Forth in Scotland -- for no other reason than it's a cool-sounding name although it could be because this is also my "first Forth".
 
 ## Firth
 
@@ -165,19 +163,19 @@ Forth as a programming system has many characteristics which set it apart from o
 
 Forth has been described as a "bottom-up" language because it builds up directly from a small number of assembly language primitives without imposing a significant number of abstractions. Forth can be bootstrapped to run from less than 2K of assembly language. Most of the Forth system is written in Forth itself.
 
-Forth is self-hosting which means that it is possible to write and edit code within the Forth system itself as opposed to targeting it from another system. Forth's abstraction is easy to understand, simplifies the process of writing for the CPU and, unlike conventional compiler languages, imposes very in the way of system overhead.
+Forth is self-hosting which means that it is possible to write and edit code within the Forth system itself as opposed to targeting it from another system. Forth's abstractions are easy to understand and they simplify the process of writing for the CPU. Unlike conventional compiler languages, Forth imposes very in the way of system overhead.
 
-So why Forth? Because Forth can be written from a low base of assembly language it becomes a relative simple task to get Forth running on diverse range of CPUs. Fort is very portable. Forth irons out the quirks and differences between instruction sets and presents the developer with a much smaller programming surface than assembly language does. Forth unifies many low level programming tasks.
+So why Forth? Because Forth can be written from a low base of assembly language, it becomes a relatively simple task to get Forth running on diverse range of CPUs. Forth is portable. It irons out the quirks and differences between instruction sets and presents the developer with a much smaller programming surface than assembly language does. Forth unifies many low level programming tasks.
 
 Forth is lightweight. Even a language designed for systems programming such as C is much more "high-level" than Forth and adds considerably more overhead in terms of program size, memory size and computational overhead. Forth programs are extremely compact and are often smaller than the same code written in assembly language.
 
-There is a cost to this compactness however. Forth is usually slower than assembly but not greatly so. Forth is pretty fast and comparable with compiled high-level languages. On some CPUs, Forth can be as efficient as machine code itself. This is not the case with 8-bit CPUs however but Forth does still significantly improve the productivity of programmers who target the Z80.
+There is a cost to this compactness however. Forth is usually slower than assembly but not greatly so. Forth is pretty fast and favourably comparable with compiled high-level languages. On some CPUs, Forth can be as efficient as machine code itself. This is not the case with 8-bit CPUs however but Forth does significantly improve the productivity of programmers who target the Z80.
 
-Forth integrates well with assembly language and offers the developer the ability to drop back down to assembly for performance sensitive sections of code. Forth never takes the developer far "from the metal". It does however offer them structured flow control and a unified approach to parameter passing which are features more normally associated with high-level languages. Forth brings structured programming to low-level programming.
+Forth integrates well with assembly language and offers the developer the ability to drop back down to assembly for performance sensitive sections of code. Forth never takes the developer far "from the metal". It does however offer them structured flow control and a unified approach to parameter passing which are features that are normally associated with high-level languages. Forth brings structured programming to low-level programming.
 
 ### Data stack
 
-Forth is similar to other languages in that it uses a stack to send parameters to subroutines. Forth is unusual though in that it separates the manipulation of the stack from the subroutine calls. It also uses the stack to return results from subroutines. In Forth a subroutine may return multiple results on the stack.
+Forth is similar to other languages in that it uses a stack to send parameters to subroutines. Forth is unusual though in that it separates the manipulation of the stack from the subroutine calls themselves. It also uses the stack to return results from subroutines. In Forth a subroutine may return multiple results on the stack.
 
 By interleaving stack manipulation with subroutine calls Forth has developed in an unusual style. It's syntax uses "reverse Polish" notation which means that it starts with the parameters and ends with the action to be performed on it.
 
@@ -314,84 +312,6 @@ Output:
 
 In summary, Forth will parse the command, create the header using the name passed, hide it from the dictopnary, go into compile mode, compile its body, exit compile mode and show it in the dictionary. NOTE: If a word with the same name is already in the dictionary, the new word will replace the old one for future definitions. The older definition will continue to be used by older definitions.
 
-### Common words
-
-In Firth, you can list the words that have been defined in the dictionary with the word `words`. Here is a brief introduction to the most commonly used ones.
-
-In the stack column of the table below, items on the left of the `--` represent the state of the stack before the word is executed, items on the right of the `--` represent state of the stack afterwards.
-
-#### Stack manipulation
-
-| word | stack                | definition                                          |
-| ---- | -------------------- | --------------------------------------------------- |
-| dup  | x -- x x             | duplicate the top of the stack                      |
-| swap | x1 x2 -- x2 x1       | swap top two items on the stack                     |
-| rot  | x1 x2 x3 -- x2 x3 x1 | rotate the order of the top three stack items       |
-| -rot | x1 x2 x3 -- x3 x1 x2 | rotate in the opposite direction                    |
-| drop | x --                 | drop the item on the top of the stack               |
-| over | x1 x2 -- x1 x2 x1    | copy the second item on the stack over the top item |
-| '    | -- x                 | push item following onto the stack                  |
-
-#### Logic
-
-| word   | stack      | definition                         |
-| ------ | ---------- | ---------------------------------- |
-| and    | x1 x2 -- x | ands the bits of x1 with x2        |
-| or     | x1 x2 -- x | ors the bits of x1 with x2         |
-| xor    | x1 x2 -- x | xors the bits of x1 with x2        |
-| invert | x -- x     | flips all the bits of x            |
-| true   | -- x       | pushes 1 on the stack              |
-| false  | -- x       | pushes 0 on the stack              |
-| 0=     | x -- x     | 0 if not equal to zero, 1 if equal |
-| =      | x1 x2 -- x | 0 if x1 equals x2                  |
-| <      | x1 x2 -- x | 1 if x1 is less than x2            |
-| >      | x1 x2 -- x | 1 if x1 is greater than x2         |
-| lshift | x u -- x   | shifts x left u places             |
-| rshift | x u -- x   | shifts x right u places            |
-
-#### Arithmetic
-
-| word | stack        | definition                         |
-| ---- | ------------ | ---------------------------------- |
-| abs  | x -- x       | absolute value of x                |
-| +    | x1 x2 -- x   | adds x1 to x2                      |
-| -    | x1 x2 -- x   | substracts x2 from x1              |
-| \*   | x1 x2 -- x   | multiplies x1 by x2                |
-| /    | x1 x2 -- x   | divides x1 by x2                   |
-| mod  | x1 x2 -- x   | remainder of x1 / x2               |
-| /mod | x1 x2 -- r q | remainder and quotient of division |
-| 1+   | x -- x       | add 1 to x                         |
-| 2+   | x -- x       | add 2 to x                         |
-| 2\*  | x -- x       | multiplies x1 by 2                 |
-| 2/   | x -- x       | divides x1 by 2                    |
-
-#### Memory access
-
-| word  | stack          | definition                    |
-| ----- | -------------- | ----------------------------- |
-| @     | addr -- x      | fetch 16-bit number from addr |
-| !     | x addr --      | store 16-bit number at addr   |
-| ,     | x --           | write x to heap memory        |
-| cell+ | addr1 -- addr2 | add size of cell (2) to addr  |
-| cells | n1 -- n2       | size of n1 cells (n1 \* 2)    |
-| c@    | addr -- c      | fetch char from addr          |
-| c!    | c addr --      | store char at addr            |
-| c,    | x --           | write char to heap memory     |
-| char+ | addr1 -- addr2 | add size of char (1) to addr  |
-| chars | n1 -- n2       | size of n1 chars (n1)         |
-
-#### Device
-
-| word | stack     | definition                         |
-| ---- | --------- | ---------------------------------- |
-| .    | x --      | print top of stack                 |
-| type | addr n -- | print n chars from addr            |
-| .s   | x -- x    | non-destructively prints the stack |
-
-TODO: finish input words
-
-[Back to contents](#contents)
-
 ### Compilation
 
 Forth has two modes, "interpret" and "compile". When in interpret mode, the system parses the input and when it comes across a literal value i.e. number it immediately pushes it on the stack. When it comes across a word, it looks it up in the dictionary and, if it finds it, it immediately executes it. Otherwise it will signal an error to the user.
@@ -485,11 +405,81 @@ The reason for this difference from expected behaviour is that `;` is not a word
 
 ## Firth environment
 
-### Vocabularies
-
-[Back to contents](#contents)
-
 ### Listing words
+
+In Firth, you can list the words that have been defined in the dictionary with the word `words`. Here is a brief introduction to the most commonly used ones.
+
+In the stack column of the table below, items on the left of the `--` represent the state of the stack before the word is executed, items on the right of the `--` represent state of the stack afterwards.
+
+#### Stack manipulation
+
+| word | stack                | definition                                          |
+| ---- | -------------------- | --------------------------------------------------- |
+| dup  | x -- x x             | duplicate the top of the stack                      |
+| swap | x1 x2 -- x2 x1       | swap top two items on the stack                     |
+| rot  | x1 x2 x3 -- x2 x3 x1 | rotate the order of the top three stack items       |
+| -rot | x1 x2 x3 -- x3 x1 x2 | rotate in the opposite direction                    |
+| drop | x --                 | drop the item on the top of the stack               |
+| over | x1 x2 -- x1 x2 x1    | copy the second item on the stack over the top item |
+| '    | -- x                 | push item following onto the stack                  |
+
+#### Logic
+
+| word   | stack      | definition                         |
+| ------ | ---------- | ---------------------------------- |
+| and    | x1 x2 -- x | ands the bits of x1 with x2        |
+| or     | x1 x2 -- x | ors the bits of x1 with x2         |
+| xor    | x1 x2 -- x | xors the bits of x1 with x2        |
+| invert | x -- x     | flips all the bits of x            |
+| true   | -- x       | pushes 1 on the stack              |
+| false  | -- x       | pushes 0 on the stack              |
+| 0=     | x -- x     | 0 if not equal to zero, 1 if equal |
+| =      | x1 x2 -- x | 0 if x1 equals x2                  |
+| <      | x1 x2 -- x | 1 if x1 is less than x2            |
+| >      | x1 x2 -- x | 1 if x1 is greater than x2         |
+| lshift | x u -- x   | shifts x left u places             |
+| rshift | x u -- x   | shifts x right u places            |
+
+#### Arithmetic
+
+| word | stack        | definition                         |
+| ---- | ------------ | ---------------------------------- |
+| abs  | x -- x       | absolute value of x                |
+| +    | x1 x2 -- x   | adds x1 to x2                      |
+| -    | x1 x2 -- x   | substracts x2 from x1              |
+| \*   | x1 x2 -- x   | multiplies x1 by x2                |
+| /    | x1 x2 -- x   | divides x1 by x2                   |
+| mod  | x1 x2 -- x   | remainder of x1 / x2               |
+| /mod | x1 x2 -- r q | remainder and quotient of division |
+| 1+   | x -- x       | add 1 to x                         |
+| 2+   | x -- x       | add 2 to x                         |
+| 2\*  | x -- x       | multiplies x1 by 2                 |
+| 2/   | x -- x       | divides x1 by 2                    |
+
+#### Memory access
+
+| word  | stack          | definition                    |
+| ----- | -------------- | ----------------------------- |
+| @     | addr -- x      | fetch 16-bit number from addr |
+| !     | x addr --      | store 16-bit number at addr   |
+| ,     | x --           | write x to heap memory        |
+| cell+ | addr1 -- addr2 | add size of cell (2) to addr  |
+| cells | n1 -- n2       | size of n1 cells (n1 \* 2)    |
+| c@    | addr -- c      | fetch char from addr          |
+| c!    | c addr --      | store char at addr            |
+| c,    | x --           | write char to heap memory     |
+| char+ | addr1 -- addr2 | add size of char (1) to addr  |
+| chars | n1 -- n2       | size of n1 chars (n1)         |
+
+#### Device
+
+| word | stack     | definition                         |
+| ---- | --------- | ---------------------------------- |
+| .    | x --      | print top of stack                 |
+| type | addr n -- | print n chars from addr            |
+| .s   | x -- x    | non-destructively prints the stack |
+
+TODO: finish input words
 
 [Back to contents](#contents)
 
