@@ -344,27 +344,29 @@ Output:
 
 So the compilation of FtoC works like this:
 
-1. the : word reads the name FtoC from the input
-2. create a word header for FtoC and adds it to the dictionary
-3. mark the word as hidden because it's still being compiled
-4. put Forth into compile mode
-5. write a Z80 instruction to call the Forth interpreter
-6. read the literal number 32 from the input
-7. write a command to the body to push the number 32 onto the stack
-8. looks up `-` in the dictionary a gets the address of the subtract (MINUS) subroutine
-9. write a command to the body to call SUBTRACT
-10. read the literal number 5 from the input
-11. write a command to the body of the word to push the number 5 onto the stack to the word
-12. looks up `*` in the dictionary a gets the address of the multiply (STAR) subroutine
-13. write a command to the body to call the STAR subroutine to the word
-14. read the literal number 9 from the input
-15. write a command to the body of the word to push the number 9 onto the stack to the word
-16. looks up `/` in the dictionary a gets the address of the divide (SLASH) subroutine
-17. write a command to the body to call the SLASH subroutine to the word
-18. write a command to exit the Forth interpreter
-19. write a Z80 instruction to return from this subroutine
-20. the ; word puts Forth back into interpret mode
-21. marks the word as not hidden
+1. the : word
+    - reads the name FtoC from the input and
+    - create a word header for FtoC and adds it to the dictionary
+    - mark the word as hidden because it's still being compiled
+    - put Forth into compile mode
+2. write a Z80 instruction to call the Forth interpreter
+3. read the literal number 32 from the input
+4. write a command to the body to push the number 32 onto the stack
+5. looks up `-` in the dictionary a gets the address of the subtract (MINUS) subroutine
+6. write a command to the body to call SUBTRACT
+7. read the literal number 5 from the input
+8. write a command to the body of the word to push the number 5 onto the stack to the word
+9. looks up `*` in the dictionary a gets the address of the multiply (STAR) subroutine
+10. write a command to the body to call the STAR subroutine to the word
+11. read the literal number 9 from the input
+12. write a command to the body of the word to push the number 9 onto the stack to the word
+13. looks up `/` in the dictionary a gets the address of the divide (SLASH) subroutine
+14. write a command to the body to call the SLASH subroutine to the word
+15. the ; word
+    - puts Forth back into interpret mode
+    - write a command to exit the Forth interpreter
+    - write a Z80 instruction to return from this subroutine
+    - mark the word as not hidden
 
 The structure of the completed word looks like this:
 
@@ -391,6 +393,10 @@ The interpreter then pushes 5 on the stack and multiplies the top two items and 
 [Back to contents](#contents)
 
 ### Immediate words
+
+The description of compilation given above is fairly straight forward however I let one detail slip past: if Forth was in compile mode, how did the word `;` manage to terminate compile mode and put Forth back into interpret mode again. Compile mode, if it was just a word like any other, should have simply looked up `;` in the dictionary and added a pointer to it to the currently being compiled word.
+
+The reason for this difference from expected behaviour is that `;` is not a word like any other. It is a special word called an "immediate" word. Immediate words are simply words that have their immediate flag set. When Forth encounters an immediate word, it executes it straight away in all cases, even when Forth is in compile mode. This makes immediate words very powerful meta-programming tools in Forth because they can influence the compilation process itself. This is used to good effect for extending the Forth language itself and in implementing language features such flow-control and looping structures.
 
 [Back to contents](#contents)
 
@@ -510,7 +516,7 @@ The interpreter then pushes 5 on the stack and multiplies the top two items and 
 0=
 0branch
 1+
-2_
+2*
 2/
 2+
 abs
