@@ -324,7 +324,23 @@ Forth has two modes, "interpret" and "compile". When in interpret mode, the syst
 
 Sometimes a command will put Forth into compile mode which behaves differently. The purpose of compile mode in to define new words. Usually in compile mode, Forth will be defining a new word, it will have already created a new header in memory and linked it to the dictionary and be ready to fill in its body. Now when Forth accepts input it will write this parsed content into the body of the new word.
 
-The structure of the body.....
+The structure of the body of a word can contain any machine code instructions but a compiled word has a specific structure. Consider the following word definition for converting celsius to fahrenheit. This word takes the value from the stack, divides it by 5 and then adds 32 to it:
+
+: CtoF 5 / 32 + ;
+
+Note: the result will be inaccurate because we are working in integers but we will address accuracy later.
+
+So the compilation of CtoF works like this:
+
+1. the : word reads the name CtoF from the input
+2. it creates a word header for CtoF and adds it to the dictionary
+3. it marks the word as hidden because it's still being compiled
+4. it puts Forth into compile mode
+5. it reads the literal number 5 from the input
+6. it writes a command to push the number 5 onto the stack to the word
+7. it writes a command to call the DIVIDE subroutine to the word
+8. it reads the literal number 32 from the input
+9. it writes a command to push the numnber 32 onto the
 
 [Back to contents](#contents)
 
