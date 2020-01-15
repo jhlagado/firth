@@ -296,7 +296,7 @@ When Forth see the `:` word it goes into word definition mode and stays there un
 
 In "compile" mode, Forth reads each word from the input and compiles it to the word being defined. Compiled words don't execute right away but will only do so when the defined word gets called. Some words do not work this way and always execute when they are encountered, these are called "Immediate" words and will be discussed later.
 
-To complete the word, when Forth encounters the word `;` it jumps out of compile mode and marks the word as unhidden and available in the dictionary. Now when Forth sees this in the input:
+To complete the word, when Forth encounters the word `;` it immediately jumps out of compile mode and marks the word as unhidden and available in the dictionary. Now when Forth sees this in the input:
 
 ```
 3 double .
@@ -324,23 +324,67 @@ Forth has two modes, "interpret" and "compile". When in interpret mode, the syst
 
 Sometimes a command will put Forth into compile mode which behaves differently. The purpose of compile mode in to define new words. Usually in compile mode, Forth will be defining a new word, it will have already created a new header in memory and linked it to the dictionary and be ready to fill in its body. Now when Forth accepts input it will write this parsed content into the body of the new word.
 
-The structure of the body of a word can contain any machine code instructions but a compiled word has a specific structure. Consider the following word definition for converting celsius to fahrenheit. This word takes the value from the stack, divides it by 5 and then adds 32 to it:
+The structure of the body of a word can contain any machine code instructions but a compiled word has a specific structure. Consider the following word definition for converting fahrenheit to celsius. This word takes the value from the stack, subtracts 32 from it, multiplies by 5 and divides by 9:
 
-: CtoF 5 / 32 + ;
+```
+: FtoC 32 - 5 * 9 / ;
+```
 
-Note: the result will be inaccurate because we are working in integers but we will address accuracy later.
+Running the word FtoC with a temperature in fahrenheit:
 
-So the compilation of CtoF works like this:
+```
+100 FtoC
+```
 
-1. the : word reads the name CtoF from the input
-2. it creates a word header for CtoF and adds it to the dictionary
-3. it marks the word as hidden because it's still being compiled
-4. it puts Forth into compile mode
-5. it reads the literal number 5 from the input
-6. it writes a command to push the number 5 onto the stack to the word
-7. it writes a command to call the DIVIDE subroutine to the word
-8. it reads the literal number 32 from the input
-9. it writes a command to push the numnber 32 onto the
+Output:
+
+```
+37
+```
+
+So the compilation of FtoC works like this:
+
+1. the : word reads the name FtoC from the input
+2. create a word header for FtoC and adds it to the dictionary
+3. mark the word as hidden because it's still being compiled
+4. put Forth into compile mode
+5. write a command to call the Forth interpreter
+6. read the literal number 32 from the input
+7. write a command to the body to push the number 32 onto the stack
+8. looks up `-` in the dictionary a gets the address of subtract (MINUS) subroutine
+9. write a command to the body to call SUBTRACT
+10. read the literal number 5 from the input
+11. write a command to the body of the word to push the number 5 onto the stack to the word
+12. looks up `*` in the dictionary a gets the address of multiply (STAR) subroutine
+13. write a command to the body to call the STAR subroutine to the word
+14. read the literal number 9 from the input
+15. write a command to the body of the word to push the number 9 onto the stack to the word
+16. looks up `/` in the dictionary a gets the address of divide (SLASH) subroutine
+17. write a command to the body to call the SLASH subroutine to the word
+18. write a command to exit the Forth interpreter
+19. write a command to return from this subroutine
+20. the ; word puts Forth back into interpret mode
+21. marks the word as not hidden
+
+The structure of the completed word looks like this:
+
+| *header:*
+| ------------------
+| previous-word-link
+| flags & length
+| name  "FtoC"
+
+| *body:*
+| ------------------
+| call FORTH
+| LIT, 32, MINUS, LIT, 5, STAR, LIT, 9, SLASH, EXIT
+| ret
+
+The body can contain any machine code but a compiled word begins with a call to the FORTH interpreter which then interprets the data following this call as an array of pointers to Forth words.
+
+The first two bytes after the call contains a pointer to the Forth word `LIT` which means "take the word following this one and push it onto the Forth data stack". The word following `LIT` is 32 so 32 will be pushed onto the data stack. After this the interpreter encounters `MINUS` which takes the top two values on the data stack and subtracts the topmost from the second topmost stack items. It pushes its result back on the stack.
+
+The interpreter then pushes 5 on the stack and multiplies the top two items and pushes
 
 [Back to contents](#contents)
 
