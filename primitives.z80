@@ -233,7 +233,7 @@ defword "c@",2,0,CFETCH
 defword "char+",5,0,CHARPLUS
     jp oneplus
 
-; CELLS   ( n1 -- n2 ) n2 is the size in address units of n1 cells.
+; chars   ( n1 -- n2 ) n2 is the size in address units of n1 chars.
 defword "chars",5,0,CHARS
     jp noop
 
@@ -350,27 +350,22 @@ defword "=",1,0,EQUALS
     inc BC
     ret
 
-; <      n1 n2 -- flag          test n1<n2
-defword "<",1,0,LESSTHAN	        ; less than
+; <      n1 n2 -- flag      test n1<n2
+defword "<",1,0,LESSTHAN	; less than
     ppop0 H,L
     or A
-    sbc HL,BC       ; n1-n2 in HL, SZVC valid
-    ; jp pe,revsense  ; if OV, use rev. sense
+    sbc HL,BC               ; n1-n2 in HL, SZVC valid
     _if pe
-        ; jp m,tosfalse ; OV: if -ve, reslt false
-        ; jr tostrue      ;     if +ve, result true
         _if m
             ld bc, 0
         _else
-            ld bc, 1       ;   if -ve, result true
+            ld bc, 1        ;   if -ve, result true
         _endif
     _else
-        ; jp p,tosfalse   ;   if +ve, result false
-        ; jp tostrue
         _if p
             ld bc, 0
         _else
-            ld bc, 1       ;   if -ve, result true
+            ld bc, 1        ;   if -ve, result true
         _endif
     _endif
     ret

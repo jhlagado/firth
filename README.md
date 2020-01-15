@@ -316,6 +316,70 @@ In summary, Forth will parse the command, create the header using the name passe
 
 ### Common words
 
+In Firth, you can list the words that have been defined in the dictionary with the word `words`. Here is a brief introduction to the most commonly used ones.
+
+In the stack column of the table below, items on the left of the `--` represent the state of the stack before the word is executed, items on the right of the `--` represent state of the stack afterwards.
+
+#### Stack manipulation
+
+| word | stack                | definition
+|-     | -                    |-
+| dup  | x -- x x             | duplicate the top of the stack
+| swap | x1 x2 -- x2 x1       | swap top two items on the stack
+| rot  | x1 x2 x3 -- x2 x3 x1 |rotate the order of the top three stack items
+| -rot | x1 x2 x3 -- x3 x1 x2 |rotate in the opposite direction
+| drop | x --                 |drop the item on the top of the stack
+| over | x1 x2 -- x1 x2 x1    |copy the second item on the stack over the top item
+| '    | -- x                 |push item following onto the stack
+
+#### Logic
+
+| word   | stack              | definition
+|-       | -                  |-
+| and    | x1 x2 -- x         | ands the bits of x1 with x2
+| or     | x1 x2 -- x         | ors the bits of x1 with x2
+| xor    | x1 x2 -- x         | xors the bits of x1 with x2
+| invert | x -- x             | flips all the bits of x
+| true   | -- x               | pushes 1 on the stack
+| false  | -- x               | pushes 0 on the stack
+| 0=     | x -- x             | 0 if not equal to zero, 1 if equal
+| =      | x1 x2 -- x         | 0 if x1 equals x2
+| <      | x1 x2 -- x         | 1 if x1 is less than x2
+| >      | x1 x2 -- x         | 1 if x1 is greater than x2
+| lshift | x u -- x           | shifts x left u places
+| rshift | x u -- x           | shifts x right u places
+
+#### Arithmetic
+
+| word   | stack              | definition
+|-       | -                  |-
+| abs    | x -- x             | absolute value of x
+| +      | x1 x2 -- x         | adds x1 to x2
+| -      | x1 x2 -- x         | substracts x2 from x1
+| *      | x1 x2 -- x         | multiplies x1 by x2
+| /      | x1 x2 -- x         | divides x1 by x2
+| mod    | x1 x2 -- x         | remainder of x1 / x2
+| /mod   | x1 x2 -- r q       | remainder and quotient of division
+| 1+     | x -- x             | add 1 to x
+| 2+     | x -- x             | add 2 to x
+| 2*     | x -- x             | multiplies x1 by 2
+| 2/     | x -- x             | divides x1 by 2
+
+#### Memory access
+
+| word   | stack              | definition
+|-       | -                  |-
+| @      | addr -- x          | fetch 16-bit number from addr
+| !      | x addr --          | store 16-bit number at addr
+| ,      | x --               | write x to heap memory
+| cell+  | addr1 -- addr2     | add size of cell (2) to addr
+| cells  | n1 -- n2           | size of n1 cells (n1 * 2)
+| c@     | addr -- c          | fetch char from addr
+| c!     | c addr --          | store char at addr
+| c,     | x --               | write char to heap memory
+| char+  | addr1 -- addr2     | add size of char (1) to addr
+| chars  | n1 -- n2           | size of n1 chars (n1)
+
 [Back to contents](#contents)
 
 ### Compilation
