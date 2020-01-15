@@ -261,7 +261,7 @@ The lower 6 bits of this byte are used to store the length of the word's name. t
 
 After this byte comes an array chars which store the actual name and finally the body of the word which consists of either a subroutine written in machine code or is a sequence of other Forth words.
 
-The process of looking up a word consists of starting with the latest word (which in Firth is pointed to by a global variable called LATEST) and working backwards through the list, jumping from word to word comparing the name of the word with what we are looking for until a match is found. If the dictionary cannot provide a match then Forth will finally encounter a pointer with a value of 0 and the search terminates.
+The process of looking up a word consists of starting with the latest word (which in Firth is pointed to by a global variable called `latest`) and working backwards through the list, jumping from word to word comparing the name of the word with what we are looking for until a match is found. If the dictionary cannot provide a match then Forth will finally encounter a pointer with a value of 0 and the search terminates.
 
 When a word is found, it can be executed by locating the first address after the header which is conventionally called the "Code Field Address" or "CFA" but which I'll just call the body. To convert from word address to the start of the body, simply add the size of the header to the address:
 
@@ -322,63 +322,63 @@ In the stack column of the table below, items on the left of the `--` represent 
 
 #### Stack manipulation
 
-| word | stack                | definition
-|-     | -                    |-
-| dup  | x -- x x             | duplicate the top of the stack
-| swap | x1 x2 -- x2 x1       | swap top two items on the stack
-| rot  | x1 x2 x3 -- x2 x3 x1 |rotate the order of the top three stack items
-| -rot | x1 x2 x3 -- x3 x1 x2 |rotate in the opposite direction
-| drop | x --                 |drop the item on the top of the stack
-| over | x1 x2 -- x1 x2 x1    |copy the second item on the stack over the top item
-| '    | -- x                 |push item following onto the stack
+| word | stack                | definition                                          |
+| ---- | -------------------- | --------------------------------------------------- |
+| dup  | x -- x x             | duplicate the top of the stack                      |
+| swap | x1 x2 -- x2 x1       | swap top two items on the stack                     |
+| rot  | x1 x2 x3 -- x2 x3 x1 | rotate the order of the top three stack items       |
+| -rot | x1 x2 x3 -- x3 x1 x2 | rotate in the opposite direction                    |
+| drop | x --                 | drop the item on the top of the stack               |
+| over | x1 x2 -- x1 x2 x1    | copy the second item on the stack over the top item |
+| '    | -- x                 | push item following onto the stack                  |
 
 #### Logic
 
-| word   | stack              | definition
-|-       | -                  |-
-| and    | x1 x2 -- x         | ands the bits of x1 with x2
-| or     | x1 x2 -- x         | ors the bits of x1 with x2
-| xor    | x1 x2 -- x         | xors the bits of x1 with x2
-| invert | x -- x             | flips all the bits of x
-| true   | -- x               | pushes 1 on the stack
-| false  | -- x               | pushes 0 on the stack
-| 0=     | x -- x             | 0 if not equal to zero, 1 if equal
-| =      | x1 x2 -- x         | 0 if x1 equals x2
-| <      | x1 x2 -- x         | 1 if x1 is less than x2
-| >      | x1 x2 -- x         | 1 if x1 is greater than x2
-| lshift | x u -- x           | shifts x left u places
-| rshift | x u -- x           | shifts x right u places
+| word   | stack      | definition                         |
+| ------ | ---------- | ---------------------------------- |
+| and    | x1 x2 -- x | ands the bits of x1 with x2        |
+| or     | x1 x2 -- x | ors the bits of x1 with x2         |
+| xor    | x1 x2 -- x | xors the bits of x1 with x2        |
+| invert | x -- x     | flips all the bits of x            |
+| true   | -- x       | pushes 1 on the stack              |
+| false  | -- x       | pushes 0 on the stack              |
+| 0=     | x -- x     | 0 if not equal to zero, 1 if equal |
+| =      | x1 x2 -- x | 0 if x1 equals x2                  |
+| <      | x1 x2 -- x | 1 if x1 is less than x2            |
+| >      | x1 x2 -- x | 1 if x1 is greater than x2         |
+| lshift | x u -- x   | shifts x left u places             |
+| rshift | x u -- x   | shifts x right u places            |
 
 #### Arithmetic
 
-| word   | stack              | definition
-|-       | -                  |-
-| abs    | x -- x             | absolute value of x
-| +      | x1 x2 -- x         | adds x1 to x2
-| -      | x1 x2 -- x         | substracts x2 from x1
-| *      | x1 x2 -- x         | multiplies x1 by x2
-| /      | x1 x2 -- x         | divides x1 by x2
-| mod    | x1 x2 -- x         | remainder of x1 / x2
-| /mod   | x1 x2 -- r q       | remainder and quotient of division
-| 1+     | x -- x             | add 1 to x
-| 2+     | x -- x             | add 2 to x
-| 2*     | x -- x             | multiplies x1 by 2
-| 2/     | x -- x             | divides x1 by 2
+| word | stack        | definition                         |
+| ---- | ------------ | ---------------------------------- |
+| abs  | x -- x       | absolute value of x                |
+| +    | x1 x2 -- x   | adds x1 to x2                      |
+| -    | x1 x2 -- x   | substracts x2 from x1              |
+| \*   | x1 x2 -- x   | multiplies x1 by x2                |
+| /    | x1 x2 -- x   | divides x1 by x2                   |
+| mod  | x1 x2 -- x   | remainder of x1 / x2               |
+| /mod | x1 x2 -- r q | remainder and quotient of division |
+| 1+   | x -- x       | add 1 to x                         |
+| 2+   | x -- x       | add 2 to x                         |
+| 2\*  | x -- x       | multiplies x1 by 2                 |
+| 2/   | x -- x       | divides x1 by 2                    |
 
 #### Memory access
 
-| word   | stack              | definition
-|-       | -                  |-
-| @      | addr -- x          | fetch 16-bit number from addr
-| !      | x addr --          | store 16-bit number at addr
-| ,      | x --               | write x to heap memory
-| cell+  | addr1 -- addr2     | add size of cell (2) to addr
-| cells  | n1 -- n2           | size of n1 cells (n1 * 2)
-| c@     | addr -- c          | fetch char from addr
-| c!     | c addr --          | store char at addr
-| c,     | x --               | write char to heap memory
-| char+  | addr1 -- addr2     | add size of char (1) to addr
-| chars  | n1 -- n2           | size of n1 chars (n1)
+| word  | stack          | definition                    |
+| ----- | -------------- | ----------------------------- |
+| @     | addr -- x      | fetch 16-bit number from addr |
+| !     | x addr --      | store 16-bit number at addr   |
+| ,     | x --           | write x to heap memory        |
+| cell+ | addr1 -- addr2 | add size of cell (2) to addr  |
+| cells | n1 -- n2       | size of n1 cells (n1 \* 2)    |
+| c@    | addr -- c      | fetch char from addr          |
+| c!    | c addr --      | store char at addr            |
+| c,    | x --           | write char to heap memory     |
+| char+ | addr1 -- addr2 | add size of char (1) to addr  |
+| chars | n1 -- n2       | size of n1 chars (n1)         |
 
 [Back to contents](#contents)
 
@@ -409,10 +409,10 @@ Output:
 So the compilation of FtoC works like this:
 
 1. the : word
-    - reads the name FtoC from the input and
-    - create a word header for FtoC and adds it to the dictionary
-    - mark the word as hidden because it's still being compiled
-    - put Forth into compile mode
+   - reads the name FtoC from the input and
+   - create a word header for FtoC and adds it to the dictionary
+   - mark the word as hidden because it's still being compiled
+   - put Forth into compile mode
 2. write a Z80 instruction to call the Forth interpreter
 3. read the literal number 32 from the input
 4. write a command to the body to push the number 32 onto the stack
@@ -434,18 +434,19 @@ So the compilation of FtoC works like this:
 
 The structure of the completed word looks like this:
 
-| *header:*
-| ------------------
+| _header:_
+| :------------------
 | previous-word-link
 | flags & length
-| name  "FtoC"
+| name "FtoC"
 
-| *body:*
-| ------------------
+| _body:_
+| :------------------
 | call FORTH
 | LIT 32, MINUS
 | LIT 5, STAR
-| LIT 9, SLASH, EXIT
+| LIT 9, SLASH
+| EXIT
 | ret
 
 The body can contain any machine code but a compiled word begins with a call to the FORTH interpreter which then interprets the data following this call as an array of pointers to Forth words.
