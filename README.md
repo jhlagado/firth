@@ -9,7 +9,7 @@ Firth is a minimal (~4K) implementation of Forth for the Z80.
   - [License](#License)
   - [Binaries](#Binaries)
   - [Building](#Building)
-  - [Emulating](#emulating)
+  - [Emulation](#Emulation)
   - [Hardware requirements](#Hardware-requirements)
   - [File layout](#File-layout)
 - [The Forth architecture](#Forth-architecture)
@@ -91,7 +91,7 @@ Firth can be built using the ASM80 assembler and can be built at the [ASM80](htt
 
 [Back to contents](#contents)
 
-### Emulating
+### Emulation
 
 Firth can be emulated online by the following steps:
 
@@ -199,7 +199,7 @@ Remember to use spaces between. Forth with responds with the following output:
 3 2 1
 ```
 
-To demonstrate Forth's reverse polish nature consider this Forth code for adding two numbers:
+To demonstrate Forth's reverse polish syntax, consider the following Forth code for adding two numbers:
 
 ```
 1 2 + .
@@ -362,7 +362,7 @@ So the compilation of FtoC works like this:
     - write a Z80 instruction to return from this subroutine
     - mark the word as not hidden
 
-The structure of the completed word looks like this:
+The structure of the defined word looks like this:
 
 | _header:_
 | :------------------
@@ -391,11 +391,31 @@ The interpreter then pushes 5 on the stack and multiplies the top two items and 
 
 The description of compilation given above is fairly straight forward however I let one detail slip past: if Forth was in compile mode, how did the word `;` manage to terminate compile mode and put Forth back into interpret mode again. Compile mode, if it was just a word like any other, should have simply looked up `;` in the dictionary and added a pointer to it to the currently being compiled word.
 
-The reason for this difference from expected behaviour is that `;` is not a word like any other. It is a special word called an "immediate" word. Immediate words are simply words that have their immediate flag set. When Forth encounters an immediate word, it executes it straight away in all cases, even when Forth is in compile mode. This makes immediate words very powerful meta-programming tools in Forth because they can influence the compilation process itself. This is used to good effect for extending the Forth language itself and in implementing language features such flow-control and looping structures.
+The reason for this difference from expected behaviour is that `;` is not a word like any other. It is a special word called an "immediate" word. Immediate words are simply words that have their immediate flag set. When Forth encounters an immediate word, it executes it straight away in all cases, even when Forth is in compile mode. This makes immediate words very powerful meta-programming tools in Forth because they can influence the compilation process itself. This is used to good effect in extending the Forth language itself and in implementing language features such flow-control and looping structures.
 
 [Back to contents](#contents)
 
 ### Control structures
+
+Conditional code can be written in Forth using the familiar if ... then structure. As with other aspects of Forth, the ordering of words is a little different to other languages.
+```
+<condition> if <then-clause> then
+```
+Forth begins with a test for a condition and if it's value is true (i.e. 1) it executes the words in the `then-clause`, that is the words that appear between `if` and `then`. Otherwise it jumps past the `then` word.
+
+For example:
+```
+3 10 < if 123 . then
+```
+Output:
+```
+123
+```
+Forth also has a form which includes an `else-clause` although naturally the order is a little different from other languages.
+```
+<condition> if <then-clause> else <else-clause> then
+```
+
 
 [Back to contents](#contents)
 
