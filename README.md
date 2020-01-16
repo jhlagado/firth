@@ -398,24 +398,30 @@ The reason for this difference from expected behaviour is that `;` is not a word
 ### Control structures
 
 Conditional code can be written in Forth using the familiar if ... then structure. As with other aspects of Forth, the ordering of words is a little different to other languages.
+
 ```
 <condition> if <then-clause> then
 ```
+
 Forth begins with a test for a condition and if it's value is true (i.e. 1) it executes the words in the `then-clause`, that is the words that appear between `if` and `then`. Otherwise it jumps past the `then` word.
 
 For example:
+
 ```
 3 10 < if 123 . then
 ```
+
 Output:
+
 ```
 123
 ```
+
 Forth also has a form which includes an `else-clause` although naturally the order is a little different from other languages.
+
 ```
 <condition> if <then-clause> else <else-clause> then
 ```
-
 
 [Back to contents](#contents)
 
@@ -984,10 +990,6 @@ XOR   (IY+d)   19 Exclusive OR value at location (IY+d) and accumulator.
 
 [Back to contents](#contents)
 
-### Further reading
-
-[Back to contents](#contents)
-
 ### Running unit tests
 
 You can run the unit tests which exercise all the important functions of the Forth interpreter by setting line 3 to:
@@ -1003,5 +1005,12 @@ I you are interesting in seeing how the code executes, ASM80 gives you the abili
 ```
 
 This turns off the emulator and shows you the internal state of the CPU. Step through code by pressing `Single step(F8)` and `Step over (F7)`.
+
+[Back to contents](#contents)
+
+### Further reading
+
+A major inspiration for writing Firth comes from
+[JonesForth](https://github.com/nornagon/jonesforth). I also learned a lot from studying CamelForth for the Z80 by Brad Rodriguez. Really worth reading is his series on [Moving Forth](http://www.bradrodriguez.com/papers/moving1.htm) to various microprocessors.
 
 [Back to contents](#contents)
