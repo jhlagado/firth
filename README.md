@@ -1011,6 +1011,6 @@ This turns off the emulator and shows you the internal state of the CPU. Step th
 ### Further reading
 
 A major inspiration for writing Firth comes from
-[JonesForth](https://github.com/nornagon/jonesforth). I also learned a lot from studying CamelForth for the Z80 by Brad Rodriguez. Really worth reading is his series on [Moving Forth](http://www.bradrodriguez.com/papers/moving1.htm) to various microprocessors.
+[JonesForth](https://github.com/nornagon/jonesforth) by Richard W.M. Jones. I also learned a lot from studying CamelForth for the Z80 by Brad Rodriguez. Really worth reading is his series on [Moving Forth](http://www.bradrodriguez.com/papers/moving1.htm) to various microprocessors.
 
 [Back to contents](#contents)
