@@ -403,7 +403,7 @@ Conditional code can be written in Forth using the familiar if ... then structur
 <condition> if <then-clause> then
 ```
 
-Forth begins with a test for a condition and if it's value is true (i.e. 1) it executes the words in the `then-clause`, that is the words that appear between `if` and `then`. Otherwise it jumps past the `then` word.
+Forth begins with a test for a condition and if it's value is true (i.e. 1) it executes the words in the "then" clause, that is the words that appear between `if` and `then`. Otherwise it jumps past the `then` word.
 
 For example:
 
@@ -417,10 +417,18 @@ Output:
 123
 ```
 
-Forth also has a form which includes an `else-clause` although naturally the order is a little different from other languages.
+TODO: needs to go inside a word definition.
+
+Forth also has a form which includes an "else" clause although naturally the order is a little different from other languages.
 
 ```
 <condition> if <then-clause> else <else-clause> then
+```
+
+For example:
+
+```
+3 10 < if 123 . else 246 . then
 ```
 
 [Back to contents](#contents)
