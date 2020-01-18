@@ -451,10 +451,18 @@ Output:
 123
 ```
 
-Forth also has a form which includes an `else-clause` although naturally the order is a little different from other languages.
+TODO: needs to go inside a word definition.
+
+Forth also has a form which includes an "else" clause although naturally the order is a little different from other languages.
 
 ```
 <condition> if <then-clause> else <else-clause> then
+```
+
+For example:
+
+```
+3 10 < if 123 . else 246 . then
 ```
 
 [Back to contents](#contents)
