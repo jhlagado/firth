@@ -19,8 +19,9 @@ Firth is a minimal (~4K) implementation of Forth for the Z80.
   - [Defining words](#Defining-words)
   - [Compilation](#Compilation)
   - [Immediate words](#Immediate-words)
-  - Control structures
-  - Looping structures
+- [Control structures](#Control-structures)
+  - [Conditional logic](#Conditional-logic)
+  - [Looping structures](#Looping-structures)
 - [Firth environment](#Firth-environment)
   - [Listing words](#Listing-words)
   - Debugging
@@ -391,13 +392,15 @@ The interpreter then pushes 5 on the stack and multiplies the top two items and 
 
 The description of compilation given above is fairly straight forward however I let one detail slip past: if Forth was in compile mode, how did the word `;` manage to terminate compile mode and put Forth back into interpret mode again. Compile mode, if it was just a word like any other, should have simply looked up `;` in the dictionary and added a pointer to it to the currently being compiled word.
 
-The reason for this difference from expected behaviour is that `;` is not a word like any other. It is a special word called an "immediate" word. Immediate words are simply words that have their immediate flag set. When Forth encounters an immediate word, it executes it straight away in all cases, even when Forth is in compile mode. This makes immediate words very powerful meta-programming tools in Forth because they can influence the compilation process itself. This is used to good effect in extending the Forth language itself and in implementing language features such flow-control and looping structures.
+The reason for this difference from expected behaviour is that `;` is not a word like any other. It is a special word called an _immediate_ word. Immediate words are simply words that have their immediate flag set. When Forth encounters an _immediate_ word, it executes it straight away in all cases, even when Forth is in compile mode. This makes _immediate_ words very powerful meta-programming tools in Forth because they can influence the compilation process itself. This is used to good effect in extending the Forth language itself and in implementing language features such flow-control and looping structures.
 
 [Back to contents](#contents)
 
 ### Control structures
 
-Conditional code can be written in Forth using the familiar if ... then structure. Forth implements this by using immediate words to affect the compilation process. As a consequence _you can only use these conditional structures inside word definitions_.
+#### Conditional logic
+
+Conditional code can be written in Forth using the familiar if ... then structure. Forth implements this by using _immediate_ words to affect the compilation process. As a consequence _you can only use these conditional structures inside word definitions_.
 
 ```
 <test> if <then-clause> endif
@@ -439,7 +442,24 @@ Note: in this there's no need to `dup` the original value because we don't need 
 
 [Back to contents](#contents)
 
-### Looping structures
+#### Looping structures
+
+Like conditional logic, Forth implements looping structures using _immediate_ words and also must occur inside a word definition. The Forth language has a few looping constructs but he one we will concentrate on here is the begin...while...repeat structure which runs a test on each iteration and while true executes some code repeatedly.
+
+```
+begin <test> while <repeat-clause> repeat
+```
+
+For example, here is a loop which iterates from a starting number, increasing it on each step. It stops when it reaches an ending number.
+
+```
+: iterate begin over over > while dup . 1+ repeat ;
+
+10 1 iterate
+1 2 3 4 5 6 7 8 9
+```
+
+TODO: `do ... loop`s
 
 [Back to contents](#contents)
 

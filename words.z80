@@ -168,7 +168,7 @@ defword "begin",5,MSK_IMMED,BEGIN
 defword "while",5,MSK_IMMED,WHILE
     call FORTH
     DW LIT, ZBRANCH, COMMA              ; compile branch on zero
-    DW HERE, FETCH                        ; save HERE in stack (HERE2)
+    DW HERE, FETCH                      ; save HERE in stack (HERE2)
     DW LIT, 0, COMMA                    ; compile dummy offset
     DW EXIT
     ret
