@@ -418,7 +418,20 @@ Let's look at an example which returns the absolute value of the number on the d
 3
 ```
 
-`dup` duplicates the top of the stack so we can use it in a test without losing the value. `0<` returns `true` if the value is below zero, `if` takes that value and executes the "then" clause which negates the value left on the stack. Otherwise it leaves the value alone.
+Explanation: `dup` duplicates the top of the stack so we can use it in a test without losing the value. `0<` returns `true` if the value is below zero, `if` takes that value and executes the "then" clause which negates the value left on the stack. Otherwise it leaves the value alone.
+```
+10          dup
+10 10       0<
+10 0        if
+10
+
+-3          dup
+-3 -3       0<
+-3 1        if
+-3          negate
+3
+```
+
 
 `if` can also have an `else` condition.
 
@@ -453,10 +466,42 @@ begin <test> while <repeat-clause> repeat
 For example, here is a loop which iterates from a starting number, increasing it on each step. It stops when it reaches an ending number.
 
 ```
-: iterate begin over over > while dup . 1+ repeat ;
+: iterate begin over over > while dup . 1+ repeat drop drop ;
 
 10 1 iterate
 1 2 3 4 5 6 7 8 9
+```
+
+Explanation: `over` makes a dup of the second item on the Forth stack and calling it twice is an easy way to duplicate the top two items on the stack.
+
+```
+            begin
+10 1        over
+10 1 10     over
+10 1 10 1   >
+10 1 1      while
+10 1        dup
+10 1 1      .
+10 1        1+              ; increases the value by 1
+10 2        repeat
+10 2        over
+10 2 10     over
+10 2 10 2   >
+10 2 1      while
+10 2        dup
+10 2 2      .
+10 2        1+              ; increases the value by 1
+10 3        repeat
+
+etc. until we get to 10
+
+10 10        over
+10 10 10     over
+10 10 10 10  >
+10 10 0      while
+10 10        drop   ; clean up stack
+10           drop
+
 ```
 
 TODO: `do ... loop`s
