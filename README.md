@@ -419,6 +419,7 @@ Let's look at an example which returns the absolute value of the number on the d
 ```
 
 Explanation: `dup` duplicates the top of the stack so we can use it in a test without losing the value. `0<` returns `true` if the value is below zero, `if` takes that value and executes the "then" clause which negates the value left on the stack. Otherwise it leaves the value alone.
+
 ```
 10          dup
 10 10       0<
@@ -431,7 +432,6 @@ Explanation: `dup` duplicates the top of the stack so we can use it in a test wi
 -3          negate
 3
 ```
-
 
 `if` can also have an `else` condition.
 
