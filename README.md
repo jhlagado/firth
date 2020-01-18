@@ -397,7 +397,7 @@ The reason for this difference from expected behaviour is that `;` is not a word
 
 ### Control structures
 
-Conditional code can be written in Forth using the familiar if ... then structure. Forth implements this by using immediate words to affect the compilation process so you can only use these conditional structures inside word definition.
+Conditional code can be written in Forth using the familiar if ... then structure. Forth implements this by using immediate words to affect the compilation process. As a consequence _you can only use these conditional structures inside word definitions_.
 
 ```
 <test> if <then-clause> endif
@@ -436,34 +436,6 @@ For example, let's define a word that makes true values false and false values t
 ```
 
 Note: in this there's no need to `dup` the original value because we don't need to use it again.
-
-Forth begins with a test for a condition and if it's value is true (i.e. 1) it executes the words in the `then-clause`, that is the words that appear between `if` and `then`. Otherwise it jumps past the `then` word.
-
-For example:
-
-```
-3 10 < if 123 . then
-```
-
-Output:
-
-```
-123
-```
-
-TODO: needs to go inside a word definition.
-
-Forth also has a form which includes an "else" clause although naturally the order is a little different from other languages.
-
-```
-<condition> if <then-clause> else <else-clause> then
-```
-
-For example:
-
-```
-3 10 < if 123 . else 246 . then
-```
 
 [Back to contents](#contents)
 
