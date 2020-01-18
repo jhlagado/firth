@@ -4,7 +4,7 @@
 ;; constamts decalred in assembly lanaguage
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-ROM_SIZE        equ     $2000
+ROM_SIZE        equ     $1000
 RAM_SIZE        equ     $10000 - ROM_SIZE
 RET_STACK_SIZE  equ     $80 ; return stack
 DATA_STACK_SIZE equ     $80 ; data stack
