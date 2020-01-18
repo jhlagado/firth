@@ -287,19 +287,19 @@ defword ".s",2,0,DOTS                  ; ( -- )
 
 ; using {"s",$22} because it's surprisingly difficult
 ; to define the name s" using asm80
-defword {"s",$22},2,MSK_IMMED,SQUOTE
-    call FORTH
-    dw LIT,XSQUOTE,COMMA
-    dw LIT,22H,WORD
-    dw CFETCH,ONEPLUS
-    dw ALLOT
-    dw EXIT
-    ret
+; defword {"s",$22},2,MSK_IMMED,SQUOTE
+;     call FORTH
+;     dw LIT,XSQUOTE,COMMA
+;     dw LIT,22H,WORD
+;     dw CFETCH,ONEPLUS
+;     dw ALLOT
+;     dw EXIT
+;     ret
 
-defword {"(s",$22,")"},4,MSK_IMMED,XSQUOTE
-    call FORTH
-    DW RFROM,COUNT,TWODUP,PLUS,TOR
-    ret
+; defword {"(s",$22,")"},4,MSK_IMMED,XSQUOTE
+;     call FORTH
+;     DW RFROM,COUNT,TWODUP,PLUS,TOR
+;     ret
 
 defvar "pad",3,0,PAD, VAR_PAD
 defvar "here",4,0,HERE, VAR_HERE
