@@ -145,11 +145,11 @@ defword "else",4,MSK_IMMED,ELSE
     DW HERE, FETCH                        ; save HERE on stack
     DW LIT, 0, COMMA                    ; compile a dummy offset
     DW SWAP                                ; now back-fill the original (IF) offset
-    DW THEN
+    DW ENDIF
     DW EXIT
     ret
 
-defword "then",4,MSK_IMMED,THEN
+defword "endif",5,MSK_IMMED,ENDIF
     call FORTH
     DW DUP
     DW HERE, FETCH, SWAP, MINUS            ; calculate the offset from the address saved on the stack

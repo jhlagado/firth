@@ -157,7 +157,7 @@
         EXPECT -5,  "expect 101 / -20 to be -5"
         EXPECT 1, "expect 101 % -20 to be 1"
 
-        TEST_SET_TEXT ": testif2 if 100 then ;"
+        TEST_SET_TEXT ": testif2 if 100 endif ;"
 
         call INTERPRET
 
@@ -166,15 +166,15 @@
 
         TEST_SET_TEXT "testif2"
         call INTERPRET
-        EXPECT 100, "1 if 100 then --> 100"
+        EXPECT 100, "1 if 100 endif --> 100"
 
         ppushValue 0
 
         TEST_SET_TEXT "testif2"
         call INTERPRET
-        EXPECT 200, "0 if 100 then --> 200"
+        EXPECT 200, "0 if 100 endif --> 200"
 
-        TEST_SET_TEXT ": testif3 if 100 else 200 then ;"
+        TEST_SET_TEXT ": testif3 if 100 else 200 endif ;"
 
         call INTERPRET
 
@@ -248,8 +248,7 @@
         call INTERPRET
         EXPECT 4, "2 2 add = 4"
 
-
-        TEST_SET_TEXT ": dump 16 base ! over + swap begin over over swap < while dup 7 and 0= if cr dup . then dup c@ . 1+ repeat cr 10 base ! ;"
+        TEST_SET_TEXT ": dump 16 base ! over + swap begin over over swap < while dup 7 and 0= if cr dup . endif dup c@ . 1+ repeat cr 10 base ! ;"
 
         call INTERPRET
 

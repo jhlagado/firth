@@ -397,11 +397,45 @@ The reason for this difference from expected behaviour is that `;` is not a word
 
 ### Control structures
 
-Conditional code can be written in Forth using the familiar if ... then structure. As with other aspects of Forth, the ordering of words is a little different to other languages.
+Conditional code can be written in Forth using the familiar if ... then structure. Forth implements this by using immediate words to affect the compilation process so you can only use these conditional structures inside word definition.
 
 ```
-<condition> if <then-clause> then
+<test> if <then-clause> endif
 ```
+
+Let's look at an example which returns the absolute value of the number on the data stack. This requires code to conditionally negate numbers that are below zero so they become positive. Remember, this only works inside a word definition.
+
+```
+: absolute dup 0< if negate endif ;
+
+10 absolute .
+10
+
+-3 absolute .
+3
+```
+
+`dup` duplicates the top of the stack so we can use it in a test without losing the value. `0<` returns `true` if the value is below zero, `if` takes that value and executes the "then" clause which negates the value left on the stack. Otherwise it leaves the value alone.
+
+`if` can also have an `else` condition.
+
+```
+<test> if <then-clause> else <else-clause> endif
+```
+
+For example, let's define a word that makes true values false and false values true..
+
+```
+: flip if false else true endif ;
+
+0 flip .
+1
+
+1 flip .
+0
+```
+
+Note: in this there's no need to `dup` the original value because we don't need to use it again.
 
 Forth begins with a test for a condition and if it's value is true (i.e. 1) it executes the words in the `then-clause`, that is the words that appear between `if` and `then`. Otherwise it jumps past the `then` word.
 
@@ -1011,6 +1045,6 @@ This turns off the emulator and shows you the internal state of the CPU. Step th
 ### Further reading
 
 A major inspiration for writing Firth comes from
-[JonesForth](https://github.com/nornagon/jonesforth) by Richard W.M. Jones. I also learned a lot from studying CamelForth for the Z80 by Brad Rodriguez. Really worth reading is his series on [Moving Forth](http://www.bradrodriguez.com/papers/moving1.htm) to various microprocessors.
+[JonesForth](https://github.com/nornagon/jonesforth) by Richard W.M. Jones. Also really worth reading is [Moving Forth](http://www.bradrodriguez.com/papers/moving1.htm), a series of articles by Brad Rodriguez about implmenting Forth on a range of microprocessors.
 
 [Back to contents](#contents)
