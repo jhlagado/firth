@@ -775,7 +775,7 @@ getWord:
     push AF
 
     _do
-        call getKey                 ; get next key, returned in A
+        call getKey                     ; get next key, returned in A
 
         _switch
 
@@ -787,7 +787,18 @@ getWord:
                 ret
             _endif
 
-            cp E                      ; = delim?
+            cp $5C                      ; \ start of a comment?
+            _case z                       ; if yes skip to end of line
+                _do
+                    call getKey
+                    cp "\r"             ; end of line yet?
+                _until z
+                    cp "\n"             ; end of line yet?
+                _until z
+                _enddo
+            _endcase
+
+            cp E                        ; = delim?
             _case nz
                 ld D,63
                 ld BC, 0
@@ -799,8 +810,10 @@ getWord:
                     call getKey         ; get next key
                     cp E                ; = delim?
                 _until z
-                    cp "\r" + 1         ; end of line?
-                _until c
+                    cp "\n"             ; end of line?
+                _until z
+                    cp "\r"             ; end of line?
+                _until z
                     dec D
                 _until z
                 _enddo
@@ -902,20 +915,4 @@ interpNumber:
         Print_Str TXT_ERROR
         ld A,1
     _endif
-    ret
-
-FORTH:
-    pop HL
-    ld E,(HL)
-    inc HL
-    ld D,(HL)
-    inc HL
-    push HL
-    ex DE,HL
-    ld DE, forth
-    push DE
-    jp (HL)
-
-EXIT:
-    pop HL
     ret

@@ -1,3 +1,19 @@
+FORTH:
+    pop HL
+    ld E,(HL)
+    inc HL
+    ld D,(HL)
+    inc HL
+    push HL
+    ex DE,HL
+    ld DE, forth
+    push DE
+    jp (HL)
+
+EXIT:
+    pop HL
+    ret
+
 ; words must preserve: BC, DE, SP, IX
 ; words may destroy: HL, IY, AF, AF', BC', DE' HL'
 
@@ -119,7 +135,7 @@ defword "0branch",7,0,ZBRANCH
     jp (HL)
 
 defword "branch",6,0,BRANCH         ; relative branching
-    pop HL
+    pop HL                          ; throw away return
     pop HL                          ; add the offset to the instruction pointer
     ld E,(HL)
     inc HL
@@ -131,25 +147,22 @@ defword "branch",6,0,BRANCH         ; relative branching
 
 defword "lit",3,0,LIT
 
-	; IP points to the next command, But in this case it points to the next
-	; literal 16 bit integer.  Get that literal, increment IP.
-
-	ppush0 B,C         ; pushTOS
-    pop DE
-	pop HL
-	readWord HL, B,C
-    push HL
-    ex DE,HL
-    jp (HL)
+	ppush0 B,C                      ; pushTOS
+    pop DE                          ; pop return address into DE
+	pop HL                          ; pop address of next Forth word in HL
+	readWord HL, B,C                ; read next word and push on TOS, inc HL by 2
+    push HL                         ; push address of next Forth word
+    ex DE,HL                        ; push return address in HL
+    jp (HL)                         ; return to caller
 
 ; U*   u1 u2 -- ud   unsigned mutliply
-defword "u*",2,0,USTAR  ; u1 u2 -- ud
+defword "u*",2,0,USTAR              ; u1 u2 -- ud
     push DE
-                        ; u2 in BC
-    ppop0 D,E           ; u1 in DE
+                                    ; u2 in BC
+    ppop0 D,E                       ; u1 in DE
 	call unsignedMultiply
-    ppush0 D,E         ; udlo result
-                       ; udhi result
+    ppush0 D,E                      ; udlo result
+                                    ; udhi result
     pop DE
     ret
 
