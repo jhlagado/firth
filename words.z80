@@ -193,7 +193,8 @@ defword "repeat",6,MSK_IMMED,REPEAT
 
 defword ":",1,0,COLON
     call FORTH
-    DW TOKEN                            ; Get the name of the new word
+    dw LIT, $20                         ; delim = space
+    DW WORD                             ; Get the name of the new word
     DW CREATE                           ; CREATE the dictionary entry / header
     DW LIT, CALL_OPCODE, CCOMMA         ; write Z80 jp OPCODE to word
     DW LIT, FORTH, COMMA                ; Append FORTH  (the codeword).
@@ -214,7 +215,8 @@ defword ";",1,MSK_IMMED,SEMICOLON
 ; CONSTANT   n --      define a Forth constant
 defword "constant",8,0,CONSTANT         ; ( n -- ) get name from input
     call FORTH
-    DW TOKEN                            ; read name
+    dw LIT, $20                         ; delim = space
+    DW WORD                            ; read name
     DW CREATE                           ; create header
     DW LIT, CALL_OPCODE, CCOMMA         ; write Z80 jp OPCODE to word
     DW LIT, FORTH, COMMA                ; write addr FORTH to word
@@ -228,7 +230,8 @@ defword "constant",8,0,CONSTANT         ; ( n -- ) get name from input
 defword "variable",8,0,VARIABLE              ; ( n -- ) get name from input
     call FORTH
     DW LIT, 1, CELLS, ALLOT                    ; allocate 1 word, push addr
-    DW TOKEN                            ; read name
+    dw LIT, $20                         ; delim = space
+    DW WORD                             ; read name
     DW CREATE                           ; create header
     DW LIT, CALL_OPCODE, CCOMMA         ; write Z80 jp OPCODE to word
     DW LIT, FORTH, COMMA                ; write addr FORTH to word

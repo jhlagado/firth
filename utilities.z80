@@ -692,143 +692,6 @@ listWords:
     call printCR
     ret
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; getToken -  returns a word string as delimited by spaces
-; ignores leading spaces, ignores comments starting with /
-;
-; params: none
-; returns: DE = address of wordBuf, BC = length,
-; destroys: AF
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-getToken:
-    ; Search for first non-blank character.
-    ; Also skip \ comments.
-    push HL
-    push AF
-
-    _do
-        call getKey                 ; get next key, returned in A
-
-        _switch
-
-            bit 7, A                    ; check end of input
-            _if nz
-                ld BC, 0
-                pop AF
-                pop HL
-                ret
-            _endif
-
-            cp $5C                      ; \ start of a comment?
-            _case z                       ; if yes skip to end of line
-                _do
-                    call getKey
-                    cp "\r"             ; end of line yet?
-                    _if nz
-                        cp "\n"         ; end of line yet?
-                    _endif
-                _until z
-                _enddo
-            _endcase
-
-            cp " " + 1                      ; <= space?
-            _case nc
-                ld E,31
-                ld HL, wordBuf      ; pointer to return lineBuf
-                _do
-                    ld (HL), A          ; add character to return lineBuf
-                    inc HL
-                    call getKey            ; get next key
-                    cp ' ' + 1            ; <= space?
-                _until c
-                    dec E
-                _until z
-                _enddo
-                ; Return the word (well, the static lineBuf) and length.
-                ld DE, wordBuf
-                or A
-                sbc HL, DE     ; return length of the word
-                loadWord B,C, H,L
-                pop AF
-                pop HL
-                ret
-            _endcase
-
-        _endswitch
-
-    _enddo
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; getWord -  returns a word string as delimited by spaces
-; ignores leading spaces, ignores comments starting with /
-;
-; params: E = delim
-; returns: DE = address of wordBuf, BC = length,
-; destroys: AF
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-getWord:
-    ; Search for first non-delim character.
-    ; Also skip \ comments.
-    push HL
-    push AF
-
-    _do
-        call getKey                     ; get next key, returned in A
-
-        _switch
-
-            bit 7, A                    ; check end of input
-            _if nz
-                ld BC, 0
-                pop AF
-                pop HL
-                ret
-            _endif
-
-            cp $5C                      ; \ start of a comment?
-            _case z                       ; if yes skip to end of line
-                _do
-                    call getKey
-                    cp "\r"             ; end of line yet?
-                _until z
-                    cp "\n"             ; end of line yet?
-                _until z
-                _enddo
-            _endcase
-
-            cp E                        ; = delim?
-            _case nz
-                ld D,63
-                ld BC, 0
-                ld HL, wordBuf          ; pointer to return lineBuf
-                _do
-                    ld (HL), A          ; add character to return lineBuf
-                    inc HL
-                    inc C
-                    call getKey         ; get next key
-                    cp E                ; = delim?
-                _until z
-                    cp "\n"             ; end of line?
-                _until z
-                    cp "\r"             ; end of line?
-                _until z
-                    dec D
-                _until z
-                _enddo
-                ; Return the word (well, the static lineBuf) and length.
-                ld DE, wordBuf
-                pop AF
-                pop HL
-                ret
-            _endcase
-
-        _endswitch
-
-    _enddo
-
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; params: DE = ptr to word, BC = length
 ; returns: A =  0 (pushed literal), 1 (compiled), 2 (to execute), BC = ptr to word,
@@ -915,4 +778,76 @@ interpNumber:
         Print_Str TXT_ERROR
         ld A,1
     _endif
+    ret
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; getWord -  returns a word string as delimited by spaces
+; ignores leading spaces, ignores comments starting with /
+;
+; params: E = delim
+; returns: DE = address of wordBuf, BC = length,
+; destroys: AF
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+getWord:
+    ; Search for first non-delim character.
+    ; Also skip \ comments.
+    _do
+        call getKey                 ; get next key, returned in A
+
+        _switch
+
+            bit 7, A                    ; check end of input
+            _if nz
+                ld BC, 0
+                ret
+            _endif
+
+            cp $5C                      ; \ start of a comment?
+            _case z                       ; if yes skip to end of line
+                _do
+                    call getKey
+                    cp "\r"             ; end of line yet?
+                    _if nz
+                        cp "\n"         ; end of line yet?
+                    _endif
+                _until z
+                _enddo
+            _endcase
+
+            cp E                      ; = space?
+            _case z
+            _endcase
+
+            cp " "                      ; < space?
+            _case c
+            _endcase
+
+            ; default case
+            _break
+
+        _endswitch
+
+    _enddo
+
+    ld D,63
+    push HL
+    ld HL, wordBuf      ; pointer to return lineBuf
+    _do
+        ld (HL), A          ; add character to return lineBuf
+        inc HL
+        call getKey            ; get next key
+        cp E                 ; = space?
+    _until z
+        cp " "           ; < space?
+    _until c
+        dec D
+    _until z
+    _enddo
+    ; Return the word (well, the static lineBuf) and length.
+    ld DE, wordBuf
+    or A
+    sbc HL, DE     ; return length of the word
+    loadWord B,C, H,L
+    pop HL
     ret

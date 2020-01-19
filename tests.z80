@@ -11,23 +11,6 @@
         EXPECT $65, "key 'e'"
 
         TEST_SET_TEXT "x"
-        call TOKEN
-        EXPECT 1, "token 'x'"
-        ppop H,L   ; drop
-
-        TEST_SET_TEXT "xyz"
-        call TOKEN
-        EXPECT 3, "token 'xyz'"
-        ppop H,L   ; drop
-
-        TEST_SET_TEXT "a xyz "
-        call TOKEN
-        EXPECT 1, "token 'a xyz'"
-        call TOKEN
-        EXPECT 3, "token 'a xyz'"
-        ppop H,L   ; drop
-
-        TEST_SET_TEXT "x"
         ppushValue $20
         call WORD
         EXPECT 1, "word 'x'"
@@ -109,15 +92,9 @@
 
         call CR
 
-        TEST_SET_TEXT "a xyz"
-        call TOKEN
-        EXPECT 1, "token 'a xyz'"
-        call TOKEN
-        EXPECT 3, "token 'a xyz'"
-
         TEST_SET_TEXT "100 100 +"
         call INTERPRET
-        EXPECT 200, "token '100 100 + = 200'"
+        EXPECT 200, "100 100 + = 200"
 
         ld HL, 12
         ld C, 10

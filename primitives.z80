@@ -59,19 +59,11 @@ defword "print",5,0,PRINT
     pop DE
     ret
 
-defword "token",5,0,TOKEN               ; -- c-addr length  ; NOT STANDARD
-    ppush0 B,C                         ; save TOS
+defword "word",4,0,WORD                 ; delim -- c-addr length
     push DE
-    call getToken
-    ppush0 D,E                         ; DE = str ptr
-    pop DE
-    ret
-
-defword "word",4,0,WORD                ; delim -- c-addr length
-    push DE
-    ppop D,E                           ; E = delim
+    loadWord D,E, B,C                   ; E = delim
     call getWord
-    ppush0 D,E                         ; DE = str ptr
+    ppush0 D,E                          ; DE = str ptr
     pop DE
     ret
 
@@ -613,11 +605,11 @@ defword "type",4,0,TYPE             ; ( str len -- )
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; destroys: HL, AF
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-defword "interp",6,0,interp              ; ( -- c )
+defword "interp",6,0,interp             ; ( -- c )
     push DE
-    ppush0 B,C                         ; save TOS
-
-    call getToken
+    ppush0 B,C                          ; save TOS
+    ld DE, $20                          ; delim = ' '
+    call getWord
     call interpToken
     _switch
         or A
