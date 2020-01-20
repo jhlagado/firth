@@ -76,6 +76,11 @@ TESTS_START:
 .endif
 
 .if TESTMODE = 2
+        TEST_SET_TEXT ": str s' xyz' ;"
+        call INTERPRET
+        TEST_SET_TEXT "str ."
+        call INTERPRET
+        ; EXPECT 3, "str len = 3"
 
 .endif
 

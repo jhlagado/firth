@@ -59,10 +59,19 @@ defword "print",5,0,PRINT
     pop DE
     ret
 
-defword "word",4,0,WORD                 ; delim -- c-addr length
+defword "word",4,0,WORD                 ; delim -- addr length
     push DE
     loadWord D,E, B,C                   ; E = delim
     call getWord
+    ppush0 D,E                          ; DE = str ptr
+    pop DE
+    ret
+
+defword "word1",4,0,WORD                ; delim -- c-addr
+    push DE
+    loadWord D,E, B,C                   ; E = delim
+    ld HL, wordBuf
+    call getWord1
     ppush0 D,E                          ; DE = str ptr
     pop DE
     ret
@@ -478,7 +487,7 @@ defword "-rot",4,0,NROT     ; x1 x2 x3 -- x3 x1 x2
     ret
 
 ; >R    ( x -- ) ( R: -- x )  Move  x from TOS to the return stack.
-defword ">r",2,0,TO_R
+defword ">r",2,0,TOR
     PUSH_RET B,C
     ppop0 B,C
     ret
@@ -497,7 +506,7 @@ defword "over",4,0,OVER
     ret
 
 ; R>    ( -- x ) ( R: x -- )  Move x from the return stack to TOS
-defword "r>",2,0,R_FROM
+defword "r>",2,0,RFROM
     ppush0 B,C
     POP_RET B,C
     ret
