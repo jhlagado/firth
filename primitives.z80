@@ -67,7 +67,7 @@ defword "word",4,0,WORD                 ; delim -- addr length
     pop DE
     ret
 
-defword "word1",4,0,WORD                ; delim -- c-addr
+defword "word1",5,0,WORD1                ; delim -- c-addr
     push DE
     loadWord D,E, B,C                   ; E = delim
     ld HL, wordBuf
