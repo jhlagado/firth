@@ -68,12 +68,11 @@ defword "word",4,0,WORD                 ; delim -- addr length
     ret
 
 defword "word1",5,0,WORD1                ; delim -- c-addr
-    push DE
-    loadWord D,E, B,C                   ; E = delim
+    ld A,C
+    ld E,A
     ld HL, wordBuf
     call getWord1
-    ppush0 D,E                          ; DE = str ptr
-    pop DE
+    ppush0 H,L                          ; DE = str ptr
     ret
 
 defword "+!",2,0,ADDSTORE               ; (n addr -- )

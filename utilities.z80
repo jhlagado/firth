@@ -852,7 +852,14 @@ getWord:
     pop HL
     ret
 
-; HL is destination to write pstr
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; getWord1 -  returns a word string as delimited by spaces
+; ignores leading spaces, ignores comments starting with /
+;
+; params: E = delim
+; returns: HL = address of pstr
+; destroys: AF
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 getWord1:
     ; Search for first non-delim character.
     ; Also skip \ comments.
