@@ -78,10 +78,11 @@ TESTS_START:
 .if TESTMODE = 2
         TEST_SET_TEXT ": str s' xyz' ;"
         call INTERPRET
-        TEST_SET_TEXT "str ."
+        TEST_SET_TEXT "str type"
         call INTERPRET
-        ; EXPECT 3, "str len = 3"
-
+        TEST_SET_TEXT "str"
+        call INTERPRET
+        EXPECT 3, "str len = 3"
 .endif
 
 .if TESTMODE

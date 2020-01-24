@@ -256,3 +256,11 @@
 
         TEST_SET_TEXT "dump"
         call INTERPRET
+
+        TEST_SET_TEXT ": str s' xyz' ;"
+        call INTERPRET
+        TEST_SET_TEXT "str type"
+        call INTERPRET
+        TEST_SET_TEXT "str"
+        call INTERPRET
+        EXPECT 3, "str len = 3"

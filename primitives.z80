@@ -70,9 +70,9 @@ defword "word",4,0,WORD                 ; delim -- addr length
 defword "word1",5,0,WORD1                ; delim -- c-addr
     ld A,C
     ld E,A
-    ld HL, wordBuf
+    ld HL, (VAR_HERE)
     call getWord1
-    ppush0 H,L                          ; DE = str ptr
+    loadWord B,C, H,L                   ; TOS = str ptr
     ret
 
 defword "+!",2,0,ADDSTORE               ; (n addr -- )
@@ -487,7 +487,10 @@ defword "-rot",4,0,NROT     ; x1 x2 x3 -- x3 x1 x2
 
 ; >R    ( x -- ) ( R: -- x )  Move  x from TOS to the return stack.
 defword ">r",2,0,TOR
-    PUSH_RET B,C
+    LD IY,0
+    ADD IY,SP
+    LD (IY+6),C
+    LD (IY+7),B
     ppop0 B,C
     ret
 
@@ -507,7 +510,10 @@ defword "over",4,0,OVER
 ; R>    ( -- x ) ( R: x -- )  Move x from the return stack to TOS
 defword "r>",2,0,RFROM
     ppush0 B,C
-    POP_RET B,C
+    LD IY,0
+    ADD IY,SP
+    LD C,(IY+6)
+    LD B,(IY+7)
     ret
 
 defword "'",1,0,TICK                 ; ( -- addr ) PUSH code word ptr of following word

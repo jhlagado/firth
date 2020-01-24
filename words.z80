@@ -292,10 +292,8 @@ defword ".s",2,0,DOTS                  ; ( -- )
 ; to define the name s' using asm80
 defword {"s",$27},2,MSK_IMMED,SQUOTE
     call FORTH
-    DW LIT, CALL_OPCODE, CCOMMA         ; write Z80 jp OPCODE to word
-    DW LIT, FORTH, COMMA                ; write addr FORTH to word
     dw LIT, LITSTR, COMMA
-    dw LIT, 27H, WORD
+    dw LIT, 27H, WORD1
     dw CFETCH, ONEPLUS
     dw ALLOT
     dw EXIT
@@ -303,7 +301,10 @@ defword {"s",$27},2,MSK_IMMED,SQUOTE
 
 defword "litstr",6,0,LITSTR   ; pushes ptr to string and length on stack
     call FORTH
-    dw RFROM, COUNT, OVER, OVER, PLUS, TOR
+    dw RFROM
+    dw COUNT, OVER, OVER, PLUS
+    dw TOR
+    dw EXIT
     ret
 
 defvar "pad",3,0,PAD, VAR_PAD
