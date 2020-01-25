@@ -191,6 +191,15 @@ defword "repeat",6,MSK_IMMED,REPEAT
 ; ; J
 ; ; UNTIL
 
+defword "create1",7,0,CREATE1  ; --
+    call FORTH
+    dw LATEST, FETCH, COMMA             ; write link to previous word LATEST @ ,
+    dw HERE, LATEST, STORE              ; update latest to this word HERE LATEST !
+    dw LIT, $20, WORD1                  ; read word token
+    dw CFETCH, ONEPLUS, ALLOT           ; allocate string plus length byte
+    DW EXIT                             ; exit from Forth
+    ret
+
 defword ":",1,0,COLON
     call FORTH
     dw LIT, $20                         ; delim = space
@@ -305,6 +314,13 @@ defword "litstr",6,0,LITSTR   ; pushes ptr to string and length on stack
     dw COUNT, OVER, OVER, PLUS
     dw TOR
     dw EXIT
+    ret
+
+defword {".",$22},2,MSK_IMMED,DOTQUOTE
+    call FORTH
+    DW SQUOTE
+    DW LIT,TYPE,COMMA
+    DW EXIT
     ret
 
 defvar "pad",3,0,PAD, VAR_PAD
