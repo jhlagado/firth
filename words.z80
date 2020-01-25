@@ -290,10 +290,10 @@ defword ".s",2,0,DOTS                  ; ( -- )
 
 ; using {"s",$27} because it's surprisingly difficult
 ; to define the name s' using asm80
-defword {"s",$27},2,MSK_IMMED,SQUOTE
+defword {"s",$22},2,MSK_IMMED,SQUOTE
     call FORTH
     dw LIT, LITSTR, COMMA
-    dw LIT, 27H, WORD1
+    dw LIT, $22, WORD1
     dw CFETCH, ONEPLUS
     dw ALLOT
     dw EXIT

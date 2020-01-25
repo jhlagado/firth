@@ -257,7 +257,7 @@
         TEST_SET_TEXT "dump"
         call INTERPRET
 
-        TEST_SET_TEXT ": str s' xyz' ;"
+        TEST_SET_TEXT {": str s",$22," xyz",$22," ;"}
         call INTERPRET
         TEST_SET_TEXT "str type"
         call INTERPRET
