@@ -193,8 +193,9 @@ defword "repeat",6,MSK_IMMED,REPEAT
 
 defword "create1",7,0,CREATE1  ; --
     call FORTH
-    dw LATEST, FETCH, COMMA             ; write link to previous word LATEST @ ,
-    dw HERE, LATEST, STORE              ; update latest to this word HERE LATEST !
+    dw HERE, FETCH                      ; save old here
+    dw LATEST, FETCH, COMMA             ; write link to previous word to HERE
+    dw LATEST, STORE                    ; update LATEST to old HERE
     dw LIT, $20, WORD1                  ; read word token
     dw CFETCH, ONEPLUS, ALLOT           ; allocate string plus length byte
     DW EXIT                             ; exit from Forth
@@ -202,9 +203,7 @@ defword "create1",7,0,CREATE1  ; --
 
 defword ":",1,0,COLON
     call FORTH
-    dw LIT, $20                         ; delim = space
-    DW WORD                             ; Get the name of the new word
-    DW CREATE                           ; CREATE the dictionary entry / header
+    DW CREATE1                           ; CREATE the dictionary entry / header
     DW LIT, CALL_OPCODE, CCOMMA         ; write Z80 jp OPCODE to word
     DW LIT, FORTH, COMMA                ; Append FORTH  (the codeword).
     DW LATEST, FETCH, HIDDEN            ; Make the word hidden (see below for definition).
