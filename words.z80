@@ -191,7 +191,7 @@ defword "repeat",6,MSK_IMMED,REPEAT
 ; ; J
 ; ; UNTIL
 
-defword "create1",7,0,CREATE1  ; --
+defword "create",7,0,CREATE  ; --
     call FORTH
     dw HERE, FETCH                      ; save old here
     dw LATEST, FETCH, COMMA             ; write link to previous word to HERE
@@ -204,7 +204,7 @@ defword "create1",7,0,CREATE1  ; --
 
 defword ":",1,0,COLON
     call FORTH
-    DW CREATE1                           ; CREATE the dictionary entry / header
+    DW CREATE                           ; CREATE the dictionary entry / header
     DW LIT, CALL_OPCODE, CCOMMA         ; write Z80 jp OPCODE to word
     DW LIT, FORTH, COMMA                ; Append FORTH  (the codeword).
     DW LATEST, FETCH, HIDDEN            ; Make the word hidden (see below for definition).
@@ -224,7 +224,7 @@ defword ";",1,MSK_IMMED,SEMICOLON
 ; CONSTANT   n --      define a Forth constant
 defword "constant",8,0,CONSTANT         ; ( n -- ) get name from input
     call FORTH
-    DW CREATE1                           ; create header
+    DW CREATE                           ; create header
     DW LIT, CALL_OPCODE, CCOMMA         ; write Z80 jp OPCODE to word
     DW LIT, FORTH, COMMA                ; write addr FORTH to word
     DW LIT, LIT, COMMA                  ; write addr of LIT to word
@@ -237,7 +237,7 @@ defword "constant",8,0,CONSTANT         ; ( n -- ) get name from input
 defword "variable",8,0,VARIABLE              ; ( n -- ) get name from input
     call FORTH
     DW LIT, 1, CELLS, ALLOT                    ; allocate 1 word, push addr
-    DW CREATE1                           ; create header
+    DW CREATE                           ; create header
     DW LIT, CALL_OPCODE, CCOMMA         ; write Z80 jp OPCODE to word
     DW LIT, FORTH, COMMA                ; write addr FORTH to word
     DW LIT, LIT, COMMA                  ; write addr of LIT to word

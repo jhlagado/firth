@@ -36,7 +36,7 @@
         EXPECT START_USER, "here"
 
         TEST_SET_TEXT "xyz"
-        call CREATE1
+        call CREATE
         call LATEST
         call FETCH
         EXPECT START_USER, "create xyz latest"

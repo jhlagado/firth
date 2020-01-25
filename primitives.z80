@@ -531,37 +531,6 @@ defword "'",1,0,TICK                 ; ( -- addr ) PUSH code word ptr of followi
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-; CREATE     addr len --       create new header from name
-defword "create",6,0,CREATE  ; addr len --
-
-    push DE
-    push HL
-    ppop0 H,L
-	; Link pointer.
-	ld DE, (VAR_HERE)	    ; DE point to the start of a new header
-	ld A, (VAR_LATEST) 	    ; write ptr to previous word in header
-    ld (DE), A
-    inc DE
-    ld A, (VAR_LATEST + 1)
-    ld (DE), A
-    inc DE
-
-	; Length byte and the word itself.
-	ld A, C		    ; Get the length of namw.
-	ld (DE), A      ; write to length/flags field of header
-    inc DE          ; HL = name, de = name field in header, BC = length
-	ldir            ; copy BC bytes from (HL) to (DE)
-
-	; Update LATEST and HERE.
-	ld HL, (VAR_HERE)
-	ld (VAR_LATEST), HL
-	ld (VAR_HERE), DE
-
-    ppop0 B,C
-    pop HL
-    pop DE
-    ret
-
 defword "immediate",9,MSK_IMMED,IMMEDIATE
     ld HL, (VAR_LATEST)                 ; get head of latest word
     inc HL                              ; point to flags byte
