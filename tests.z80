@@ -35,8 +35,8 @@
         call FETCH
         EXPECT START_USER, "here"
 
-        ppushText "xyz",3
-        call CREATE
+        TEST_SET_TEXT "xyz"
+        call CREATE1
         call LATEST
         call FETCH
         EXPECT START_USER, "create xyz latest"

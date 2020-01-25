@@ -198,6 +198,7 @@ defword "create1",7,0,CREATE1  ; --
     dw LATEST, STORE                    ; update LATEST to old HERE
     dw LIT, $20, WORD1                  ; read word token
     dw CFETCH, ONEPLUS, ALLOT           ; allocate string plus length byte
+    dw DROP
     DW EXIT                             ; exit from Forth
     ret
 
@@ -223,9 +224,7 @@ defword ";",1,MSK_IMMED,SEMICOLON
 ; CONSTANT   n --      define a Forth constant
 defword "constant",8,0,CONSTANT         ; ( n -- ) get name from input
     call FORTH
-    dw LIT, $20                         ; delim = space
-    DW WORD                            ; read name
-    DW CREATE                           ; create header
+    DW CREATE1                           ; create header
     DW LIT, CALL_OPCODE, CCOMMA         ; write Z80 jp OPCODE to word
     DW LIT, FORTH, COMMA                ; write addr FORTH to word
     DW LIT, LIT, COMMA                  ; write addr of LIT to word
@@ -238,9 +237,7 @@ defword "constant",8,0,CONSTANT         ; ( n -- ) get name from input
 defword "variable",8,0,VARIABLE              ; ( n -- ) get name from input
     call FORTH
     DW LIT, 1, CELLS, ALLOT                    ; allocate 1 word, push addr
-    dw LIT, $20                         ; delim = space
-    DW WORD                             ; read name
-    DW CREATE                           ; create header
+    DW CREATE1                           ; create header
     DW LIT, CALL_OPCODE, CCOMMA         ; write Z80 jp OPCODE to word
     DW LIT, FORTH, COMMA                ; write addr FORTH to word
     DW LIT, LIT, COMMA                  ; write addr of LIT to word
