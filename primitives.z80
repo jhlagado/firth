@@ -67,10 +67,25 @@ defword "word",4,0,WORD                 ; delim -- addr length
     pop DE
     ret
 
-defword "word1",5,0,WORD1                ; delim -- c-addr
+; defword "word1",5,0,WORD1                ; delim -- c-addr
+;     ld A,C
+;     ld E,A
+;     ld HL, (VAR_HERE)
+;     call getWord1
+;     loadWord B,C, H,L                   ; TOS = str ptr
+;     ret
+
+defword "word1",5,0,WORD1               ; delim -- c-addr
+    ld HL, (VAR_HERE)                   ; writes to HERE!
+    ppush H,L
+    call XWORD
+    loadWord B,C, H,L                   ; TOS = str ptr
+    ret
+
+defword "(word)",6,0,XWORD                ; delim addr -- c-addr
+    ppop H,L
     ld A,C
     ld E,A
-    ld HL, (VAR_HERE)
     call getWord1
     loadWord B,C, H,L                   ; TOS = str ptr
     ret
