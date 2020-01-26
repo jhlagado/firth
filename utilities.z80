@@ -697,16 +697,49 @@ listWords:
 ; returns: A =  0 (pushed literal), 1 (compiled), 2 (to execute), BC = ptr to word,
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-interpToken:
-    checkZeroWord B,C
+; interpToken:
+;     checkZeroWord B,C
+;     _if z
+;         ld BC, 1
+;         ld (VAR_INTP_STOP),BC                             ; INTP_STOPPING:
+;         ld A,1
+;     _else
+;         push BC                 ; save token length
+;         push DE                 ; save token ptr
+;         loadWord H,L, D,E
+;         call lookup
+;         checkZeroWord D,E       ; DE = header ptr or zero
+;         _if nz
+;             pop BC              ; drop token ptr
+;             pop BC              ; drop token length
+;             ex DE,HL
+;             call interpForthWord
+;         _else
+;             pop HL              ; HL = token ptr
+;             pop BC              ; BC = token length
+;             call interpNumber
+;         _endif
+;     _endif
+;     ret
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; params: HL = ptr to pstr
+; returns: A =  0 (pushed literal), 1 (compiled), 2 (to execute), BC = ptr to word,
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+interpToken1:
+    ld A,(HL)
+    or A
     _if z
         ld BC, 1
         ld (VAR_INTP_STOP),BC                             ; INTP_STOPPING:
         ld A,1
     _else
+        ld C,A                  ; BC = length
+        ld B,0
+        inc HL                  ; HL = ptr to array of chars
         push BC                 ; save token length
-        push DE                 ; save token ptr
-        loadWord H,L, D,E
+        push HL                 ; save token ptr
         call lookup
         checkZeroWord D,E       ; DE = header ptr or zero
         _if nz
@@ -780,6 +813,7 @@ interpNumber:
     _endif
     ret
 
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; getWord -  returns a word string as delimited by spaces
 ; ignores leading spaces, ignores comments starting with /
@@ -789,68 +823,68 @@ interpNumber:
 ; destroys: AF
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-getWord:
-    ; Search for first non-delim character.
-    ; Also skip \ comments.
-    _do
-        call getKey                 ; get next key, returned in A
+; getWord:
+;     ; Search for first non-delim character.
+;     ; Also skip \ comments.
+;     _do
+;         call getKey                 ; get next key, returned in A
 
-        _switch
+;         _switch
 
-            bit 7, A                    ; check end of input
-            _if nz
-                ld BC, 0
-                ret
-            _endif
+;             bit 7, A                    ; check end of input
+;             _if nz
+;                 ld BC, 0
+;                 ret
+;             _endif
 
-            cp $5C                      ; \ start of a comment?
-            _case z                       ; if yes skip to end of line
-                _do
-                    call getKey
-                    cp "\r"             ; end of line yet?
-                    _if nz
-                        cp "\n"         ; end of line yet?
-                    _endif
-                _until z
-                _enddo
-            _endcase
+;             cp $5C                      ; \ start of a comment?
+;             _case z                       ; if yes skip to end of line
+;                 _do
+;                     call getKey
+;                     cp "\r"             ; end of line yet?
+;                     _if nz
+;                         cp "\n"         ; end of line yet?
+;                     _endif
+;                 _until z
+;                 _enddo
+;             _endcase
 
-            cp E                      ; = space?
-            _case z
-            _endcase
+;             cp E                      ; = space?
+;             _case z
+;             _endcase
 
-            cp " "                      ; < space?
-            _case c
-            _endcase
+;             cp " "                      ; < space?
+;             _case c
+;             _endcase
 
-            ; default case
-            _break
+;             ; default case
+;             _break
 
-        _endswitch
+;         _endswitch
 
-    _enddo
+;     _enddo
 
-    ld D,63
-    push HL
-    ld HL, wordBuf      ; pointer to return lineBuf
-    _do
-        ld (HL), A          ; add character to return lineBuf
-        inc HL
-        call getKey            ; get next key
-        cp E                 ; = space?
-    _until z
-        cp " "           ; < space?
-    _until c
-        dec D
-    _until z
-    _enddo
-    ; Return the word (well, the static lineBuf) and length.
-    ld DE, wordBuf
-    or A
-    sbc HL, DE     ; return length of the word
-    loadWord B,C, H,L
-    pop HL
-    ret
+;     ld D,63
+;     push HL
+;     ld HL, wordBuf      ; pointer to return lineBuf
+;     _do
+;         ld (HL), A          ; add character to return lineBuf
+;         inc HL
+;         call getKey            ; get next key
+;         cp E                 ; = space?
+;     _until z
+;         cp " "           ; < space?
+;     _until c
+;         dec D
+;     _until z
+;     _enddo
+;     ; Return the word (well, the static lineBuf) and length.
+;     ld DE, wordBuf
+;     or A
+;     sbc HL, DE     ; return length of the word
+;     loadWord B,C, H,L
+;     pop HL
+;     ret
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; getWord1 -  returns a word string as delimited by spaces
@@ -870,7 +904,7 @@ getWord1:
 
             bit 7, A                    ; check end of input
             _if nz
-                ld BC, 0
+                ld (HL),0
                 ret
             _endif
 
@@ -921,3 +955,5 @@ getWord1:
     pop HL                  ; restore HL
     ld (HL),B               ; write length
     ret
+
+

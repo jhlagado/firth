@@ -59,13 +59,13 @@ defword "print",5,0,PRINT
     pop DE
     ret
 
-defword "word",4,0,WORD                 ; delim -- addr length
-    push DE
-    loadWord D,E, B,C                   ; E = delim
-    call getWord
-    ppush0 D,E                          ; DE = str ptr
-    pop DE
-    ret
+; defword "word",4,0,WORD                 ; delim -- addr length
+;     push DE
+;     loadWord D,E, B,C                   ; E = delim
+;     call getWord
+;     ppush0 D,E                          ; DE = str ptr
+;     pop DE
+;     ret
 
 defword "word1",5,0,WORD1               ; delim -- c-addr
     ld HL, (VAR_HERE)                   ; writes to HERE!
@@ -598,8 +598,9 @@ defword "interp",6,0,interp             ; ( -- c )
     push DE
     ppush0 B,C                          ; save TOS
     ld DE, $20                          ; delim = ' '
-    call getWord
-    call interpToken
+    ld HL, wordBuf
+    call getWord1
+    call interpToken1
     _switch
         or A
         _case z
