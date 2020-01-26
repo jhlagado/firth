@@ -12,25 +12,25 @@
 
         TEST_SET_TEXT "x"
         ppushValue $20
-        call WORD1
+        call WORD
         call COUNT
         EXPECT 1, "word 'x'"
         ppop H,L   ; drop
 
         TEST_SET_TEXT "xyz"
         ppushValue $20
-        call WORD1
+        call WORD
         call COUNT
         EXPECT 3, "word 'xyz'"
         ppop H,L   ; drop
 
         TEST_SET_TEXT "a xyz "
         ppushValue $20
-        call WORD1
+        call WORD
         call COUNT
         EXPECT 1, "word 'a xyz'"
         ppushValue $20
-        call WORD1
+        call WORD
         call COUNT
         EXPECT 3, "word 'a xyz'"
         ppop H,L   ; drop

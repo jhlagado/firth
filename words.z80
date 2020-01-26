@@ -196,7 +196,7 @@ defword "create",7,0,create  ; --
     dw here, fetch                      ; save old here
     dw latest, fetch, comma             ; write link to previous word to here
     dw latest, store                    ; update latest to old here
-    dw lit, $20, word1                  ; read word token
+    dw lit, $20, word                  ; read word token
     dw cfetch, oneplus, allot           ; allocate string plus length byte
     dw drop
     dw exit                             ; exit from forth
@@ -298,7 +298,7 @@ defword ".s",2,0,dots                  ; ( -- )
 defword {"s",$22},2,msk_immed,squote
     call forth
     dw lit, litstr, comma
-    dw lit, $22, word1
+    dw lit, $22, word
     dw cfetch, oneplus
     dw allot
     dw exit
