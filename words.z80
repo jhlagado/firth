@@ -304,6 +304,12 @@ defword {"s",$22},2,msk_immed,squote
     dw exit
     ret
 
+defword "(squoteim)",10,msk_immed,xsquoteim
+    call forth
+    dw lit, $22, word
+    dw exit
+    ret
+
 defword "litstr",6,0,litstr   ; pushes ptr to string and length on stack
     call forth
     dw rfrom
@@ -317,6 +323,18 @@ defword {".",$22},2,msk_immed,dotquote
     dw squote
     dw lit,type,comma
     dw exit
+    ret
+
+defword "decimal",7,0,decimal   ; pushes ptr to string and length on stack
+    call forth
+    dw lit,10,base,store
+    dw EXIT
+    ret
+
+defword "hex",3,0,hex   ; pushes ptr to string and length on stack
+    call forth
+    dw lit,16,base,store
+    dw EXIT
     ret
 
 defvar "pad",3,0,pad, var_pad
