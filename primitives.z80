@@ -59,28 +59,6 @@ defword "print",5,0,PRINT
     pop DE
     ret
 
-; defword "word",4,0,WORD                 ; delim -- addr length
-;     push DE
-;     loadWord D,E, B,C                   ; E = delim
-;     call getWord
-;     ppush0 D,E                          ; DE = str ptr
-;     pop DE
-;     ret
-
-defword "word",5,0,WORD               ; delim -- c-addr
-    ld HL, (VAR_HERE)                   ; writes to HERE!
-    ppush H,L
-    call XWORD
-    ret
-
-defword "(word)",6,0,XWORD                ; delim addr -- c-addr
-    ppop H,L
-    ld A,C
-    ld E,A
-    call getWord
-    loadWord B,C, H,L                   ; TOS = str ptr
-    ret
-
 defword "+!",2,0,ADDSTORE               ; (n addr -- )
 	ppop H, L		            ; HL = address, TOS = amount to add
 	ld A,(HL)
@@ -540,7 +518,6 @@ defword "immediate",9,MSK_IMMED,IMMEDIATE
     ld (HL),a
     ret
 
-
 ; DOES> does
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -610,17 +587,90 @@ defword "interp",6,0,interp             ; ( -- c )
 
         cp 1
         _case z
-            ppop0 B,C                ; clear TOS
+            ppop0 B,C                   ; clear TOS
             pop DE
         _endcase
 
         cp 2
         _case z
             loadWord H,L, B,C
-            ppop0 B,C                ; clear TOS
+            ppop0 B,C                   ; clear TOS
             pop DE
-            jp (HL)              ; execute word
+            jp (HL)                     ; execute word
         _endcase
     _endswitch
 
+    ret
+
+xwordSkip:                              ; delim addr -- delim addr char
+    ppop H,L
+    ppush0 B,C
+    ppush0 H,L
+    _do
+        call getKey                     ; get next key, returned in A
+
+        _switch
+
+            bit 7, A                    ; check end of input
+            _if nz
+                ld (HL),0
+                ld A,0
+                _break
+            _endif
+
+            cp $5C                      ; \ start of a comment?
+            _case z                     ; if yes skip to end of line
+                _do
+                    call getKey
+                    cp "\r"             ; end of line yet?
+                    _if nz
+                        cp "\n"         ; end of line yet?
+                    _endif
+                _until z
+                _enddo
+            _endcase
+
+            cp C                        ; = space?
+            _case z
+            _endcase
+
+            cp " "                      ; < space?
+            _case c
+            _endcase
+
+            ; default case
+            _break
+
+        _endswitch
+    _enddo
+    ld B,0
+    ld C,A
+    ret
+
+xwordRead:                              ; delim addr char -- c-addr
+    ld A,C
+    ppop0 B,C
+    ppop H,L
+    ld B,0
+    or A
+    _if nz
+        ld D,63
+        push HL                         ; save a copy of HL
+        inc HL                          ; move to leave space for length byte
+        _do
+            ld (HL), A                  ; add character to return lineBuf
+            inc HL
+            inc B
+            call getKey                 ; get next key
+            cp C                        ; = space?
+        _until z
+            cp " "                      ; < space?
+        _until c
+            dec D
+        _until z
+        _enddo
+        pop HL                          ; restore HL
+    _endif
+    ld (HL),B                           ; write length
+    loadWord B,C, H,L                   ; TOS = str ptr
     ret

@@ -337,6 +337,19 @@ defword "hex",3,0,hex   ; pushes ptr to string and length on stack
     dw EXIT
     ret
 
+defword "word",5,0,WORD                 ; delim -- c-addr
+    call forth
+    dw here, fetch, xword               ; writes to HERE!
+    dw exit
+    ret
+
+defword "(word)",6,0,xword              ; delim addr -- c-addr
+    call forth
+    dw xwordSkip
+    dw xwordRead
+    dw exit
+    ret
+
 defvar "pad",3,0,pad, var_pad
 defvar "here",4,0,here, var_here
 defvar "intp_stop",9,0,intp_stop, var_intp_stop
