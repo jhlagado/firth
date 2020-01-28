@@ -20,7 +20,7 @@ enter:
     inc HL
     push HL
     ex DE,HL
-    ld DE, forth
+    ld DE, enter
     push DE
     jp (HL)
 

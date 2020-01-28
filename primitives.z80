@@ -95,7 +95,7 @@ defword "0branch",7,0,ZBRANCH
     checkZeroWord B,C               ; test old TOS
     ppop0 B,C                       ; POP new TOS
     jr z,BRANCH                     ; if old TOS=0, branch
-    pop HL                          ; ret address = FORTH
+    pop HL                          ; ret address = enter
     pop DE
     inc DE                          ; else skip inline value
     inc DE
@@ -111,7 +111,7 @@ defword "branch",6,0,BRANCH         ; relative branching
     dec HL
     add HL,DE
     push HL
-    jp FORTH
+    jp enter
 
 defword "lit",3,0,LIT
 
