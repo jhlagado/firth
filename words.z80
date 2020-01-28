@@ -296,6 +296,9 @@ defword ".s",2,0,dots                  ; ( -- )
 ; using {"s",$27} because it's surprisingly difficult
 ; to define the name s' using asm80
 defword {"s",$22},2,msk_immed,squote
+    jr quote
+
+defword $22,1,msk_immed,quote
     call enter
     dw lit, litstr, comma
     dw lit, $22, word
@@ -304,7 +307,7 @@ defword {"s",$22},2,msk_immed,squote
     dw exit
     ret
 
-defword "(squoteim)",10,msk_immed,xsquoteim
+defword "xquoteim",8,msk_immed,xquoteim
     call enter
     dw lit, $22, word
     dw exit

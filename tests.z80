@@ -268,3 +268,13 @@
         TEST_SET_TEXT "str"
         call INTERPRET
         EXPECT 3, "str len = 3"
+
+        TEST_SET_TEXT {"xquoteim xyz",$22}
+        call INTERPRET
+        TEST_SET_TEXT "count dup"
+        call INTERPRET
+        EXPECT 3, "str len = 3"
+        TEST_SET_TEXT "type"
+        call INTERPRET
+
+
