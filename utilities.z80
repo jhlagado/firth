@@ -12,6 +12,22 @@ TXT_STACK_UNDERFLOW:
 DONE:           .pstr "\r\nDone! \r\n"
 FAILED:         .pstr "Failed: \r\n"
 
+enter:
+    pop HL
+    ld E,(HL)
+    inc HL
+    ld D,(HL)
+    inc HL
+    push HL
+    ex DE,HL
+    ld DE, forth
+    push DE
+    jp (HL)
+
+exit:
+    pop HL
+    ret
+
 serialIn:
     push AF
     push HL

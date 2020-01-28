@@ -1,19 +1,3 @@
-FORTH:
-    pop HL
-    ld E,(HL)
-    inc HL
-    ld D,(HL)
-    inc HL
-    push HL
-    ex DE,HL
-    ld DE, forth
-    push DE
-    jp (HL)
-
-EXIT:
-    pop HL
-    ret
-
 ; words must preserve: BC, DE, SP, IX
 ; words may destroy: HL, IY, AF, AF', BC', DE' HL'
 
@@ -518,6 +502,7 @@ defword "immediate",9,MSK_IMMED,IMMEDIATE
     ld (HL),a
     ret
 
+
 ; DOES> does
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -604,7 +589,9 @@ defword "interp",6,0,interp             ; ( -- c )
 
 xwordSkip:                              ; delim addr -- delim addr char
     ppop H,L
+    ppop D,E
     ppush0 B,C
+    ppush0 D,E
     ppush0 H,L
     _do
         call getKey                     ; get next key, returned in A
@@ -651,26 +638,26 @@ xwordRead:                              ; delim addr char -- c-addr
     ld A,C
     ppop0 B,C
     ppop H,L
-    ld B,0
+    ppop D,E
+    ld D,0
     or A
     _if nz
-        ld D,63
         push HL                         ; save a copy of HL
         inc HL                          ; move to leave space for length byte
+        ld B,E
         _do
             ld (HL), A                  ; add character to return lineBuf
             inc HL
-            inc B
+            inc D
             call getKey                 ; get next key
-            cp C                        ; = space?
+            cp C                        ; = delim?
         _until z
-            cp " "                      ; < space?
+            cp " "                      ; < space? i.e. control chars
         _until c
-            dec D
-        _until z
-        _enddo
+        _djnz
         pop HL                          ; restore HL
     _endif
-    ld (HL),B                           ; write length
+    ld (HL),D                           ; write length
     loadWord B,C, H,L                   ; TOS = str ptr
     ret
+

@@ -373,11 +373,11 @@ The structure of the defined word looks like this:
 
 | _body:_
 | :------------------
-| call FORTH
-| LIT 32, MINUS
-| LIT 5, STAR
-| LIT 9, SLASH
-| EXIT
+| call enter
+| lit 32, MINUS
+| lit 5, STAR
+| lit 9, SLASH
+| exit
 | ret
 
 The body can contain any machine code but a compiled word begins with a call to the FORTH interpreter which then interprets the data following this call as an array of pointers to Forth words.
