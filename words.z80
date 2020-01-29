@@ -296,9 +296,9 @@ defword ".s",2,0,dots                  ; ( -- )
 ; using {"s",$27} because it's surprisingly difficult
 ; to define the name s' using asm80
 defword {"s",$22},2,msk_immed,squote
-    jr quote
+    jr qt
 
-defword $22,1,msk_immed,quote
+defword $22,1,msk_immed,qt
     call enter
     dw lit, litstr, comma
     dw lit, $22, word
@@ -307,9 +307,26 @@ defword $22,1,msk_immed,quote
     dw exit
     ret
 
-defword "xquoteim",8,msk_immed,xquoteim
+defword "iqt",3,msk_immed,iqt
     call enter
-    dw lit, $22, word
+    dw lit, $22                     ; delim
+    dw lit, 0                       ; limit 256
+    dw latestStr, fetch
+    dw here, fetch
+    dw over, over, lessthan
+    cIf
+        dw latestStr, store         ; store here in latestStr
+        dw drop
+    cElse
+        dw minus
+        dw lit, $100, greaterthan
+        cIf
+            dw here, fetch
+            dw latestStr, store
+        cEndIf
+    cEndIf
+    dw latestStr, fetch
+    dw xword
     dw exit
     ret
 
@@ -361,4 +378,5 @@ defvar "intp_stop",9,0,intp_stop, var_intp_stop
 defvar "state",5,0,state, var_state
 defvar "sp0",3,0,sp0, var_sp0
 defvar "base",4,0,base, var_base
+defvar "latestStr",6,0,latestStr, var_latest_str
 defvar "latest",6,0,latest, var_latest

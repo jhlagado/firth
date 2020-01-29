@@ -50,6 +50,27 @@ START:
     ld (serBufUsed),HL
     ld A,RTS_LOW
     out ($80),A                             ; Initialise ACIA
+
+    ld HL, lineBuf
+    ld (currkey), HL
+    ld (lineBufTop), HL
+
+    ld HL, 0
+    ld (VAR_INTP_STOP), HL
+    ld (VAR_STATE), HL
+    ld (VAR_SP0), HL
+    ld (IS_LITERAL), HL
+
+    ld HL, 10
+    ld (VAR_BASE), HL
+
+    ld HL, START_USER
+    ld (VAR_HERE), HL
+
+    ld HL, HEADER_LATEST
+    ld (VAR_LATEST), HL
+    ld (VAR_LATEST_STR), HL
+
     im 1
     ei
 
@@ -76,13 +97,13 @@ TESTS_START:
 .endif
 
 .if TESTMODE = 2
-        TEST_SET_TEXT {": str s",$22," xyz",$22," ;"}
-        call INTERPRET
-        TEST_SET_TEXT "str type"
-        call INTERPRET
-        TEST_SET_TEXT "str"
-        call INTERPRET
-        EXPECT 3, "str len = 3"
+    TEST_SET_TEXT {"iqt xyz",$22}
+    call INTERPRET
+    TEST_SET_TEXT "count dup"
+    call INTERPRET
+    EXPECT 3, "str len = 3"
+    TEST_SET_TEXT "type"
+    call INTERPRET
 .endif
 
 .if TESTMODE
