@@ -277,4 +277,15 @@ EXPECT 3, "str len = 3"
 TEST_SET_TEXT "type"
 call INTERPRET
 
+TEST_SET_TEXT "100 buffer: xvar"
+call INTERPRET
+TEST_SET_TEXT {"iqt xyz",$22}
+call INTERPRET
+TEST_SET_TEXT "count xvar pack"
+call INTERPRET
+TEST_SET_TEXT "xvar count dup"
+call INTERPRET
+EXPECT 3, "str len = 3"
+TEST_SET_TEXT "type"
+call INTERPRET
 

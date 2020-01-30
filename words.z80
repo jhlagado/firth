@@ -247,7 +247,7 @@ defword "variable",8,0,variable         ; ( n -- ) get name from input
     dw exit
     ret
 
-defword "buffer:",8,0,buffercolon       ; ( n -- ) get name from input
+defword "buffer:",7,0,buffercolon       ; ( n -- ) get name from input
     call enter
     dw allot                            ; allocate n bytes, push addr
     dw create                           ; create header
