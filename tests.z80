@@ -269,7 +269,7 @@ TEST_SET_TEXT "str"
 call INTERPRET
 EXPECT 3, "str len = 3"
 
-TEST_SET_TEXT {"iqt xyz",$22}
+    TEST_SET_TEXT {$22," xyz",$22}
 call INTERPRET
 TEST_SET_TEXT "count dup"
 call INTERPRET
@@ -279,7 +279,7 @@ call INTERPRET
 
 TEST_SET_TEXT "100 buffer: xvar"
 call INTERPRET
-TEST_SET_TEXT {"iqt xyz",$22}
+    TEST_SET_TEXT {$22," xyz",$22}
 call INTERPRET
 TEST_SET_TEXT "count xvar pack"
 call INTERPRET

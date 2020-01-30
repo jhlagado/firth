@@ -313,27 +313,27 @@ defword {"s",$22},2,msk_immed,squote
 
 defword $22,1,msk_immed,qt
     call enter
-    dw lit, litstr, comma
-    dw lit, $22, word
-    dw cfetch, oneplus
-    dw allot
-    dw exit
-    ret
-
-defword "iqt",3,msk_immed,iqt
-    call enter
-    dw lit, $22                     ; delim
-    dw lit, 63                       ; limit 63 + length
-    dw latestStr, fetch
-    dw lit, wordBuf, equals
+    dw state, fetch
+    dw zequal
     cIf
-        dw lit, wordBuf2
+        dw lit, $22                     ; delim
+        dw lit, 63                       ; limit 63 + length
+        dw latestStr, fetch
+        dw lit, wordBuf, equals
+        cIf
+            dw lit, wordBuf2
+        cElse
+            dw lit, wordBuf
+        cEndIf
+        dw latestStr, store         ; store here in latestStr
+        dw latestStr, fetch
+        dw xword
     cElse
-        dw lit, wordBuf
-    cEndIf
-    dw latestStr, store         ; store here in latestStr
-    dw latestStr, fetch
-    dw xword
+        dw lit, litstr, comma
+        dw lit, $22, word
+        dw cfetch, oneplus
+        dw allot
+    cEndif
     dw exit
     ret
 
