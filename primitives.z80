@@ -547,9 +547,22 @@ defword ".",1,0,DOT                 ; print top of stack in BASE
 
 defword "type",4,0,TYPE             ; ( str len -- )
     push DE
-    ppop0 D,E                    ; DE = str BC = length
+    ppop0 D,E                       ; DE = str BC = length
     call printStr
-    ppop0 B,C                    ; clear TOS
+    ppop0 B,C                       ; clear TOS
+    pop DE
+    ret
+
+defword "pack",4,0,pack             ; ( adr1 len adr2 -- adr2 )
+    push DE
+    ppop D,E                        ; DE = adr2, BC = len
+    push DE
+    ppop0 H,L                       ; HL = adr1
+    ld A,C
+    ld (DE),A                       ; write length byte to adr2
+    inc DE                          ; adr2 += 1
+    ldir
+    pop BC                          ; TOS = adr2
     pop DE
     ret
 

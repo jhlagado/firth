@@ -16,6 +16,7 @@ lineBuf:        ds LINE_BUFSIZE
 ; overwrite this lineBuf.  Maximum word length is 32 chars.
 
 wordBuf:        ds 64
+wordBuf2:       ds 64
 DATA_STACK:     ds DATA_STACK_SIZE
 
 VAR_PAD:        ds PAD_SIZE

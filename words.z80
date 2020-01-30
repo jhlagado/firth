@@ -234,9 +234,22 @@ defword "constant",8,0,constant         ; ( n -- ) get name from input
     dw exit
     ret
 
-defword "variable",8,0,variable              ; ( n -- ) get name from input
+defword "variable",8,0,variable         ; ( n -- ) get name from input
     call enter
-    dw lit, 1, cells, allot                    ; allocate 1 word, push addr
+    dw lit, 1, cells, allot             ; allocate 1 word, push addr
+    dw create                           ; create header
+    dw lit, call_opcode, ccomma         ; write z80 jp opcode to word
+    dw lit, enter, comma                ; write addr forth to word
+    dw lit, lit, comma                  ; write addr of lit to word
+    dw comma                            ; write addr of variable to word
+    dw lit, exit, comma                 ; write addr of lit to word
+    dw lit, ret_opcode, ccomma          ; write z80 jp opcode to word
+    dw exit
+    ret
+
+defword "buffer:",8,0,buffercolon       ; ( n -- ) get name from input
+    call enter
+    dw allot                            ; allocate n bytes, push addr
     dw create                           ; create header
     dw lit, call_opcode, ccomma         ; write z80 jp opcode to word
     dw lit, enter, comma                ; write addr forth to word
@@ -310,21 +323,15 @@ defword $22,1,msk_immed,qt
 defword "iqt",3,msk_immed,iqt
     call enter
     dw lit, $22                     ; delim
-    dw lit, 0                       ; limit 256
+    dw lit, 63                       ; limit 63 + length
     dw latestStr, fetch
-    dw here, fetch
-    dw over, over, lessthan
+    dw lit, wordBuf, equals
     cIf
-        dw latestStr, store         ; store here in latestStr
-        dw drop
+        dw lit, wordBuf2
     cElse
-        dw minus
-        dw lit, $100, greaterthan
-        cIf
-            dw here, fetch
-            dw latestStr, store
-        cEndIf
+        dw lit, wordBuf
     cEndIf
+    dw latestStr, store         ; store here in latestStr
     dw latestStr, fetch
     dw xword
     dw exit
