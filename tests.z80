@@ -269,9 +269,9 @@ TEST_SET_TEXT "str"
 call INTERPRET
 EXPECT 3, "str len = 3"
 
-    TEST_SET_TEXT {$22," xyz",$22}
+TEST_SET_TEXT {$22," xyz",$22}
 call INTERPRET
-TEST_SET_TEXT "count dup"
+TEST_SET_TEXT "dup"
 call INTERPRET
 EXPECT 3, "str len = 3"
 TEST_SET_TEXT "type"
@@ -279,13 +279,21 @@ call INTERPRET
 
 TEST_SET_TEXT "100 buffer: xvar"
 call INTERPRET
-    TEST_SET_TEXT {$22," xyz",$22}
+TEST_SET_TEXT {$22," xyz",$22}
 call INTERPRET
-TEST_SET_TEXT "count xvar pack"
+TEST_SET_TEXT "xvar pack"
 call INTERPRET
 TEST_SET_TEXT "xvar count dup"
 call INTERPRET
 EXPECT 3, "str len = 3"
 TEST_SET_TEXT "type"
 call INTERPRET
+
+TEST_SET_TEXT {".",$22," immediate xyz",$22}
+call INTERPRET
+TEST_SET_TEXT {": x1 .",$22," compiled xyz",$22," ;"}
+call INTERPRET
+TEST_SET_TEXT "x1"
+call INTERPRET
+
 

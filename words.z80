@@ -126,11 +126,11 @@ defword "mod",3,0,mod     ; dvend dvisr -- remainder
     dw exit
     ret
 
-; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; ;;
-; ;; flow control
-; ;;
-; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; flow control
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 defword "if",2,msk_immed,if
     call enter
@@ -251,11 +251,11 @@ defword "buffer:",7,0,buffercolon       ; ( n -- ) get name from input
 
 ; ; does> does
 
-; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; ;;
-; ;; device
-; ;;
-; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; device
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 defword "cr",2,0,cr                  ; ( -- )
     call printcr
@@ -302,8 +302,7 @@ defword {"s",$22},2,msk_immed,squote
 
 defword $22,1,msk_immed,qt
     call enter
-    dw state, fetch
-    dw zequal
+    dw state, fetch, zequal
     cIf
         dw lit, $22                     ; delim
         dw lit, 63                       ; limit 63 + length
@@ -316,7 +315,7 @@ defword $22,1,msk_immed,qt
         cEndIf
         dw latestStr, store         ; store here in latestStr
         dw latestStr, fetch
-        dw xword
+        dw xword, count
     cElse
         dw lit, litstr, comma
         dw lit, $22, word
@@ -336,18 +335,23 @@ defword "litstr",6,0,litstr   ; pushes ptr to string and length on stack
 
 defword {".",$22},2,msk_immed,dotquote
     call enter
-    dw squote
-    dw lit,type,comma
+    dw qt
+    dw state, fetch, zequal
+    cIf
+        dw type
+    cElse
+        dw lit, type, comma
+    cEndIf
     dw exit
     ret
 
-defword "decimal",7,0,decimal   ; pushes ptr to string and length on stack
+defword "decimal",7,0,decimal           ; pushes ptr to string and length on stack
     call enter
     dw lit,10,base,store
     dw EXIT
     ret
 
-defword "hex",3,0,hex   ; pushes ptr to string and length on stack
+defword "hex",3,0,hex                   ; pushes ptr to string and length on stack
     call enter
     dw lit,16,base,store
     dw EXIT
@@ -357,11 +361,11 @@ defword "word",5,0,WORD                 ; delim -- c-addr
     call enter
     dw lit, 64
     dw here, fetch
-    dw xword               ; writes to HERE!
+    dw xword                            ; writes to HERE!
     dw exit
     ret
 
-defword "xword",6,0,xword              ; delim limit addr -- c-addr
+defword "xword",6,0,xword               ; delim limit addr -- c-addr
     call enter
     dw xwordSkip
     dw xwordRead
