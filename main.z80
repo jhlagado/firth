@@ -97,12 +97,11 @@ TESTS_START:
 .endif
 
 .if TESTMODE = 2
-    TEST_SET_TEXT {"iqt xyz",$22}
+    TEST_SET_TEXT {".",$22," immediate xyz",$22}
     call INTERPRET
-    TEST_SET_TEXT "count dup"
+    TEST_SET_TEXT {": x1 .",$22," compiled xyz",$22," ;"}
     call INTERPRET
-    EXPECT 3, "str len = 3"
-    TEST_SET_TEXT "type"
+    TEST_SET_TEXT "x1"
     call INTERPRET
 .endif
 
