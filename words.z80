@@ -376,6 +376,7 @@ defvar "pad",3,0,pad, var_pad
 defvar "here",4,0,here, var_here
 defvar "intp_stop",9,0,intp_stop, var_intp_stop
 defvar "state",5,0,state, var_state
+defvar "nesting",5,0,nesting, var_nesting
 defvar "sp0",3,0,sp0, var_sp0
 defvar "base",4,0,base, var_base
 defvar "latestStr",6,0,latestStr, var_latest_str

@@ -48,6 +48,7 @@ START:
     ld (serBufUsed),HL
     ld (VAR_INTP_STOP), HL
     ld (VAR_STATE), HL
+    ld (VAR_NESTING), HL
     ld (VAR_SP0), HL
     ld (IS_LITERAL), HL
 

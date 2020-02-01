@@ -24,6 +24,7 @@ IS_LITERAL:     dw 0            ; Flag used to record if reading a literal
 VAR_HERE:       dw START_USER
 VAR_INTP_STOP:  dw 0
 VAR_STATE:      dw 0
+VAR_NESTING:    dw 0
 VAR_SP0:        dw 0            ;PAR_STACK
 VAR_BASE:       dw 0
 
