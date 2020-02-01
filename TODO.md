@@ -1,15 +1,22 @@
-# TODO, Plans, ideas etc
+# TODO
+- add `nested` numeric variable for deferring interpretation in cli,
+- recusive quotation, proposed syntax `{` `}`,
+- formal arguments, proposed syntax `( a b c -- d e )`, named return results
+- debugger
+- see
+- implement most of open firmware forth
+- separate buffer used by tokenizer from wordBuf and wordBuf2
+- update manual with string examples
+- fix .s which currently crashes
 
-- `word` to write at location pointed to by `here`
-- test `state === 0` interpret else compile,
-- allows recursive compilation of quotations
-- definitions `:` and `;` should set `state` to 1 and 0 respectively
-- recusive quotation, proposed syntax `:(` `):`,
-- rather than Joy's square brackets `[` `]` which are already used in Forth for other things
-- in interpret mode strings and quotations write to `here` pointer,
-- overwriting the previous top level string or quotation declaration?
-- item can be protected from overwriting with `preserve` which moves here to end.
+## Ideas
+- mark & restore `here`
+- look into protecting from overwriting with `preserve` which moves here to end.
 - look into `forget`, or `mark`
-- in interpret, `here` is stored and items get added and `here` moves.
-- a blank line moves `here` back to last colon word definition.
-- a colon definition moves `here` back as well.
+
+if nesting > 0 then create would cause an error because of collision with memory use
+only matters for dictionary items
+solutions:
+- error, :, variable, constant etc must defined at top level
+- defer immediate words... complex
+- change memory use

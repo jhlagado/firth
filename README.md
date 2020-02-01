@@ -164,21 +164,21 @@ Forth as a programming system has many characteristics which set it apart from o
 
 Forth has been described as a "bottom-up" language because it builds up directly from a small number of assembly language primitives without imposing a significant number of abstractions. Forth can be bootstrapped to run from less than 2K of assembly language. Most of the Forth system is written in Forth itself.
 
-Forth is self-hosting which means that it is possible to write and edit code within the Forth system itself as opposed to targeting it from another system. Forth's abstractions are easy to understand and they simplify the process of writing for the CPU. Unlike conventional compiler languages, Forth imposes very in the way of system overhead.
+Forth is self-hosting which means that it is possible to write and edit code within the Forth system itself as opposed to targeting it from another system. Forth's abstractions are easy to understand and they simplify the process of writing programs for a microprocessor. Unlike conventional compiler languages, Forth imposes very in the way of system overhead.
 
-So why Forth? Because Forth can be written from a low base of assembly language, it becomes a relatively simple task to get Forth running on diverse range of CPUs. Forth is portable. It irons out the quirks and differences between instruction sets and presents the developer with a much smaller programming surface than assembly language does. Forth unifies many low level programming tasks.
+So why Forth? Because Forth can be written from a low base of assembly language, it becomes a relatively simple task to get Forth running on diverse range of CPUs. Forth is portable. It irons out the quirks and differences between instruction sets and presents the developer with a much smaller programming surface than traditional assembly language does. Forth unifies many low level programming tasks.
 
 Forth is lightweight. Even a language designed for systems programming such as C is much more "high-level" than Forth and adds considerably more overhead in terms of program size, memory size and computational overhead. Forth programs are extremely compact and are often smaller than the same code written in assembly language.
 
-There is a cost to this compactness however. Forth is usually slower than assembly but not greatly so. Forth is pretty fast and favourably comparable with compiled high-level languages. On some CPUs, Forth can be as efficient as machine code itself. This is not the case with 8-bit CPUs however but Forth does significantly improve the productivity of programmers who target the Z80.
+There is a cost to this compactness however. Forth is usually slower than assembly but not greatly so. Forth is generally pretty fast and favourably comparable with compiled high-level languages. On some CPUs, Forth can be as efficient as machine code itself. This is _not_ the case with 8-bit CPUs however but Forth does significantly improve the productivity of programmers who target the Z80.
 
 Forth integrates well with assembly language and offers the developer the ability to drop back down to assembly for performance sensitive sections of code. Forth never takes the developer far "from the metal". It does however offer them structured flow control and a unified approach to parameter passing which are features that are normally associated with high-level languages. Forth brings structured programming to low-level programming.
 
 ### Data stack
 
-Forth is similar to other languages in that it uses a stack to send parameters to subroutines. Forth is unusual though in that it separates the manipulation of the stack from the subroutine calls themselves. It also uses the stack to return results from subroutines. In Forth a subroutine may return multiple results on the stack.
+Forth is similar to other languages in that it uses a stack to send parameters to subroutines. Forth is unusual though in that it separates the manipulation of the stack from the subroutine calls themselves. It also uses the stack to return results back to the caller. Unlike C, Forth may return multiple results from a subroutine.
 
-By interleaving stack manipulation with subroutine calls Forth has developed in an unusual style. It's syntax uses "reverse Polish" notation which means that it starts with the parameters and ends with the action to be performed on it.
+By interleaving stack manipulation with subroutine calls Forth has developed in an unusual style. It's syntax uses "reverse Polish" notation which means that Forth code begins with the parameters and ends with the action to be performed on it.
 
 The data stack takes numbers. To push some numbers onto the stack, simply write them on the command line and hit `Return`.
 
@@ -219,12 +219,18 @@ This should be understood as:
 - add the two items on the stack and push the result
 - print the top of the stack
 
-To see the power of this consider a sum that would normally need parentheses to express operator precedence. E.g. (3 + 1) \* 2
+To see the power of this consider a sum that would normally need parentheses to express operator precedence.
+
+E.g.
+
+```
+(3 + 1) * 2
+```
 
 In Forth's reverse Polish, we write:
 
 ```
-2 3 1 + * .
+3 1 + 2 * .
 ```
 
 Output:
@@ -233,9 +239,9 @@ Output:
 8
 ```
 
-Forth uses a stack and reverse Polish notation to radically simply its syntax. When the Forth parser encounters a literal number it pushes it on the stack. When it comes across the anything else it assumes it's an operation to be performed. These operations are called words and they command Forth to do things.
+Forth uses a stack and reverse Polish notation to radically simply its syntax. While processing user input when the Forth parser encounters a literal number it immediately pushes it onto the stack. When it encounterss anything else it assumes it's an operation to be performed. These operations are called "words" and they command Forth to do things.
 
-For example, when Forth encounters the word `+` it calls Forth's addition subroutine. When it encounters the word `*` it calls the multiply subroutine. The word `.` means print the item left on the stack.
+For example, when Forth encounters the word `+` it calls Forth's addition subroutine which adds the top two items on the stack and places the result back on the stack. When it encounters the word `*` it similarly calls the multiply subroutine. The word `.` prints the item left on the stack. Wehn Forth uses a stack item it removes it from the stack.
 
 [Back to contents](#contents)
 
@@ -258,7 +264,7 @@ The Immediate flag marks this word as one that will execute immediately rather t
 
 The lower 6 bits of this byte are used to store the length of the word's name. this means that the maxiumum length of a word is limited to 63 ASCII characters.
 
-After this byte comes an array chars which store the actual name and finally the body of the word which consists of either a subroutine written in machine code or is a sequence of other Forth words.
+After this byte comes an array chars which store the actual name of the word and finally the body of the word which consists of either a subroutine written in machine code or is a sequence of other Forth words.
 
 The process of looking up a word consists of starting with the latest word (which in Firth is pointed to by a global variable called `latest`) and working backwards through the list, jumping from word to word comparing the name of the word with what we are looking for until a match is found. If the dictionary cannot provide a match then Forth will finally encounter a pointer with a value of 0 and the search terminates.
 
@@ -280,20 +286,20 @@ Words are added to the dictionary dynamically over the course of time. A user ca
 : word_name word1 word2 ... wordn ;
 ```
 
-for example, a word that doubles the value on the stack could defined like this
+For example, let's define a word that doubles the value on the top of the stack and returns the result:
 
 ```
 : double dup + ;
 ```
 
-When Forth see the `:` word it goes into word definition mode and stays there until it encounters a `;`. It then reads the next word from the input i.e "double" and treats it as the name of the new word. At this point it:
+When Forth sees the word `:` it goes into word definition mode and stays there until it encounters a `;`. It then reads the next word from the input i.e "double" and treats it as the name of the new word. At this point it:
 
 - creates a new header for this word
 - adds this header to the dictionary
 - marks the word as "hidden"
 - enters "compile" mode
 
-In "compile" mode, Forth reads each word from the input and compiles it to the word being defined. Compiled words don't execute right away but will only do so when the defined word gets called. Some words do not work this way and always execute when they are encountered, these are called "Immediate" words and will be discussed later.
+In "compile" mode, Forth reads each word from the input and compiles it into the word currently being defined. Compiled words don't execute right away but will only do so when the defined word gets called. Some words do not work this way and always execute when they are encountered, these are called "Immediate" words and will be discussed later.
 
 To complete the word, when Forth encounters the word `;` it immediately jumps out of compile mode and marks the word as unhidden and available in the dictionary. Now when Forth sees this in the input:
 
@@ -301,7 +307,7 @@ To complete the word, when Forth encounters the word `;` it immediately jumps ou
 3 double .
 ```
 
-It pushes 3 on the stack and looks up `double`. When it finds it in the dictionary it executes the words body which contains the words `dup` and `+`. `dup` is a built in Forth word which means duplicate the item on the top of the stack. So now the stack has two number 3s. Next Forth executes the `+` and adds the two numbers on the stack and replaces them with the sum i.e. 6
+It pushes 3 on the stack and looks up `double`. When it finds it in the dictionary it executes the body which contains the words `dup` and `+`. `dup` is a built in Forth word which means duplicate the item on the top of the stack. So now the stack has two number 3s. Next Forth executes the `+` and adds the two numbers on the stack and replaces them with the sum i.e. 6
 
 Then the `double` word ends and Forth executes `.` which means print the top of the stack.
 
@@ -311,7 +317,7 @@ Output:
 6
 ```
 
-In summary, Forth will parse the command, create the header using the name passed, hide it from the dictopnary, go into compile mode, compile its body, exit compile mode and show it in the dictionary. NOTE: If a word with the same name is already in the dictionary, the new word will replace the old one for future definitions. The older definition will continue to be used by older definitions.
+In summary, Forth will parse the command, create the header using the name passed, hide it from the dictionary, go into compile mode, compile its body, exit compile mode and show it in the dictionary. NOTE: If a word with the same name is already in the dictionary, the new word will replace the old one for future definitions. The older definition will continue to be used by older definitions.
 
 ### Compilation
 
