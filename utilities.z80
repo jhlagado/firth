@@ -12,6 +12,9 @@ TXT_STACK_UNDERFLOW:
 DONE:           .pstr "\r\nDone! \r\n"
 FAILED:         .pstr "Failed: \r\n"
 
+parseErr:       .pstr "Error: parsing "
+nestingErr:     .pstr "Error: Definitions cannot be nested"
+
 enter:
     pop HL
     ld E,(HL)
@@ -746,7 +749,9 @@ interpForthWord:
     inc HL
 
     ld A,(VAR_STATE)    ; load compile state
-    or A
+    ld B, A
+    ld A,(VAR_NESTING)    ; load compile state
+    or B
     _if nz              ; if compile then override with immed
         ld A,(HL)       ; A = flags + length
         and MSK_IMMED   ; if immediate flag <> 0
@@ -781,8 +786,10 @@ interpNumber:
     call toNumber
     checkZeroWord B,C       ; DE = number, BC = error if > 0
     _if z
-        ld A,(VAR_STATE)
-        or A                ; if compile, then compile number
+        ld A,(VAR_STATE)    ; load compile state
+        ld B, A
+        ld A,(VAR_NESTING)    ; load compile state
+        or B
         _if nz
             ld HL,(VAR_HERE)
             ld BC, LIT
@@ -868,5 +875,3 @@ getWord:
     pop HL                  ; restore HL
     ld (HL),B               ; write length
     ret
-
-
