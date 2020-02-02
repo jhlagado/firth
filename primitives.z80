@@ -65,6 +65,18 @@ defword "]",1,0,RBRAC
 	ld (VAR_STATE), HL	; Set STATE to 1.
     ret
 
+defword "nest+",5,MSK_IMMED,nestPlus
+	ld HL, (VAR_NESTING)
+    INC HL
+	ld (VAR_NESTING), HL
+    ret
+
+defword "nest-",5,MSK_IMMED,nestMinus
+	ld HL, (VAR_NESTING)
+    DEC HL
+	ld (VAR_NESTING), HL
+    ret
+
 defword "hidden",6,0,HIDDEN
     ppop H,L		            ; HL = Dictionary entry.
     inc HL

@@ -15,6 +15,43 @@ FAILED:         .pstr "Failed: \r\n"
 parseErr:       .pstr "Error: parsing "
 nestingErr:     .pstr "Error: Definitions cannot be nested"
 
+intialize:
+    ld IX, data_stack                       ; initialise the param stack.
+    ld (var_sp0), IX
+    ld BC, 0                                ; tos
+
+    ld HL,0
+    ld (serbufused),HL
+    ld (var_intp_stop), HL
+    ld (var_state), HL
+    ld (var_nesting), HL
+    ld (var_sp0), HL
+    ld (is_literal), HL
+
+    ld HL,serbuf
+    ld (serinptr),HL
+    ld (serrdptr),HL
+
+    ld HL, linebuf
+    ld (currkey), HL
+    ld (linebuftop), HL
+
+    ld HL, 10
+    ld (var_base), HL
+
+    ld HL, start_user
+    ld (var_here), HL
+
+    ld HL, header_latest
+    ld (var_latest), HL
+    ld (var_latest_str), HL
+
+    ld A,rts_low
+    out ($80),A                             ; initialise acia
+    im 1
+    ei
+    ret
+
 enter:
     pop HL
     ld E,(HL)

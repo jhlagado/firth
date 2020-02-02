@@ -11,18 +11,22 @@ TESTMODE equ 0
 .org START_ROM
 RST00:                                      ; Reset
     di                                      ; Disable interrupts
-    jp START
+    jp start
 
 .org $0008
-RST08:                                      ; TX a character over RS232
-    jp putc
+RST08:                                      ; Check serial status
+    jp enter
 
 .org $0010
-RST10:                                      ; RX a character over RS232 Channel A [Console], hold here until char ready.
-    jp getc
+RST10:                                      ; TX a character over RS232
+    jp putc
 
 .org $0018
-RST18:                                      ; Check serial status
+RST18:                                      ; RX a character over RS232 Channel A [Console], hold here until char ready.
+    jp getc
+
+.org $0020
+RST20:                                      ; Check serial status
     jp inputReady
 
 .org $0038
@@ -33,47 +37,13 @@ RST38:                                      ; rst 38 - INTERRUPT VECTOR [ for IM
 RST66:
     ret                                     ; do nothing
 
-.include "utilities.z80"
 .include "primitives.z80"
 .include "words.z80"
+.include "utilities.z80"
 
-START:
+start:
     ld SP, RET_STACK                        ; Initialise the return stack.
-    ld IX, DATA_STACK                        ; Initialise the param stack.
-    ld (VAR_SP0), IX
-    ld IY, enter
-    ld BC, 0                                ; TOS
-
-    ld HL,0                                   ; 0 to accumulator
-    ld (serBufUsed),HL
-    ld (VAR_INTP_STOP), HL
-    ld (VAR_STATE), HL
-    ld (VAR_NESTING), HL
-    ld (VAR_SP0), HL
-    ld (IS_LITERAL), HL
-
-    ld HL,serBuf
-    ld (serInPtr),HL
-    ld (serRdPtr),HL
-
-    ld HL, lineBuf
-    ld (currkey), HL
-    ld (lineBufTop), HL
-
-    ld HL, 10
-    ld (VAR_BASE), HL
-
-    ld HL, START_USER
-    ld (VAR_HERE), HL
-
-    ld HL, HEADER_LATEST
-    ld (VAR_LATEST), HL
-    ld (VAR_LATEST_STR), HL
-
-    ld A,RTS_LOW
-    out ($80),A                             ; Initialise ACIA
-    im 1
-    ei
+    call intialize
 
 .if TESTMODE
     jp TESTS_START
@@ -98,11 +68,17 @@ TESTS_START:
 .endif
 
 .if TESTMODE = 2
-    TEST_SET_TEXT {".",$22," immediate xyz",$22}
+    TEST_SET_TEXT ":noname [ "
     call INTERPRET
-    TEST_SET_TEXT {": x1 .",$22," compiled xyz",$22," ;"}
+    TEST_SET_TEXT "nest+"
     call INTERPRET
-    TEST_SET_TEXT "x1"
+    TEST_SET_TEXT "0 if 1 . else 2 . endif"
+    call INTERPRET
+    TEST_SET_TEXT "nest-"
+    call INTERPRET
+    TEST_SET_TEXT "] ;"
+    call INTERPRET
+    TEST_SET_TEXT "dup here ! execute"
     call INTERPRET
 .endif
 

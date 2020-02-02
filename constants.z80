@@ -30,6 +30,7 @@ MSK_LENGTH      equ     $3f                    ; length mask
 JP_OPCODE       equ     $C3
 CALL_OPCODE     equ     $CD
 RET_OPCODE      equ     $C9
+RST08_OPCODE    equ     $CF                 ; call enter
 
 RTS_HIGH        equ     0D6H                ; 11010110
 RTS_LOW         equ     096H                ; 10010110
