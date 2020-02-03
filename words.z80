@@ -133,11 +133,7 @@ defword "mod",3,0,mod                   ; dvend dvisr -- remainder
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 defword "if",2,msk_immed,if
-    rst $08                             ; enter forth
-    dw lbrace, xif                      ; compile 0branch
-    dw exit
-    ret
-defword "xif",3,msk_immed,xif           ; important: msk_immed = immediate execution
+    call lbrace
     rst $08                             ; enter forth
     dw lit, zbranch, comma              ; compile 0branch
     dw here, fetch, dup, comma          ; compile here and also push on stack
@@ -150,17 +146,15 @@ defword "else",4,msk_immed,else
     dw here, fetch                      ; save here on stack
     dw lit, 0, comma                    ; compile a dummy offset
     dw swap                             ; now back-fill the original (if) offset
-    dw xendif
+    dw xendif                           ; must call xendif not endif
     dw exit
     ret
 
 defword "endif",5,msk_immed,endif
-    rst $08                             ; enter forth
-    dw xendif, rbrace                   ; reduce nesting
-    dw exit
+    call xendif
+    call rbrace
     ret
-
-defword "xendif",6,msk_immed,xendif     ; important: msk_immed = immediate execution
+xendif:
     rst $08                             ; enter forth
     dw dup
     dw here, fetch, swap, minus         ; calculate the offset from the address saved on the stack
