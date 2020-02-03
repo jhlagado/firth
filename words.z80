@@ -165,6 +165,7 @@ xendif:
 ; begin condition while ... repeat
 
 defword "begin",5,msk_immed,begin
+    call lbrace
     rst $08                             ; enter forth
     dw here, fetch                      ; save here on stack (here1)
     dw exit
@@ -187,6 +188,7 @@ defword "repeat",6,msk_immed,repeat
     dw here, fetch, swap, minus         ; compile offset (here2 - here3)
     dw swap, store                      ; save offset in here2
     dw exit
+    call rbrace
     ret
 
 ; ; do
