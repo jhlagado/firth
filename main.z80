@@ -1,6 +1,6 @@
 .engine mycomputer
 
-TESTMODE equ 0
+TESTMODE equ 2
 
 .include "constants.z80"
 .include "macros.z80"
@@ -37,9 +37,9 @@ RST38:                                      ; rst 38 - INTERRUPT VECTOR [ for IM
 RST66:
     ret                                     ; do nothing
 
+.include "utilities.z80"
 .include "primitives.z80"
 .include "words.z80"
-.include "utilities.z80"
 
 start:
     ld SP, RET_STACK                        ; Initialise the return stack.
@@ -68,17 +68,7 @@ TESTS_START:
 .endif
 
 .if TESTMODE = 2
-    TEST_SET_TEXT ":noname [ "
-    call INTERPRET
-    TEST_SET_TEXT "nest+"
-    call INTERPRET
-    TEST_SET_TEXT "0 if 1 . else 2 . endif"
-    call INTERPRET
-    TEST_SET_TEXT "nest-"
-    call INTERPRET
-    TEST_SET_TEXT "] ;"
-    call INTERPRET
-    TEST_SET_TEXT "dup here ! execute"
+    TEST_SET_TEXT "1 0 if 1 else 2 endif + ."
     call INTERPRET
 .endif
 

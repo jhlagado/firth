@@ -290,14 +290,20 @@ defword "2/",2,0,TWOSLASH
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-; 0= zero-equals
-defword "0=",2,0,ZEQUAL
+; 0= zero-equal
+defword "0=",2,0,zEqual
     checkZeroWord B,C            ; returns 0 if not equal, 1 if equal
-    ; jr z, ZE1
     _if nz
         ld BC, -1
     _endif
     inc BC
+    ret
+
+defword "0<>",3,0,zNotEqual
+    checkZeroWord B,C            ; returns 0 if not equal, 1 if equal
+    _if nz
+        ld BC, 1
+    _endif
     ret
 
 ; and    x1 x2 -- x3            logical and
@@ -341,7 +347,7 @@ LSHIFT2:
     ret
 
 ; =      x1 x2 -- flag         test x1=x2
-defword "=",1,0,EQUALS
+defword "=",1,0,equal
     ppop0 H,L
     or A
     sbc HL,BC       ; x1-x2 in HL, SZVC valid

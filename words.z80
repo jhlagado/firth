@@ -134,6 +134,11 @@ defword "mod",3,0,mod                   ; dvend dvisr -- remainder
 
 defword "if",2,msk_immed,if
     rst $08                             ; enter forth
+    dw lbrace, xif                      ; compile 0branch
+    dw exit
+    ret
+defword "xif",3,msk_immed,xif           ; important: msk_immed = immediate execution
+    rst $08                             ; enter forth
     dw lit, zbranch, comma              ; compile 0branch
     dw here, fetch, dup, comma          ; compile here and also push on stack
     dw exit
@@ -145,11 +150,17 @@ defword "else",4,msk_immed,else
     dw here, fetch                      ; save here on stack
     dw lit, 0, comma                    ; compile a dummy offset
     dw swap                             ; now back-fill the original (if) offset
-    dw endif
+    dw xendif
     dw exit
     ret
 
 defword "endif",5,msk_immed,endif
+    rst $08                             ; enter forth
+    dw xendif, rbrace                   ; reduce nesting
+    dw exit
+    ret
+
+defword "xendif",6,msk_immed,xendif     ; important: msk_immed = immediate execution
     rst $08                             ; enter forth
     dw dup
     dw here, fetch, swap, minus         ; calculate the offset from the address saved on the stack
@@ -230,6 +241,35 @@ defword ":",1,0,colon
     dw lit, rst08_opcode, ccomma        ; write z80 jp opcode to word
     dw latest, fetch, hidden            ; make the word hidden (see below for definition).
     dw rbrac                            ; go into compile mode.
+    dw exit                             ; return from the function.
+    ret                                 ; return from the function.
+
+defword "{",1,msk_immed,lbrace
+    rst $08                             ; enter forth
+    dw state, fetch, zEqual
+    dw nesting, fetch, zEqual
+    dw and
+    cIf
+        dw here, fetch                  ; TOS = here
+        dw lit, rst08_opcode, ccomma    ; write z80 jp opcode to word
+    cEndIf
+    dw nestPlus                         ; increase nesting
+    dw exit                             ; return from the function.
+    ret                                 ; return from the function.
+
+defword "}",1,msk_immed,rbrace
+    rst $08                             ; enter forth
+    dw nestMinus                        ; reduce nesting
+    dw state, fetch, zEqual
+    dw nesting, fetch, zEqual
+    dw and
+    cIf
+        dw lit, exit, comma                 ; append exit (so the word will return).
+        dw lit, ret_opcode, ccomma          ; write z80 jp opcode to word
+        dw dup
+        dw here, store
+        dw execute
+    cEndIf
     dw exit                             ; return from the function.
     ret                                 ; return from the function.
 
@@ -318,7 +358,7 @@ defword $22,1,msk_immed,qt
         dw lit, $22                     ; delim
         dw lit, 63                      ; limit 63 + length
         dw latestStr, fetch
-        dw lit, wordBuf, equals
+        dw lit, wordBuf, equal
         cIf
             dw lit, wordBuf2
         cElse
