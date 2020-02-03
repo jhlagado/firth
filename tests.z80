@@ -299,3 +299,7 @@ call INTERPRET
 TEST_SET_TEXT "1 0 if 1 else 2 endif +"
 call INTERPRET
 EXPECT 3, "1 false -> 1 2 -> 1 2 + -> 3"
+
+TEST_SET_TEXT "0 begin dup 5 < while dup . 1+ repeat"
+call INTERPRET
+EXPECT 5, "Loop until limit < 5"
