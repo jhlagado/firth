@@ -319,7 +319,6 @@ defword "test1",5,0,test1               ; ( -- )
     nop
     ret
 
-
 defword ".s",2,0,dots                   ; ( -- )
     rst $08                             ; enter forth
     dw spfetch
