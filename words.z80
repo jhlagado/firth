@@ -198,19 +198,14 @@ defword "repeat",6,msk_immed,repeat
 ; ; j
 ; ; until
 
-defword "create",7,0,create ; --
+defword "create",6,0,create ; --
     rst $08                             ; enter forth
-    dw nesting, fetch, zequal
-    cIf
-        dw here, fetch                  ; save old here
-        dw latest, fetch, comma         ; write link to previous word to here
-        dw latest, store                ; update latest to old here
-        dw lit, $20, word               ; read word token
-        dw cfetch, oneplus, allot       ; allocate string plus length byte
-        dw drop
-    cElse
-        dw lit, nestingErr, count, type
-    cEndIf
+    dw here, fetch                  ; save old here
+    dw latest, fetch, comma         ; write link to previous word to here
+    dw latest, store                ; update latest to old here
+    dw lit, $20, word               ; read word token
+    dw cfetch, oneplus, allot       ; allocate string plus length byte
+    dw drop
     dw exit                             ; exit from forth
     ret
 

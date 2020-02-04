@@ -68,9 +68,9 @@ TESTS_START:
 .endif
 
 .if TESTMODE = 2
-    TEST_SET_TEXT "1 0 if 1 else 2 endif +"
+    TEST_SET_TEXT "0 1 if if 100 else 200 endif else 300 endif"
     call INTERPRET
-    EXPECT 3, "1 false -> 1 2 -> 1 2 + -> 3"
+    EXPECT 200, "select"
 .endif
 
 .if TESTMODE
