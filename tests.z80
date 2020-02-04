@@ -307,3 +307,13 @@ EXPECT 200, "select"
 TEST_SET_TEXT "0 begin dup 5 < while dup . 1+ repeat"
 call INTERPRET
 EXPECT 5, "Loop until limit < 5"
+
+TEST_SET_TEXT "{ if 100 else 200 endif } define: q"
+call INTERPRET
+TEST_SET_TEXT "0 q"
+call INTERPRET
+EXPECT 200, "define: q 0 = 200"
+TEST_SET_TEXT "1 q"
+call INTERPRET
+EXPECT 100, "define: q 1 = 100"
+

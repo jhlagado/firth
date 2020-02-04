@@ -1,7 +1,5 @@
 # TODO
 
-- add `nested` numeric variable for deferring interpretation in cli,
-- recusive quotation, proposed syntax `{` `}`,
 - formal arguments, proposed syntax `( a b c -- d e )`, named return results
 - debugger
 - see
@@ -10,7 +8,6 @@
 - update manual with string examples
 - fix .s which currently crashes
 - change boolean to 0, \$FFFF
-- use restart instead of `call enter`?
 
 ## Ideas
 

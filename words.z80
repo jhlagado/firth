@@ -152,7 +152,7 @@ defword "else",4,msk_immed,else
 
 defword "endif",5,msk_immed,endif
     call xendif
-    call rbrace
+    call rbraceExec
     ret
 xendif:
     rst $08                             ; enter forth
@@ -188,7 +188,7 @@ defword "repeat",6,msk_immed,repeat
     dw here, fetch, swap, minus         ; compile offset (here2 - here3)
     dw swap, store                      ; save offset in here2
     dw exit
-    call rbrace
+    call rbraceExec
     ret
 
 ; ; do
@@ -232,35 +232,6 @@ defword ":",1,0,colon
     dw lit, rst08_opcode, ccomma        ; write z80 jp opcode to word
     dw latest, fetch, hidden            ; make the word hidden (see below for definition).
     dw rbrac                            ; go into compile mode.
-    dw exit                             ; return from the function.
-    ret                                 ; return from the function.
-
-defword "{",1,msk_immed,lbrace
-    rst $08                             ; enter forth
-    dw state, fetch, zEqual
-    dw nesting, fetch, zEqual
-    dw and
-    cIf
-        dw here, fetch                  ; TOS = here
-        dw lit, rst08_opcode, ccomma    ; write z80 jp opcode to word
-    cEndIf
-    dw nestPlus                         ; increase nesting
-    dw exit                             ; return from the function.
-    ret                                 ; return from the function.
-
-defword "}",1,msk_immed,rbrace
-    rst $08                             ; enter forth
-    dw nestMinus                        ; reduce nesting
-    dw state, fetch, zEqual
-    dw nesting, fetch, zEqual
-    dw and
-    cIf
-        dw lit, exit, comma                 ; append exit (so the word will return).
-        dw lit, ret_opcode, ccomma          ; write z80 jp opcode to word
-        dw dup
-        dw here, store
-        dw execute
-    cEndIf
     dw exit                             ; return from the function.
     ret                                 ; return from the function.
 
@@ -406,12 +377,66 @@ defword "word",5,0,WORD                 ; delim -- c-addr
     dw exit
     ret
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; Firth extension words
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 defword "xword",6,0,xword               ; delim limit addr -- c-addr
     rst $08                             ; enter forth
     dw xwordSkip
     dw xwordRead
     dw exit
     ret
+
+defword "define:",7,0,defineColon
+    rst $08                             ; enter forth
+    dw create                           ; create the dictionary entry / header
+    dw lit, jp_opcode, ccomma          ; write z80 jp opcode to word
+    dw comma                            ; compile address TOS
+    dw exit                             ; return from the function.
+    ret                                 ; return from the function.
+
+defword "{",1,msk_immed,lbrace
+    rst $08                             ; enter forth
+    dw state, fetch, zEqual
+    dw nesting, fetch, zEqual
+    dw and
+    cIf
+        dw here, fetch                  ; TOS = here
+        dw lit, rst08_opcode, ccomma    ; write z80 jp opcode to word
+    cEndIf
+    dw nestPlus                         ; increase nesting
+    dw exit                             ; return from the function.
+    ret                                 ; return from the function.
+
+defword "}",1,msk_immed,rbrace
+    rst $08                             ; enter forth
+    dw nestMinus                        ; reduce nesting
+    dw state, fetch, zEqual
+    dw nesting, fetch, zEqual
+    dw and
+    cIf
+        dw lit, exit, comma                 ; append exit (so the word will return).
+        dw lit, ret_opcode, ccomma          ; write z80 jp opcode to word
+    cEndIf
+    dw exit                             ; return from the function.
+    ret                                 ; return from the function.
+
+defword "}exec",5,msk_immed,rbraceExec
+    call rbrace
+    rst $08                             ; enter forth
+    dw state, fetch, zEqual
+    dw nesting, fetch, zEqual
+    dw and
+    cIf
+        dw dup
+        dw here, store
+        dw execute
+    cEndIf
+    dw exit                             ; return from the function.
+    ret                                 ; return from the function.
 
 defvar "pad",3,0,pad, var_pad
 defvar "here",4,0,here, var_here
