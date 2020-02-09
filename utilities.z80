@@ -6,13 +6,11 @@ TXT_PROMPT:     .pstr "\r\n> "
 StackPrompt:    .pstr "=> "
 
 TXT_INTRO:      .pstr "Forth Z80\r\n\r\n"
-TXT_ERROR:      .pstr "PARSE ERROR: "
 TXT_STACK_UNDERFLOW:
                 .pstr "Error: Stack underflow\r\n"
 DONE:           .pstr "\r\nDone! \r\n"
 FAILED:         .pstr "Failed: \r\n"
 
-parseErr:       .pstr "Error: parsing "
 nestingErr:     .pstr "Error: Definitions cannot be nested"
 
 intialize:

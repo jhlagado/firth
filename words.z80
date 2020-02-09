@@ -19,35 +19,32 @@ defword "interpret",6,0,interpret
     rst $08
     cDo
     	dw lit, $20, word, count        ; pstr -- ptr len
+        dw dup, zEqual
+        cIf
+            dw drop, drop                           ; ptr len --
+            dw exit
+            ret
+        cEndif
         dw interpToken                       ; interpret the next word
-    cUntil
     cEndDo
     dw exit
     ret
 
-defword "interpToken",11,0,interpToken                    ; ptr len --
+defword "interpToken",11,0,interpToken          ; ptr len --
     rst $08
-    dw dup, zEqual
+    dw over, over, find                     ; ptr len -- ptr len addr
+    dw dup, zNotEqual
     cIf
-        dw drop, drop                           ; ptr len --
-        dw lit, 1
+        dw interpWord
     cElse
-        dw over, over, find                     ; ptr len -- ptr len addr
-        dw dup, zNotEqual
-        cIf
-            dw swap, drop, swap, drop           ; ptr len addr -- addr
-            dw interpForthWord
-        cElse
-            dw drop                             ; ptr len addr - ptr len
-            dw interpNumber
-        cEndif
-        dw lit, 0
+        dw interpLiteral
     cEndif
     dw exit
     ret
 
-defword "interpForthWord",15,0,interpForthWord    ; ( headptr -- )
+interpWord:                                 ; ptr len addr --
     rst $08                                 ; enter forth
+    dw swap, drop, swap, drop               ; ptr len addr -- addr
     dw dup, lit, 2, plus, cfetch            ; ( headptr -- headptr flags ) add 2 to headptr
     dw lit, msk_immed, and                  ; ( headptr flags -- headptr immedflag )
     dw zEqual
@@ -67,8 +64,9 @@ defword "interpForthWord",15,0,interpForthWord    ; ( headptr -- )
     dw exit
     ret
 
-defword "interpNumber",12,0,interpNumber  ; ( ptr len -- )
+interpLiteral:                              ; ptr len addr --
     rst $08                                 ; enter forth
+    dw drop                                 ; ptr len addr - ptr len
     dw number, zEqual                       ; parse to number
     cif
         dw state, fetch
@@ -80,28 +78,66 @@ defword "interpNumber",12,0,interpNumber  ; ( ptr len -- )
         cEndIf
     cElse
         dw drop                             ; ( ptr len zero -- ptr len ), not found
-        dw lit, txt_error                   ; err != 0, parse error
-        dw print
+        dw litstr                           ; err != 0, parse error
+        .pstr "Error: parsing"
+        dw type
     cEndIf
     dw exit
     ret
 
-defword "postpone",8,msk_immed,postpone
-    rst $08                             ; enter forth
-    dw lit, $20, word
-    dw dup, ZNotEqual
+
+defword "postpone",8,msk_immed,postpone         ; --
+    rst $08
+	dw lit, $20, word, count        ; pstr -- ptr len
+    dw dup, zEqual
     cIf
-        dw dup, oneplus, oneplus        ; get flags & length
-        dw cfetch
-        dw lit, msk_immed, and
-        dw ZEqual
-        cIf
-            dw lit, lit, comma
-            dw comma
-            dw lit, comma, comma
-        cElse
-            dw comma
-        cEndIf
+        dw drop, drop                           ; ptr len --
+    cElse
+        dw postponeToken                       ; interpret the next word
+    cEndif
+    dw exit
+    ret
+
+postponeToken:                                   ; --
+    rst $08
+    dw over, over, find                     ; ptr len -- ptr len addr
+    dw dup, zNotEqual
+    cIf
+        dw postponeWord
+    cElse
+        dw postponeLiteral
+    cEndif
+    dw exit
+    ret
+
+postponeWord:                               ; ( headptr -- )
+    rst $08                                 ; enter forth
+    dw swap, drop, swap, drop               ; ptr len addr -- addr
+    dw dup, lit, 2, plus, cfetch            ; ( headptr -- headptr flags ) add 2 to headptr
+    dw lit, msk_immed, and                  ; ( headptr flags -- headptr immedflag )
+    dw zEqual
+    cIf
+        dw lit, lit, comma
+        dw tcfa, comma
+        dw lit, comma, comma
+    cElse
+        dw tcfa, comma
+    cEndIf
+    dw exit
+    ret
+
+postponeLiteral:                            ; ( ptr len -- )
+    rst $08                                 ; enter forth
+    dw drop                                 ; ptr len addr - ptr len
+    dw number, zEqual                       ; parse to number
+    cif
+        dw lit, lit                     ; (val -- val "lit" )
+        dw comma, comma                 ; compile "lit" val
+    cElse
+        dw drop                             ; ( ptr len zero -- ptr len ), not found
+        dw litstr                           ; err != 0, parse error
+        .pstr "Error: parsing"
+        dw type
     cEndIf
     dw exit
     ret
@@ -518,6 +554,16 @@ defword "}exec",5,msk_immed,rbraceExec
     cEndIf
     dw exit                             ; return from the function.
     ret                                 ; return from the function.
+
+defword "iff",3,0,iff                   ; then else cond -- then | else
+    rst $08
+    cIf
+        dw drop
+    cElse
+        dw swap, drop
+    cEndif
+    dw exit
+    ret
 
 defvar "pad",3,0,pad, var_pad
 defvar "here",4,0,here, var_here
