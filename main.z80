@@ -68,14 +68,6 @@ TESTS_START:
 .endif
 
 .if TESTMODE = 2
-    TEST_SET_TEXT "{ if 100 else 200 endif } define: q"
-    call INTERPRET
-    TEST_SET_TEXT "0 q"
-    call INTERPRET
-    EXPECT 200, "define: q 0 = 200"
-    TEST_SET_TEXT "1 q"
-    call INTERPRET
-    EXPECT 100, "define: q 1 = 100"
 .endif
 
 .if TESTMODE
