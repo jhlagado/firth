@@ -88,15 +88,25 @@ defword "hidden",6,0,HIDDEN
     ret
 
 ; 1+      n1/u1 -- n2/u2            add 1 to TOS
-defword "1+",2,0,ONEPLUS
+defword "1+",2,0,onePlus
     inc BC
     ret
 
+defword "1-",2,0,oneMinus
+    dec BC
+    ret
+
 ; 2+      n1/u1 -- n2/u2            add 2 to TOS
-defword "2+",2,0,TWOPLUS
+defword "2+",2,0,twoPlus
     inc BC
     inc BC
     ret
+
+defword "2-",2,0,twoMinus
+    dec BC
+    dec BC
+    ret
+
 
 ; 1*      n1/u1 -- n2/u2            do nothing
 defword "noop",4,0,noop
@@ -582,40 +592,6 @@ defword "pack",4,0,pack             ; ( adr1 len adr2 -- adr2 )
     ldir
     pop BC                          ; TOS = adr2
     pop DE
-    ret
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; destroys: HL, AF
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-defword "interp",6,0,interp             ; ( -- c )
-    push DE
-    ppush0 B,C                          ; save TOS
-    ld DE, $20                          ; delim = ' '
-    ld HL, wordBuf
-    call getWord
-    call interpToken
-    _switch
-        or A
-        _case z
-            loadWord B,C, D,E
-            pop DE
-        _endcase
-
-        cp 1
-        _case z
-            ppop0 B,C                   ; clear TOS
-            pop DE
-        _endcase
-
-        cp 2
-        _case z
-            loadWord H,L, B,C
-            ppop0 B,C                   ; clear TOS
-            pop DE
-            jp (HL)                     ; execute word
-        _endcase
-    _endswitch
-
     ret
 
 xwordSkip:                              ; delim addr -- delim addr char
