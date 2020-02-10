@@ -18,9 +18,10 @@ lineBuf:        ds LINE_BUFSIZE
 wordBuf:        ds 64
 wordBuf2:       ds 64
 DATA_STACK:     ds DATA_STACK_SIZE
-
-VAR_PAD:        ds PAD_SIZE
 IS_LITERAL:     dw 0            ; Flag used to record if reading a literal
+
+var_framePtr    dw 0
+VAR_PAD:        ds PAD_SIZE
 VAR_HERE:       dw START_USER
 VAR_INTP_STOP:  dw 0
 VAR_STATE:      dw 0

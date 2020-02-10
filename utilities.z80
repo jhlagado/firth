@@ -20,11 +20,12 @@ intialize:
 
     ld HL,0
     ld (serbufused),HL
+    ld (var_framePtr), HL
     ld (var_intp_stop), HL
-    ld (var_state), HL
+    ld (is_literal), HL
     ld (var_nesting), HL
     ld (var_sp0), HL
-    ld (is_literal), HL
+    ld (var_state), HL
 
     ld HL,serbuf
     ld (serinptr),HL
