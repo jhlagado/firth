@@ -314,72 +314,6 @@ defword "repeat",6,msk_immed,repeat
 ; ; j
 ; ; until
 
-defword "create",6,0,create ; --
-    rst $08                             ; enter forth
-    dw here, fetch                  ; save old here
-    dw latest, fetch, comma         ; write link to previous word to here
-    dw latest, store                ; update latest to old here
-    dw lit, $20, word               ; read word token
-    dw cfetch, oneplus, allot       ; allocate string plus length byte
-    dw drop
-    dw exit                             ; exit from forth
-    ret
-
-defword ";",1,msk_immed,semicolon
-    rst $08                             ; enter forth
-    dw lit, exit, comma                 ; append exit (so the word will return).
-    dw lit, ret_opcode, ccomma          ; write z80 jp opcode to word
-    dw latest, fetch, hidden            ; toggle hidden flag -- unhide the word (see below for definition).
-    dw lbrac                            ; go back to immediate mode.
-    dw exit                             ; return from the function.
-    ret                                 ; return from the function.
-
-defword ":noname",7,0,colonNoName
-    rst $08                             ; enter forth
-    dw here, fetch                      ; TOS = here
-    dw lit, rst08_opcode, ccomma        ; write z80 jp opcode to word
-    dw rbrac                            ; go into compile mode.
-    dw exit                             ; return from the function.
-    ret                                 ; return from the function.
-
-defword ":",1,0,colon
-    rst $08                             ; enter forth
-    dw create                           ; create the dictionary entry / header
-    dw lit, rst08_opcode, ccomma        ; write z80 jp opcode to word
-    dw latest, fetch, hidden            ; make the word hidden (see below for definition).
-    dw rbrac                            ; go into compile mode.
-    dw exit                             ; return from the function.
-    ret                                 ; return from the function.
-
-; constant   n --      define a forth constant
-defword "constant",8,0,constant         ; ( n -- ) get name from input
-    rst $08                             ; enter forth
-    dw create                           ; create header
-    dw lit, rst08_opcode, ccomma        ; write z80 jp opcode to word
-    dw lit, lit, comma                  ; write addr of lit to word
-    dw comma                            ; write tos to word
-    dw lit, exit, comma                 ; write addr of lit to word
-    dw lit, ret_opcode, ccomma          ; write z80 jp opcode to word
-    dw exit
-    ret
-
-defword "variable",8,0,variable         ; ( n -- ) get name from input
-    rst $08                             ; enter forth
-    dw lit, 1, cells
-    dw allot                            ; allocate n bytes, push addr
-    dw constant
-    dw exit
-    ret
-
-defword "buffer:",7,0,bufferColon       ; ( n -- ) get name from input
-    rst $08                             ; enter forth
-    dw allot                            ; allocate n bytes, push addr
-    dw constant
-    dw exit
-    ret
-
-; ; does> does
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;; device
@@ -485,7 +419,6 @@ defword "word",5,0,WORD                 ; delim -- c-addr
     dw exit
     ret
 
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;; Firth non-standard words
@@ -574,7 +507,7 @@ defword "stackPop",5,0,stackPop         ; stack -- value
     dw exit
     ret
 
-defword "beginFrame",10,0,beginFrame    ; begin a stack frame
+defword "S[",2,0,beginFrame    ; begin a stack frame
     rst $08                             ; enter forth
     dw framePtr, dup                    ;  -- addr addr
     dw fetch, swap                      ; addr addr -- framePtr0 addr
@@ -583,7 +516,7 @@ defword "beginFrame",10,0,beginFrame    ; begin a stack frame
     dw exit                             ; TOS = framePtr0
     ret
 
-defword "endFrame",10,0,endFrame        ; end a stack frame
+defword "]S",2,0,endFrame        ; end a stack frame
     rst $08                             ; enter forth
                                         ; TOS = framePtr0
     dw framePtr, store                  ; store TOS in framePtr
@@ -599,19 +532,19 @@ defword "param",5,0,param               ; n -- addr return addr of param n, -ve 
 
 defword "p1",2,0,p1                     ;  -- p1addr
     rst $08                             ; enter forth
-    dw lit, -1, param
+    dw lit, -1, param, fetch
     dw exit
     ret
 
 defword "p2",2,0,p2                     ;  -- p2addr
     rst $08                             ; enter forth
-    dw lit, -2, param
+    dw lit, -2, param, fetch
     dw exit
     ret
 
 defword "p3",2,0,p3                     ;  -- p3addr
     rst $08                             ; enter forth
-    dw lit, -3, param
+    dw lit, -3, param, fetch
     dw exit
     ret
 
@@ -675,6 +608,152 @@ litCComma:                                 ; pushes ptr to string and length on 
     dw fetch, cComma
     dw exit
     ret
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; dictionary words
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+defword "create",6,0,create ; --
+    rst $08                             ; enter forth
+    dw here, fetch                  ; save old here
+    dw latest, fetch, comma         ; write link to previous word to here
+    dw latest, store                ; update latest to old here
+    dw lit, $20, word               ; read word token
+    dw cfetch, oneplus, allot       ; allocate string plus length byte
+    dw drop
+    dw exit                             ; exit from forth
+    ret
+
+defword ";",1,msk_immed,semicolon
+    rst $08                             ; enter forth
+    dw lit, exit, comma                 ; append exit (so the word will return).
+    dw lit, ret_opcode, ccomma          ; write z80 jp opcode to word
+    dw latest, fetch, hidden            ; toggle hidden flag -- unhide the word (see below for definition).
+    dw lbrac                            ; go back to immediate mode.
+    dw exit                             ; return from the function.
+    ret                                 ; return from the function.
+
+defword ":noname",7,0,colonNoName
+    rst $08                             ; enter forth
+    dw here, fetch                      ; TOS = here
+    dw lit, rst08_opcode, ccomma        ; write z80 jp opcode to word
+    dw rbrac                            ; go into compile mode.
+    dw exit                             ; return from the function.
+    ret                                 ; return from the function.
+
+defword ":",1,0,colon
+    rst $08                             ; enter forth
+    dw create                           ; create the dictionary entry / header
+    dw lit, rst08_opcode, ccomma        ; write z80 jp opcode to word
+    dw latest, fetch, hidden            ; make the word hidden (see below for definition).
+    dw rbrac                            ; go into compile mode.
+    dw exit                             ; return from the function.
+    ret                                 ; return from the function.
+
+; constant   n --      define a forth constant
+defword "constant",8,0,constant         ; ( n -- ) get name from input
+    rst $08                             ; enter forth
+    dw create                           ; create header
+    dw lit, rst08_opcode, ccomma        ; write z80 jp opcode to word
+    dw lit, lit, comma                  ; write addr of lit to word
+    dw comma                            ; write tos to word
+    dw lit, exit, comma                 ; write addr of lit to word
+    dw lit, ret_opcode, ccomma          ; write z80 jp opcode to word
+    dw exit
+    ret
+
+defword "variable",8,0,variable         ; ( n -- ) get name from input
+    rst $08                             ; enter forth
+    dw lit, 1, cells
+    dw allot                            ; allocate n bytes, push addr
+    dw constant
+    dw exit
+    ret
+
+defword "buffer:",7,0,bufferColon       ; ( n -- ) get name from input
+    rst $08                             ; enter forth
+    dw allot                            ; allocate n bytes, push addr
+    dw constant
+    dw exit
+    ret
+
+; ; defword "does>",5,msk_immed,xdoes               ; delim -- c-addr
+; ;     rst $08                             ; enter forth
+; ;     dw rfrom                            ; doesAddr        addr of word after does>
+; ;     dw latest, fetch, tcfa              ; doesAddr -- doesAddr latestxt
+; ;     dw lit, jp_opcode                   ; doesAddr latestxt jp
+; ;     dw over                             ; doesAddr latestxt jp latestxt
+; ;     dw cstore                           ; doesAddr latestxt
+; ;     dw oneplus, store
+; ;     dw exit
+; ;     ret
+
+; defword "does>",5,msk_immed,does        ; delim -- c-addr
+;     rst $08                             ; enter forth
+
+;     dw latest, fetch, tcfa              ; reset here back to xt of latest word
+;     dw here, store
+
+;     dw lit, ld_hl_opcode, cComma
+;     dw rfrom, comma
+
+;     dw lit, jp_opcode, cComma
+;     dw does1, comma
+
+;     dw exit
+;     ret                                 ; return to parent caller
+
+; does1:
+;     pop DE
+;     pop DE
+;     push HL
+;     jp enter
+;     ret
+
+defword "kreate",6,0,kreate             ; --
+    rst $08                             ; enter forth
+    dw here, fetch                      ; get old here
+    dw latest, fetch, comma             ; write link to previous word to here
+    dw latest, store                    ; update latest to old here
+    dw lit, $20, word                   ; read word token
+    dw cfetch, oneplus, allot
+    dw lit, jp_opcode, cComma         ; compile default behavious
+    dw lit, docreate, comma             ; i.e. push
+    dw exit                             ; exit from forth
+    ret
+docreate:                               ; -- addr
+    pop HL                              ; throw away
+    pop HL                              ; address of next word
+    ppush H,L                           ; push onto stack
+    ret                                 ; return to parent caller
+
+defword "(does>)", 7, 0, xdoes
+    rst $08                             ; enter forth
+    dw rfrom
+    dw latest,fetch,tcfa
+    dw lit, jp_opcode, over, cStore
+    dw oneplus, store
+    dw exit
+    ret
+
+defword "does>", 5, msk_immed, does
+    rst $08                             ; enter forth
+    dw lit, xdoes, comma
+    dw here                             ; here
+    dw lit, jp_opcode, over             ; here jp here
+    dw cStore                           ; here    stored jp at here
+    dw lit, dodoes, swap                ; dodoes here
+    dw oneplus, store                   ; stored dodoes at here+1
+    dw lit, 3, allot                    ; update here variable
+    dw exit
+    ret
+
+dodoes:                                 ; -- addr
+    pop HL                              ; throw away
+    pop HL                              ; address of next word
+    ret                                 ; return to parent caller
 
 defvar "framePtr", 8, 0, framePtr, var_framePtr
 defvar "pad", 3, 0, pad, var_pad

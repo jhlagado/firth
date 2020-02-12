@@ -18,7 +18,7 @@ LINE_BUFSIZE    equ     128
 START_ROM       equ     0
 START_RAM       equ     START_ROM + ROM_SIZE
 END_RAM         equ     START_RAM + RAM_SIZE
-RET_STACK       equ     END_RAM             ; return stack, 128 B, grows down
+RET_STACK       equ     END_RAM                     ; return stack, grows down
 
 IO_DATA         equ     $81
 IO_CTRL         equ     $80
@@ -27,8 +27,10 @@ MSK_IMMED       equ     $80
 MSK_HIDDEN      equ     $40
 MSK_LENGTH      equ     $3f                    ; length mask
 
-JP_OPCODE       equ     $C3
 CALL_OPCODE     equ     $CD
+JP_OPCODE       equ     $C3
+LD_HL_OPCODE    equ     $21
+POP_HL_OPCODE   equ     $E1
 RET_OPCODE      equ     $C9
 RST08_OPCODE    equ     $CF                 ; call enter
 
