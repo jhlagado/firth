@@ -426,10 +426,8 @@ defword "word",5,0,WORD                 ; delim -- c-addr
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 defword "xword",6,0,xword               ; delim limit addr -- c-addr
-    rst $08                             ; enter forth
-    dw xwordSkip
-    dw xwordRead
-    dw exit
+    call xwordSkip
+    call xwordRead
     ret
 
 defword "define:",7,0,defineColon
@@ -679,52 +677,20 @@ defword "buffer:",7,0,bufferColon       ; ( n -- ) get name from input
     dw exit
     ret
 
-; ; defword "does>",5,msk_immed,xdoes               ; delim -- c-addr
-; ;     rst $08                             ; enter forth
-; ;     dw rfrom                            ; doesAddr        addr of word after does>
-; ;     dw latest, fetch, tcfa              ; doesAddr -- doesAddr latestxt
-; ;     dw lit, jp_opcode                   ; doesAddr latestxt jp
-; ;     dw over                             ; doesAddr latestxt jp latestxt
-; ;     dw cstore                           ; doesAddr latestxt
-; ;     dw oneplus, store
-; ;     dw exit
-; ;     ret
-
-; defword "does>",5,msk_immed,does        ; delim -- c-addr
-;     rst $08                             ; enter forth
-
-;     dw latest, fetch, tcfa              ; reset here back to xt of latest word
-;     dw here, store
-
-;     dw lit, ld_hl_opcode, cComma
-;     dw rfrom, comma
-
-;     dw lit, jp_opcode, cComma
-;     dw does1, comma
-
-;     dw exit
-;     ret                                 ; return to parent caller
-
-; does1:
-;     pop DE
-;     pop DE
-;     push HL
-;     jp enter
-;     ret
-
+; rename to create
 defword "kreate",6,0,kreate             ; --
     rst $08                             ; enter forth
     dw here, fetch                      ; get old here
     dw latest, fetch, comma             ; write link to previous word to here
     dw latest, store                    ; update latest to old here
     dw lit, $20, word                   ; read word token
-    dw cfetch, oneplus, allot
-    dw lit, jp_opcode, cComma         ; compile default behavious
-    dw lit, docreate, comma             ; i.e. push
+    dw cfetch, oneplus, allot           ;
+    dw lit, jp_opcode, cComma           ; compile default behavious
+    dw lit, create1, comma             ; i.e. push
     dw exit                             ; exit from forth
     ret
-docreate:                               ; -- addr
-    pop HL                              ; throw away
+create1:
+    pop HL                              ; throw away address of enter
     pop HL                              ; address of next word
     ppush H,L                           ; push onto stack
     ret                                 ; return to parent caller
@@ -736,24 +702,36 @@ defword "(does>)", 7, 0, xdoes
     dw lit, jp_opcode, over, cStore
     dw oneplus, store
     dw exit
+    pop HL
+    pop HL
     ret
 
 defword "does>", 5, msk_immed, does
     rst $08                             ; enter forth
     dw lit, xdoes, comma
-    dw here                             ; here
-    dw lit, jp_opcode, over             ; here jp here
+    dw here, fetch                      ; here
+    dw lit, call_opcode, over           ; here call here
     dw cStore                           ; here    stored jp at here
-    dw lit, dodoes, swap                ; dodoes here
+    dw lit, enter, swap                 ; enter here
     dw oneplus, store                   ; stored dodoes at here+1
     dw lit, 3, allot                    ; update here variable
     dw exit
     ret
 
-dodoes:                                 ; -- addr
-    pop HL                              ; throw away
-    pop HL                              ; address of next word
-    ret                                 ; return to parent caller
+
+; experimetal: change call enter to rst $08 ???
+defword "does>2", 6, msk_immed, does2
+    rst $08                             ; enter forth
+    dw lit, xdoes, comma
+    dw lit, rst08_opcode                ; rst08
+    dw here, fetch                      ; here
+    dw cStore                           ; here    stored jp at here
+    dw lit, 1, allot                    ; update here variable
+    dw exit
+    ret
+
+
+
 
 defvar "framePtr", 8, 0, framePtr, var_framePtr
 defvar "pad", 3, 0, pad, var_pad
