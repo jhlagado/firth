@@ -127,15 +127,19 @@ defword "0branch",7,0,ZBRANCH
     checkZeroWord B,C               ; test old TOS
     ppop0 B,C                       ; POP new TOS
     jr z,BRANCH                     ; if old TOS=0, branch
-    pop HL                          ; NEXT address = enter
+;!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    ; pop HL                          ; NEXT address = enter
     pop DE
     inc DE                          ; else skip inline value
     inc DE
     push DE
-    jp (HL)
+;!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    ; jp (HL)
+    jp enter
 
 defword "branch",6,0,BRANCH         ; relative branching
-    pop HL                          ; throw away return
+;!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    ; pop HL                          ; throw away return
     pop HL                          ; add the offset to the instruction pointer
     ld E,(HL)
     inc HL
@@ -148,12 +152,15 @@ defword "branch",6,0,BRANCH         ; relative branching
 defword "lit",3,0,LIT
 
 	ppush0 B,C                      ; pushTOS
-    pop DE                          ; pop return address into DE
+;!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    ; pop DE                          ; pop return address into DE
 	pop HL                          ; pop address of next Forth word in HL
 	readWord HL, B,C                ; read next word and push on TOS, inc HL by 2
     push HL                         ; push address of next Forth word
-    ex DE,HL                        ; push return address in HL
-    jp (HL)                         ; return to caller
+;!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    ; ex DE,HL                        ; push return address in HL
+    ; jp (HL)                         ; return to caller
+    jp enter
 
 ; U*   u1 u2 -- ud   unsigned mutliply
 defword "u*",2,0,USTAR              ; u1 u2 -- ud
@@ -508,8 +515,11 @@ defword "over",4,0,OVER
 defword ">r",2,0,TOR
     LD IY,0
     ADD IY,SP
-    LD (IY+6),C
-    LD (IY+7),B
+;!!!!!!!!!!!!!!!!!!!!!!!!!
+    ; LD (IY+6),C
+    ; LD (IY+7),B
+    LD (IY+2),C
+    LD (IY+3),B
     ppop0 B,C
     NEXT
 
@@ -518,8 +528,11 @@ defword "r>",2,0,RFROM
     ppush0 B,C
     LD IY,0
     ADD IY,SP
-    LD C,(IY+6)
-    LD B,(IY+7)
+;!!!!!!!!!!!!!!!!!!!!!!!!!
+    ; LD C,(IY+6)
+    ; LD B,(IY+7)
+    LD C,(IY+2)
+    LD B,(IY+3)
     NEXT
 
 defword "'",1,0,TICK                 ; ( -- addr ) PUSH code word ptr of following word
@@ -602,79 +615,5 @@ defword "pack",4,0,pack             ; ( adr1 len adr2 -- adr2 )
     ldir
     pop BC                          ; TOS = adr2
     pop DE
-    NEXT
-
-xwordSkip:                              ; delim addr -- delim addr char
-    ppop H,L
-    ppop D,E
-    ppush0 B,C
-    ppush0 D,E
-    ppush0 H,L
-    _do
-        call getKey                     ; get next key, returned in A
-
-        _switch
-
-            bit 7, A                    ; check end of input
-            _if nz
-                ld (HL),0
-                ld A,0
-                _break
-            _endif
-
-            cp $5C                      ; \ start of a comment?
-            _case z                     ; if yes skip to end of line
-                _do
-                    call getKey
-                    cp "\r"             ; end of line yet?
-                    _if nz
-                        cp "\n"         ; end of line yet?
-                    _endif
-                _until z
-                _enddo
-            _endcase
-
-            cp C                        ; = space?
-            _case z
-            _endcase
-
-            cp " "                      ; < space?
-            _case c
-            _endcase
-
-            ; default case
-            _break
-
-        _endswitch
-    _enddo
-    ld B,0
-    ld C,A
-    NEXT
-
-xwordRead:                              ; delim addr char -- c-addr
-    ld A,C
-    ppop0 B,C
-    ppop H,L
-    ppop D,E
-    ld D,0
-    or A
-    _if nz
-        push HL                         ; save a copy of HL
-        inc HL                          ; move to leave space for length byte
-        ld B,E
-        _do
-            ld (HL), A                  ; add character to return lineBuf
-            inc HL
-            inc D
-            call getKey                 ; get next key
-            cp C                        ; = delim?
-        _until z
-            cp " "                      ; < space? i.e. control chars
-        _until c
-        _djnz
-        pop HL                          ; restore HL
-    _endif
-    ld (HL),D                           ; write length
-    loadWord B,C, H,L                   ; TOS = str ptr
     NEXT
 

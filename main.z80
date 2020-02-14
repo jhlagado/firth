@@ -68,12 +68,26 @@ TESTS_START:
 .endif
 
 .if TESTMODE = 2
-    rst $08
-    dw lit, 3
-    dw lit, 2
-    dw lit, 1
-    dw testSF
-    dw exit
+
+ppushValue 1
+TEST_SET_TEXT "dup"
+rst $08
+dw interpret
+dw exit_forth
+EXPECT 1, "1 interpret dup"
+EXPECT 1, "1 interpret dup 2"
+
+    ; rst $08
+    ; dw litStr
+    ; .pstr 'x'
+    ; dw exit_forth
+
+    ; TEST_SET_TEXT ": x kreate does> 1 . ;"
+    ; call INTERPRET
+    ; TEST_SET_TEXT "x y"
+    ; call INTERPRET
+    ; TEST_SET_TEXT "y"
+    ; call INTERPRET
 .endif
 
 .if TESTMODE
@@ -86,9 +100,9 @@ testSF:                                 ; n -- addr return addr of param n, -ve 
     dw lit, 100
     dw lit, 200
     dw lit, 300
-    dw p3, fetch, dot
-    dw p2, fetch, dot
-    dw p1, fetch, dot
+    dw p3, dot
+    dw p2, dot
+    dw p1, dot
     dw cr
     dw lit, 0, param, fetch, dot
     dw cr
