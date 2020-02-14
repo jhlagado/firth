@@ -4,6 +4,19 @@
 ;; macros used by forth and a few utility routines
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+.macro NEXT
+    ret
+.endm
+
+.macro EXIT
+    dw exit
+    ret
+.endm
+
+.macro EXIT1
+    dw exit
+.endm
+
 ; Store the chain of links.
 link: .set 0
 
@@ -23,14 +36,14 @@ label:
 defword name,namelen,flags,label
     ppush0 B,C
     ld BC, var_label
-ret
+    ret
 .endm
 
 .macro defconst, name, namelen, flags, label, value
 defword name,namelen,flags,label
     ppush0 B,C
     ld BC, value
-ret
+    ret
 .endm
 
 ; Macros to deal with the param stack.

@@ -10,11 +10,6 @@ defconst "msk_immed",9,0,__msk_immed,msk_immed
 defconst "msk_hidden",10,0,__msk_hidden,msk_hidden
 defconst "msk_length",10,0,__msk_length,msk_length
 
-defword "quit",4,0,quit
-    ld sp, ret_stack
-    call interpret                      ; interpret the next word
-    ret
-
 defword "interpret",6,0,interpret
     rst $08
     cDo
@@ -22,13 +17,11 @@ defword "interpret",6,0,interpret
         dw dup, zEqual
         cIf
             dw drop, drop                           ; ptr len --
-            dw exit
-            ret
+            EXIT
         cEndif
         dw interpToken                       ; interpret the next word
     cEndDo
-    dw exit
-    ret
+    EXIT
 
 defword "interpToken",11,0,interpToken          ; ptr len --
     rst $08
@@ -39,8 +32,7 @@ defword "interpToken",11,0,interpToken          ; ptr len --
     cElse
         dw interpLiteral
     cEndif
-    dw exit
-    ret
+    EXIT
 
 interpWord:                                 ; ptr len addr --
     rst $08                                 ; enter forth
@@ -61,8 +53,7 @@ interpWord:                                 ; ptr len addr --
     cElse
         dw tcfa, execute                    ; execute xt
     cendif
-    dw exit
-    ret
+    EXIT
 
 interpLiteral:                              ; ptr len addr --
     rst $08                                 ; enter forth
@@ -82,8 +73,7 @@ interpLiteral:                              ; ptr len addr --
         .pstr "Error: parsing"
         dw type
     cEndIf
-    dw exit
-    ret
+    EXIT
 
 
 defword "postpone",8,msk_immed,postpone         ; --
@@ -95,8 +85,7 @@ defword "postpone",8,msk_immed,postpone         ; --
     cElse
         dw postponeToken                       ; interpret the next word
     cEndif
-    dw exit
-    ret
+    EXIT
 
 postponeToken:                                   ; --
     rst $08
@@ -107,8 +96,7 @@ postponeToken:                                   ; --
     cElse
         dw postponeLiteral
     cEndif
-    dw exit
-    ret
+    EXIT
 
 postponeWord:                               ; ( headptr -- )
     rst $08                                 ; enter forth
@@ -123,8 +111,7 @@ postponeWord:                               ; ( headptr -- )
     cElse
         dw tcfa, comma
     cEndIf
-    dw exit
-    ret
+    EXIT
 
 postponeLiteral:                            ; ( ptr len -- )
     rst $08                                 ; enter forth
@@ -139,8 +126,7 @@ postponeLiteral:                            ; ( ptr len -- )
         .pstr "Error: parsing"
         dw type
     cEndIf
-    dw exit
-    ret
+    EXIT
 
 defword ">cfa",4,0,tcfa
     rst $08                             ; enter forth
@@ -148,32 +134,28 @@ defword ">cfa",4,0,tcfa
     dw count
     dw lit, msk_length, and
     dw plus
-    dw exit
-    ret
+    EXIT
 
 ; count extract string length from pascal string  ( ptr -- ptr+1 len )
 defword "count",5,0,count
     rst $08                             ; enter forth
     dw dup, lit, 1, plus                ; ( ptr -- ptr ptr+1)
     dw swap, cfetch                     ; ( ptr ptr+1 -- ptr+1 len)
-    dw exit
-    ret
+    EXIT
 
 ; allot                                 ( n -- addr ) allocate n bytes of memory
 defword "allot",5,0,allot
     rst $08                             ; enter forth
     dw here, fetch, swap                ; here n
     dw here, addstore                   ; adds n to here, old value of here left on stack
-    dw exit
-    ret
+    EXIT
 
 ; negate  n1 -- n2                      negate n1
 defword "negate",6,0,negate
     rst $08                             ; enter forth
     dw invert
     dw oneplus
-    dw exit
-    ret
+    EXIT
 
 ; abs   n -- u                          absolute value
 defword "abs",3,0,ABS                   ; case sensitive for ABS label for some reason
@@ -183,8 +165,7 @@ defword "abs",3,0,ABS                   ; case sensitive for ABS label for some 
     cif
         dw negate                       ; if signs differ then negate answer
     cendif
-    dw exit
-    ret
+    EXIT
 
 defword "*",1,0,star                    ; u1 u2 -- ud
     rst $08                             ; enter forth
@@ -197,8 +178,7 @@ defword "*",1,0,star                    ; u1 u2 -- ud
     cif
         dw negate                       ; if signs differ then negate answer
     cendif
-    dw exit
-    ret
+    EXIT
 
 defword "/mod",4,0,slashmod             ; dvend dvisr -- rem quot
     rst $08                             ; enter forth
@@ -225,22 +205,19 @@ defword "/mod",4,0,slashmod             ; dvend dvisr -- rem quot
     cif
         dw negate                       ;     -r q b1 -- -r -q       if signs differ then negate answer
     cendif
-    dw exit
-    ret
+    EXIT
 
 defword "/",1,0,slash                   ; dvend dvisr -- quot
     rst $08                             ; enter forth
     dw slashmod
     dw swap, drop                       ; drop remainder
-    dw exit
-    ret
+    EXIT
 
 defword "mod",3,0,mod                   ; dvend dvisr -- remainder
     rst $08                             ; enter forth
     dw slashmod
     dw drop                             ; drop quotient
-    dw exit
-    ret
+    EXIT
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -253,8 +230,7 @@ defword "if",2,msk_immed,if
     rst $08                             ; enter forth
     dw lit, zbranch, comma              ; compile 0branch
     dw here, fetch, dup, comma          ; compile here and also push on stack
-    dw exit
-    ret
+    EXIT
 
 defword "else",4,msk_immed,else
     rst $08                             ; enter forth
@@ -263,20 +239,18 @@ defword "else",4,msk_immed,else
     dw lit, 0, comma                    ; compile a dummy offset
     dw swap                             ; now back-fill the original (if) offset
     dw xendif                           ; must call xendif not endif
-    dw exit
-    ret
+    EXIT
 
 defword "endif",5,msk_immed,endif
     call xendif
     call rbraceExec
-    ret
+    NEXT
 xendif:
     rst $08                             ; enter forth
     dw dup
     dw here, fetch, swap, minus         ; calculate the offset from the address saved on the stack
     dw swap, store                      ; store the offset in the back-filled location
-    dw exit
-    ret
+    EXIT
 
 ; begin condition while ... repeat
 
@@ -284,16 +258,14 @@ defword "begin",5,msk_immed,begin
     call lbrace
     rst $08                             ; enter forth
     dw here, fetch                      ; save here on stack (here1)
-    dw exit
-    ret
+    EXIT
 
 defword "while",5,msk_immed,while
     rst $08                             ; enter forth
     dw lit, zbranch, comma              ; compile branch on zero
     dw here, fetch                      ; save here in stack (here2)
     dw lit, 0, comma                    ; compile dummy offset
-    dw exit
-    ret
+    EXIT
 
 defword "repeat",6,msk_immed,repeat
     rst $08                             ; enter forth
@@ -303,9 +275,9 @@ defword "repeat",6,msk_immed,repeat
     dw dup
     dw here, fetch, swap, minus         ; compile offset (here2 - here3)
     dw swap, store                      ; save offset in here2
-    dw exit
+    EXIT1
     call rbraceExec
-    ret
+    NEXT
 
 ; ; do
 ; ; i
@@ -322,20 +294,7 @@ defword "repeat",6,msk_immed,repeat
 
 defword "cr",2,0,cr                     ; ( -- )
     call printcr
-    ret
-
-defword "test1",5,0,test1               ; ( -- )
-    nop
-    nop
-    rst $08                             ; enter forth
-    dw lit
-    dw 1
-    dw dup
-    dw dup
-    dw exit
-    nop
-    nop
-    ret
+    NEXT
 
 defword ".s",2,0,dots                   ; ( -- )
     rst $08                             ; enter forth
@@ -354,8 +313,7 @@ defword ".s",2,0,dots                   ; ( -- )
         cenddo
         dw drop
     cendif
-    dw exit
-    ret
+    EXIT
 
 ; using {"s",$27} because it's surprisingly difficult
 ; to define the name s' using asm80
@@ -384,8 +342,7 @@ defword $22,1,msk_immed,qt
         dw cfetch, oneplus
         dw allot
     cEndif
-    dw exit
-    ret
+    EXIT
 
 defword {".",$22},2,msk_immed,dotquote
     rst $08                             ; enter forth
@@ -396,28 +353,24 @@ defword {".",$22},2,msk_immed,dotquote
     cElse
         dw lit, type, comma
     cEndIf
-    dw exit
-    ret
+    EXIT
 
 defword "decimal",7,0,decimal           ; pushes ptr to string and length on stack
     rst $08                             ; enter forth
     dw lit,10,base,store
-    dw EXIT
-    ret
+    EXIT
 
 defword "hex",3,0,hex                   ; pushes ptr to string and length on stack
     rst $08                             ; enter forth
     dw lit,16,base,store
-    dw EXIT
-    ret
+    EXIT
 
 defword "word",5,0,WORD                 ; delim -- c-addr
     rst $08                             ; enter forth
     dw lit, 64                          ; limit
     dw here, fetch
     dw xword                            ; writes to HERE!
-    dw exit
-    ret
+    EXIT
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -425,18 +378,12 @@ defword "word",5,0,WORD                 ; delim -- c-addr
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-defword "xword",6,0,xword               ; delim limit addr -- c-addr
-    call xwordSkip
-    call xwordRead
-    ret
-
 defword "define:",7,0,defineColon
     rst $08                             ; enter forth
     dw create                           ; create the dictionary entry / header
     dw lit, jp_opcode, ccomma          ; write z80 jp opcode to word
     dw comma                            ; compile address TOS
-    dw exit                             ; return from the function.
-    ret                                 ; return from the function.
+    EXIT                             ; return from the function.
 
 defword "{",1,msk_immed,lbrace
     rst $08                             ; enter forth
@@ -448,8 +395,7 @@ defword "{",1,msk_immed,lbrace
         dw lit, rst08_opcode, ccomma    ; write z80 jp opcode to word
     cEndIf
     dw nestPlus                         ; increase nesting
-    dw exit                             ; return from the function.
-    ret                                 ; return from the function.
+    EXIT                             ; return from the function.
 
 defword "}",1,msk_immed,rbrace
     rst $08                             ; enter forth
@@ -461,8 +407,7 @@ defword "}",1,msk_immed,rbrace
         dw lit, exit, comma                 ; append exit (so the word will return).
         dw lit, ret_opcode, ccomma          ; write z80 jp opcode to word
     cEndIf
-    dw exit                             ; return from the function.
-    ret                                 ; return from the function.
+    EXIT                             ; return from the function.
 
 defword "}exec",5,msk_immed,rbraceExec
     call rbrace
@@ -475,16 +420,14 @@ defword "}exec",5,msk_immed,rbraceExec
         dw here, store
         dw execute
     cEndIf
-    dw exit                             ; return from the function.
-    ret                                 ; return from the function.
+    EXIT                             ; return from the function.
 
 defword "stack",6,0,stackColon          ; ( n -- addr ) allocates memory and puts pointer at 0
     rst $08                             ; enter forth
     dw twoPlus, allot                   ; allocate n + 2 bytes, push addr
     dw dup                              ; addr -- addr addr
     dw dup, twoPlus, swap, store        ; addr addr -- addr
-    dw exit
-    ret
+    EXIT
 
 defword "stackPush",5,0,stackPush       ; value stack --
     rst $08                             ; enter forth
@@ -492,8 +435,7 @@ defword "stackPush",5,0,stackPush       ; value stack --
     dw fetch, dup, nrot                 ; stack value ptr -- stack ptr value ptr
     dw store                            ; stack ptr value ptr -- stack ptr
     dw twoplus, swap, store             ; stack ptr --
-    dw exit
-    ret
+    EXIT
 
 defword "stackPop",5,0,stackPop         ; stack -- value
     rst $08                             ; enter forth
@@ -502,8 +444,7 @@ defword "stackPop",5,0,stackPop         ; stack -- value
     dw fetch, nrot                      ; stack ptr ptr -- value stack ptr
     dw twominus, swap                   ; value stack ptr -- value ptr stack
     dw store
-    dw exit
-    ret
+    EXIT
 
 defword "S[",2,0,beginFrame    ; begin a stack frame
     rst $08                             ; enter forth
@@ -511,58 +452,49 @@ defword "S[",2,0,beginFrame    ; begin a stack frame
     dw fetch, swap                      ; addr addr -- framePtr0 addr
     dw spfetch, swap                    ; framePtr0 attr -- framePtr0 paramSP addr
     dw store                            ; framePtr0 paramSP addr -- framePtr0
-    dw exit                             ; TOS = framePtr0
-    ret
+    EXIT                             ; TOS = framePtr0
 
 defword "]S",2,0,endFrame        ; end a stack frame
     rst $08                             ; enter forth
                                         ; TOS = framePtr0
     dw framePtr, store                  ; store TOS in framePtr
-    dw exit
-    ret
+    EXIT
 
 defword "param",5,0,param               ; n -- addr return addr of param n, -ve args, +ve locals
     rst $08                             ; enter forth
     dw oneminus, cells                            ; n *= 2
     dw framePtr, fetch, plus
-    dw exit
-    ret
+    EXIT
 
 defword "p1",2,0,p1                     ;  -- p1addr
     rst $08                             ; enter forth
     dw lit, -1, param, fetch
-    dw exit
-    ret
+    EXIT
 
 defword "p2",2,0,p2                     ;  -- p2addr
     rst $08                             ; enter forth
     dw lit, -2, param, fetch
-    dw exit
-    ret
+    EXIT
 
 defword "p3",2,0,p3                     ;  -- p3addr
     rst $08                             ; enter forth
     dw lit, -3, param, fetch
-    dw exit
-    ret
+    EXIT
 
 defword "v1",2,0,v1                     ;  -- v1addr
     rst $08                             ; enter forth
     dw lit, 1, param
-    dw exit
-    ret
+    EXIT
 
 defword "v2",2,0,v2                     ;  -- v2addr
     rst $08                             ; enter forth
     dw lit, 2, param
-    dw exit
-    ret
+    EXIT
 
 defword "v3",2,0,v3                     ;  -- v3addr
     rst $08                             ; enter forth
     dw lit, 3, param
-    dw exit
-    ret
+    EXIT
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -575,8 +507,7 @@ litStr:                                 ; pushes ptr to string and length on sta
     dw rfrom
     dw count, over, over, plus
     dw tor
-    dw exit
-    ret
+    EXIT
 
 litIf:
     rst $08
@@ -588,24 +519,21 @@ litIf:
     cElse
         dw twoplus, fetch
     cEndif
-    dw exit
-    ret
+    EXIT
 
 litComma:                                 ; pushes ptr to string and length on stack
     rst $08                             ; enter forth
     dw rfrom, dup
     dw lit, 2, plus, tor                ;
     dw fetch, comma
-    dw exit
-    ret
+    EXIT
 
 litCComma:                                 ; pushes ptr to string and length on stack
     rst $08                             ; enter forth
     dw rfrom, dup
     dw lit, 2, plus, tor                ;
     dw fetch, cComma
-    dw exit
-    ret
+    EXIT
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -621,8 +549,7 @@ defword "create",6,0,create ; --
     dw lit, $20, word               ; read word token
     dw cfetch, oneplus, allot       ; allocate string plus length byte
     dw drop
-    dw exit                             ; exit from forth
-    ret
+    EXIT                             ; exit from forth
 
 defword ";",1,msk_immed,semicolon
     rst $08                             ; enter forth
@@ -630,16 +557,14 @@ defword ";",1,msk_immed,semicolon
     dw lit, ret_opcode, ccomma          ; write z80 jp opcode to word
     dw latest, fetch, hidden            ; toggle hidden flag -- unhide the word (see below for definition).
     dw lbrac                            ; go back to immediate mode.
-    dw exit                             ; return from the function.
-    ret                                 ; return from the function.
+    EXIT                             ; return from the function.
 
 defword ":noname",7,0,colonNoName
     rst $08                             ; enter forth
     dw here, fetch                      ; TOS = here
     dw lit, rst08_opcode, ccomma        ; write z80 jp opcode to word
     dw rbrac                            ; go into compile mode.
-    dw exit                             ; return from the function.
-    ret                                 ; return from the function.
+    EXIT                             ; return from the function.
 
 defword ":",1,0,colon
     rst $08                             ; enter forth
@@ -647,8 +572,7 @@ defword ":",1,0,colon
     dw lit, rst08_opcode, ccomma        ; write z80 jp opcode to word
     dw latest, fetch, hidden            ; make the word hidden (see below for definition).
     dw rbrac                            ; go into compile mode.
-    dw exit                             ; return from the function.
-    ret                                 ; return from the function.
+    EXIT                             ; return from the function.
 
 ; constant   n --      define a forth constant
 defword "constant",8,0,constant         ; ( n -- ) get name from input
@@ -659,23 +583,20 @@ defword "constant",8,0,constant         ; ( n -- ) get name from input
     dw comma                            ; write tos to word
     dw lit, exit, comma                 ; write addr of lit to word
     dw lit, ret_opcode, ccomma          ; write z80 jp opcode to word
-    dw exit
-    ret
+    EXIT
 
 defword "variable",8,0,variable         ; ( n -- ) get name from input
     rst $08                             ; enter forth
     dw lit, 1, cells
     dw allot                            ; allocate n bytes, push addr
     dw constant
-    dw exit
-    ret
+    EXIT
 
 defword "buffer:",7,0,bufferColon       ; ( n -- ) get name from input
     rst $08                             ; enter forth
     dw allot                            ; allocate n bytes, push addr
     dw constant
-    dw exit
-    ret
+    EXIT
 
 ; rename to create
 defword "kreate",6,0,kreate             ; --
@@ -687,13 +608,12 @@ defword "kreate",6,0,kreate             ; --
     dw cfetch, oneplus, allot           ;
     dw lit, jp_opcode, cComma           ; compile default behavious
     dw lit, create1, comma             ; i.e. push
-    dw exit                             ; exit from forth
-    ret
+    EXIT                             ; exit from forth
 create1:
     pop HL                              ; throw away address of enter
     pop HL                              ; address of next word
     ppush H,L                           ; push onto stack
-    ret                                 ; return to parent caller
+    NEXT                                 ; return to parent caller
 
 defword "(does>)", 7, 0, xdoes
     rst $08                             ; enter forth
@@ -701,36 +621,20 @@ defword "(does>)", 7, 0, xdoes
     dw latest,fetch,tcfa
     dw lit, jp_opcode, over, cStore
     dw oneplus, store
-    dw exit
+    EXIT1
     pop HL
     pop HL
-    ret
-
-defword "does>", 5, msk_immed, does
-    rst $08                             ; enter forth
-    dw lit, xdoes, comma
-    dw here, fetch                      ; here
-    dw lit, call_opcode, over           ; here call here
-    dw cStore                           ; here    stored jp at here
-    dw lit, enter, swap                 ; enter here
-    dw oneplus, store                   ; stored dodoes at here+1
-    dw lit, 3, allot                    ; update here variable
-    dw exit
-    ret
-
+    NEXT
 
 ; experimetal: change call enter to rst $08 ???
-defword "does>2", 6, msk_immed, does2
+defword "does>", 5, msk_immed, does
     rst $08                             ; enter forth
     dw lit, xdoes, comma
     dw lit, rst08_opcode                ; rst08
     dw here, fetch                      ; here
     dw cStore                           ; here    stored jp at here
     dw lit, 1, allot                    ; update here variable
-    dw exit
-    ret
-
-
+    EXIT
 
 
 defvar "framePtr", 8, 0, framePtr, var_framePtr

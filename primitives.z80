@@ -1,13 +1,23 @@
 ; words must preserve: BC, DE, SP, IX
 ; words may destroy: HL, IY, AF, AF', BC', DE' HL'
 
+defword "quit",4,0,quit
+    ld sp, ret_stack
+    call interpret                      ; interpret the next word
+    NEXT
+
+defword "xword",6,0,xword               ; delim limit addr -- c-addr
+    call xwordSkip
+    call xwordRead
+    NEXT
+
 defword "words", 5, 0, WORDS
     push BC
     push DE
     call listWords
     pop DE
     pop BC
-    ret
+    NEXT
 
 defword "find",4,0,FIND
     ppop0 H,L
@@ -18,7 +28,7 @@ defword "find",4,0,FIND
     loadWord B,C, D,E
     pop DE
 
-    ret
+    NEXT
 
 defword "execute",7,0,EXECUTE
     ppop H,L                     ; POP TOS into HL
@@ -34,14 +44,14 @@ defword "number",6,0,NUMBER             ; ( ptr len -- num err )
     ppush0 D,E
     pop DE
 
-    ret
+    NEXT
 
 defword "print",5,0,PRINT
     push DE
     ppop D,E
     call printPStr
     pop DE
-    ret
+    NEXT
 
 defword "+!",2,0,ADDSTORE               ; (n addr -- )
 	ppop H, L		            ; HL = address, TOS = amount to add
@@ -53,29 +63,29 @@ defword "+!",2,0,ADDSTORE               ; (n addr -- )
 	adc A,B
 	ld (HL),A
 	ppop0 B,C                      ; clear param stack
-    ret
+    NEXT
 
 defword "[",1,MSK_IMMED,LBRAC
 	ld HL, 0
 	ld (VAR_STATE), HL	; Set STATE to 0.
-    ret
+    NEXT
 
 defword "]",1,0,RBRAC
 	ld HL, 1
 	ld (VAR_STATE), HL	; Set STATE to 1.
-    ret
+    NEXT
 
 defword "nest+",5,MSK_IMMED,nestPlus
 	ld HL, (VAR_NESTING)
     INC HL
 	ld (VAR_NESTING), HL
-    ret
+    NEXT
 
 defword "nest-",5,MSK_IMMED,nestMinus
 	ld HL, (VAR_NESTING)
     DEC HL
 	ld (VAR_NESTING), HL
-    ret
+    NEXT
 
 defword "hidden",6,0,HIDDEN
     ppop H,L		            ; HL = Dictionary entry.
@@ -85,39 +95,39 @@ defword "hidden",6,0,HIDDEN
     ld A, (HL)
     xor MSK_HIDDEN        	    ; Toggle the HIDDEN bit.
     ld (HL), A
-    ret
+    NEXT
 
 ; 1+      n1/u1 -- n2/u2            add 1 to TOS
 defword "1+",2,0,onePlus
     inc BC
-    ret
+    NEXT
 
 defword "1-",2,0,oneMinus
     dec BC
-    ret
+    NEXT
 
 ; 2+      n1/u1 -- n2/u2            add 2 to TOS
 defword "2+",2,0,twoPlus
     inc BC
     inc BC
-    ret
+    NEXT
 
 defword "2-",2,0,twoMinus
     dec BC
     dec BC
-    ret
+    NEXT
 
 
 ; 1*      n1/u1 -- n2/u2            do nothing
 defword "noop",4,0,noop
-    ret
+    NEXT
 
 ; ?branch   x --              branch if TOS zero
 defword "0branch",7,0,ZBRANCH
     checkZeroWord B,C               ; test old TOS
     ppop0 B,C                       ; POP new TOS
     jr z,BRANCH                     ; if old TOS=0, branch
-    pop HL                          ; ret address = enter
+    pop HL                          ; NEXT address = enter
     pop DE
     inc DE                          ; else skip inline value
     inc DE
@@ -154,7 +164,7 @@ defword "u*",2,0,USTAR              ; u1 u2 -- ud
     ppush0 D,E                      ; udlo result
                                     ; udhi result
     pop DE
-    ret
+    NEXT
 
 ;C 0<     n -- flag      true if TOS negative
 defword "0<",2,0,ZEROLESS
@@ -163,25 +173,25 @@ defword "0<",2,0,ZEROLESS
     and 1            ; <0 = -1, >0 = 0
     ld b,0
     ld c,a
-    ret
+    NEXT
 
 ;z RSP!  a-addr --                  set return stack pointer
 defword "rsp!",4,0,RSPSTORE
     SET_RET_SP B,C
 	ppop0 B,C                      ; POP TOS
-    ret
+    NEXT
 
 defword "sp@",3,0,SPFETCH
     push IX
     pop HL
     ppush H,L
-    ret
+    NEXT
 
 defword "sp!",3,0,SPSTORE
     ppop H,L
     push HL
     pop IX
-    ret
+    NEXT
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -194,19 +204,19 @@ defword "!",1,0,STORE
     ppop H,L
     writeWord HL, B,C
     ppop0 B,C          ; POP new TOS
-    ret
+    NEXT
 
 defword ",",1,0,COMMA
 	ld HL, (VAR_HERE)	; HERE
 	writeWord HL, B,C
 	ld (VAR_HERE), HL	; Update HERE (incremented)
 	ppop0 B,C		        ; cleanup TOS
-    ret
+    NEXT
 
 defword "@",1,0,FETCH
     loadWord H,L, B,C ; HL = TOS
     readWord HL, B,C
-    ret
+    NEXT
 
 ; CELL+    c-addr1 -- c-addr2   add cell size to addr
 defword "cell+",5,0,CELLPLUS
@@ -221,7 +231,7 @@ defword "c!",2,0,CSTORE
     ppop H,L
     ld (HL),C
     ppop0 B,C          ; POP new TOS
-    ret
+    NEXT
 
 defword "c,",1,0,CCOMMA
     ppush0 H,L
@@ -231,14 +241,14 @@ defword "c,",1,0,CCOMMA
 	ld (VAR_HERE), HL	; Update HERE (incremented)
     ppop0 H,L
 	ppop0 B,C		        ; cleanup TOS
-    ret
+    NEXT
 
 ; C@     c-addr -- char   fetch char from memory
 defword "c@",2,0,CFETCH
     ld A,(BC)
     ld C,A
     ld B,0
-    ret
+    NEXT
 
 ; CHAR+    c-addr1 -- c-addr2   add char size to addr
 defword "char+",5,0,CHARPLUS
@@ -262,20 +272,20 @@ defword "+",1,0,PLUS
     ppop0 H,L
     add HL,BC
     loadWord B,C, H,L
-    ret
+    NEXT
 
 ; 2*      n1/u1 -- n2/u2            arithmetic left shift
 defword "2*",2,0,TWOSTAR
     sla C
     rl B
-    ret
+    NEXT
 
 defword "-",1,0,MINUS
     ppop0 H,L
     or A
     sbc HL,BC
     loadWord B,C, H,L
-    ret
+    NEXT
 
 ; U/MOD   u1 u2 -- u1 u2    unsigned 16 / 16 -> r q
 defword "u/mod",5,0,USLASHMOD
@@ -286,13 +296,13 @@ defword "u/mod",5,0,USLASHMOD
     pop DE
 
     ppush0 H,L           ; PUSH remainder,
-    ret
+    NEXT
 
 ; 2/      x1 -- x2                  arithmetic right shift
 defword "2/",2,0,TWOSLASH
     sra B
     rr C
-    ret
+    NEXT
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -307,14 +317,14 @@ defword "0=",2,0,zEqual
         ld BC, -1
     _endif
     inc BC
-    ret
+    NEXT
 
 defword "0<>",3,0,zNotEqual
     checkZeroWord B,C            ; returns 0 if not equal, 1 if equal
     _if nz
         ld BC, 1
     _endif
-    ret
+    NEXT
 
 ; and    x1 x2 -- x3            logical and
 defword "and",3,0,and	        ; bitwise and
@@ -325,7 +335,7 @@ defword "and",3,0,and	        ; bitwise and
     ld A,C
     and L
     ld C,A
-    ret
+    NEXT
 
 ; INVERT x1 -- x2               ; bitwise complement
 defword "invert",6,0,INVERT
@@ -335,13 +345,13 @@ defword "invert",6,0,INVERT
     ld A,C
     cpl
     ld C,A
-    ret
+    NEXT
 
 ; TRUE
 defword "true",4,0,TRUE
     ppush0 B,C
     ld BC,1
-    ret
+    NEXT
 
 ; LSHIFT  x1 u -- x2       logical L shift u places
 defword "lshift",6,0,LSHIFT
@@ -354,7 +364,7 @@ defword "lshift",6,0,LSHIFT
 LSHIFT2:
     _djnz
     loadWord B,C, H,L     ; result is new TOS
-    ret
+    NEXT
 
 ; =      x1 x2 -- flag         test x1=x2
 defword "=",1,0,equal
@@ -365,7 +375,7 @@ defword "=",1,0,equal
         ld BC, 1       ;   if -ve, result true
     _endif
     inc BC
-    ret
+    NEXT
 
 ; <      n1 n2 -- flag          test n1<n2
 defword "<",1,0,LESSTHAN	        ; less than
@@ -390,7 +400,7 @@ defword "<",1,0,LESSTHAN	        ; less than
             ld bc, 1       ;   if -ve, result true
         _endif
     _endif
-    ret
+    NEXT
 
 ; >      n1 n2 -- flag          test n1 > n2
 defword ">",1,0,GREATERTHAN	        ; less than
@@ -407,7 +417,7 @@ defword "or",2,0,OR	            ; bitwise OR
     ld A,C
     or L
     ld C,A
-    ret
+    NEXT
 
 ; xor    x1 x2 -- x3            logical xor
 defword "xor",3,0,xor	        ; bitwise xor
@@ -418,13 +428,13 @@ defword "xor",3,0,xor	        ; bitwise xor
     ld A,C
     xor L
     ld C,A
-    ret
+    NEXT
 
 ; FALSE
 defword "false",5,0,FALSE
     ppush0 B,C
     ld BC,0
-    ret
+    NEXT
 
 ;RSHIFT  x1 u -- x2    logical R shift u places
 defword "rshift",6,0,RSHIFT
@@ -438,7 +448,7 @@ defword "rshift",6,0,RSHIFT
 RSHIFT2:
     _djnz
     loadWord B,C, H,L     ; result is new TOS
-    ret
+    NEXT
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -449,7 +459,7 @@ RSHIFT2:
 
 defword "dup",3,0,DUP        ; x -- x x
     ppush0 B,C
-    ret
+    NEXT
 
 ; SWAP     x1 x2 -- x2 x1    swap top two items
 defword "swap",4,0,SWAP      ; x1 x2 -- x2 x1
@@ -457,7 +467,7 @@ defword "swap",4,0,SWAP      ; x1 x2 -- x2 x1
     ppop0 D,E
     ppush D,E
     pop DE
-    ret
+    NEXT
 
 defword "rot",3,0,ROT       ; x1 x2 x3 -- x2 x3 x1
     push DE
@@ -468,7 +478,7 @@ defword "rot",3,0,ROT       ; x1 x2 x3 -- x2 x3 x1
     ppush H,L               ; PUSH x1 - x2 x3 x1
                             ; x1 in BC
     pop DE
-    ret
+    NEXT
 
 defword "-rot",4,0,NROT     ; x1 x2 x3 -- x3 x1 x2
     push DE
@@ -479,7 +489,20 @@ defword "-rot",4,0,NROT     ; x1 x2 x3 -- x3 x1 x2
     ppush D,E               ; PUSH x2 - x3 x1 x2
                             ; x2 in BC
     pop DE
-    ret
+    NEXT
+
+; R@ r-fetch
+
+defword "drop",4,0,DROP      ; x --
+    ppop0 B,C		    ; drop top of stack
+    NEXT
+
+; OVER    x1 x2 -- x1 x2 x1
+defword "over",4,0,OVER
+    ppop0 H,L
+    ppush0 H,L
+    ppush H,L
+    NEXT
 
 ; >R    ( x -- ) ( R: -- x )  Move  x from TOS to the return stack.
 defword ">r",2,0,TOR
@@ -488,20 +511,7 @@ defword ">r",2,0,TOR
     LD (IY+6),C
     LD (IY+7),B
     ppop0 B,C
-    ret
-
-; R@ r-fetch
-
-defword "drop",4,0,DROP      ; x --
-    ppop0 B,C		    ; drop top of stack
-    ret
-
-; OVER    x1 x2 -- x1 x2 x1
-defword "over",4,0,OVER
-    ppop0 H,L
-    ppush0 H,L
-    ppush H,L
-    ret
+    NEXT
 
 ; R>    ( -- x ) ( R: x -- )  Move x from the return stack to TOS
 defword "r>",2,0,RFROM
@@ -510,7 +520,7 @@ defword "r>",2,0,RFROM
     ADD IY,SP
     LD C,(IY+6)
     LD B,(IY+7)
-    ret
+    NEXT
 
 defword "'",1,0,TICK                 ; ( -- addr ) PUSH code word ptr of following word
     jp LIT
@@ -528,7 +538,7 @@ defword "immediate",9,MSK_IMMED,IMMEDIATE
     ld a, MSK_IMMED
     xor (HL)                            ; toggle the IMMED bit.
     ld (HL),a
-    ret
+    NEXT
 
 
 ; DOES> does
@@ -545,19 +555,19 @@ defword "accept",6,0,ACCEPT              ; ( addr max -- len )
 	ppop0 H,L                          ; addr
     call getline
     pop DE
-    ret
+    NEXT
 
 defword "key",3,0,KEY                ; ( -- c )
 	call getKey
     ld b, 0
     ld c, a
-    ret
+    NEXT
 
 defword "emit",4,0,EMIT              ; print the character on the stack
 	ld A, C                     ; (c -- )
 	call putc
     ppop0 B,C                      ; clear stack
-    ret
+    NEXT
 
 defword "key?",4,0,QKEY              ; ( -- c )
 	ppush0 B,C		                ; save TOS
@@ -566,12 +576,12 @@ defword "key?",4,0,QKEY              ; ( -- c )
     _if z
         ld BC, 0                    ; TOS = false
     _endif
-    ret
+    NEXT
 
 defword ".",1,0,DOT                 ; print top of stack in BASE
     call printNum
     ppop0 B,C
-    ret
+    NEXT
 
 defword "type",4,0,TYPE             ; ( str len -- )
     push DE
@@ -579,7 +589,7 @@ defword "type",4,0,TYPE             ; ( str len -- )
     call printStr
     ppop0 B,C                       ; clear TOS
     pop DE
-    ret
+    NEXT
 
 defword "pack",4,0,pack             ; ( adr1 len adr2 -- adr2 )
     push DE
@@ -592,7 +602,7 @@ defword "pack",4,0,pack             ; ( adr1 len adr2 -- adr2 )
     ldir
     pop BC                          ; TOS = adr2
     pop DE
-    ret
+    NEXT
 
 xwordSkip:                              ; delim addr -- delim addr char
     ppop H,L
@@ -639,7 +649,7 @@ xwordSkip:                              ; delim addr -- delim addr char
     _enddo
     ld B,0
     ld C,A
-    ret
+    NEXT
 
 xwordRead:                              ; delim addr char -- c-addr
     ld A,C
@@ -666,5 +676,5 @@ xwordRead:                              ; delim addr char -- c-addr
     _endif
     ld (HL),D                           ; write length
     loadWord B,C, H,L                   ; TOS = str ptr
-    ret
+    NEXT
 
