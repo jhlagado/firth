@@ -76,58 +76,6 @@ interpLiteral:                              ; ptr len addr --
     EXIT
 
 
-defword "postpone",8,msk_immed,postpone         ; --
-    rst $08
-	dw lit, $20, word, count        ; pstr -- ptr len
-    dw dup, zEqual
-    cIf
-        dw drop, drop                           ; ptr len --
-    cElse
-        dw postponeToken                       ; interpret the next word
-    cEndif
-    EXIT
-
-postponeToken:                                   ; --
-    rst $08
-    dw over, over, find                     ; ptr len -- ptr len addr
-    dw dup, zNotEqual
-    cIf
-        dw postponeWord
-    cElse
-        dw postponeLiteral
-    cEndif
-    EXIT
-
-postponeWord:                               ; ( headptr -- )
-    rst $08                                 ; enter forth
-    dw swap, drop, swap, drop               ; ptr len addr -- addr
-    dw dup, lit, 2, plus, cfetch            ; ( headptr -- headptr flags ) add 2 to headptr
-    dw lit, msk_immed, and                  ; ( headptr flags -- headptr immedflag )
-    dw zEqual
-    cIf
-        dw lit, lit, comma
-        dw tcfa, comma
-        dw lit, comma, comma
-    cElse
-        dw tcfa, comma
-    cEndIf
-    EXIT
-
-postponeLiteral:                            ; ( ptr len -- )
-    rst $08                                 ; enter forth
-    dw drop                                 ; ptr len addr - ptr len
-    dw number, zEqual                       ; parse to number
-    cif
-        dw lit, lit                     ; (val -- val "lit" )
-        dw comma, comma                 ; compile "lit" val
-    cElse
-        dw drop                             ; ( ptr len zero -- ptr len ), not found
-        dw litstr                           ; err != 0, parse error
-        .pstr "Error: parsing"
-        dw type
-    cEndIf
-    EXIT
-
 defword ">cfa",4,0,tcfa
     rst $08                             ; enter forth
     dw lit, 2, plus
@@ -226,8 +174,8 @@ defword "mod",3,0,mod                   ; dvend dvisr -- remainder
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 defword "if",2,msk_immed,if
-    call lbrace
     rst $08                             ; enter forth
+    dw lbrace
     dw lit, zbranch, comma              ; compile 0branch
     dw here, fetch, dup, comma          ; compile here and also push on stack
     EXIT
@@ -242,10 +190,12 @@ defword "else",4,msk_immed,else
     EXIT
 
 defword "endif",5,msk_immed,endif
-    call xendif
-    call rbraceExec
-    NEXT
-xendif:
+    rst $08                             ; enter forth
+    dw xendif                           ; must call xendif not endif
+    dw rbraceExec
+    EXIT
+
+xendif:                                 ; must call xendif not endif
     rst $08                             ; enter forth
     dw dup
     dw here, fetch, swap, minus         ; calculate the offset from the address saved on the stack
@@ -255,8 +205,8 @@ xendif:
 ; begin condition while ... repeat
 
 defword "begin",5,msk_immed,begin
-    call lbrace
     rst $08                             ; enter forth
+    dw lbrace
     dw here, fetch                      ; save here on stack (here1)
     EXIT
 
@@ -275,9 +225,8 @@ defword "repeat",6,msk_immed,repeat
     dw dup
     dw here, fetch, swap, minus         ; compile offset (here2 - here3)
     dw swap, store                      ; save offset in here2
-    EXIT1
-    call rbraceExec
-    NEXT
+    dw rbraceExec
+    EXIT
 
 ; ; do
 ; ; i
@@ -291,10 +240,6 @@ defword "repeat",6,msk_immed,repeat
 ;; device
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-defword "cr",2,0,cr                     ; ( -- )
-    call printcr
-    NEXT
 
 defword ".s",2,0,dots                   ; ( -- )
     rst $08                             ; enter forth
@@ -405,13 +350,12 @@ defword "}",1,msk_immed,rbrace
     dw and
     cIf
         dw lit, exit, comma                 ; append exit (so the word will return).
-        dw lit, ret_opcode, ccomma          ; write z80 jp opcode to word
     cEndIf
     EXIT                             ; return from the function.
 
 defword "}exec",5,msk_immed,rbraceExec
-    call rbrace
     rst $08                             ; enter forth
+    dw rbrace
     dw state, fetch, zEqual
     dw nesting, fetch, zEqual
     dw and
@@ -554,7 +498,6 @@ defword "create",6,0,create ; --
 defword ";",1,msk_immed,semicolon
     rst $08                             ; enter forth
     dw lit, exit, comma                 ; append exit (so the word will return).
-    dw lit, ret_opcode, ccomma          ; write z80 jp opcode to word
     dw latest, fetch, hidden            ; toggle hidden flag -- unhide the word (see below for definition).
     dw lbrac                            ; go back to immediate mode.
     EXIT                             ; return from the function.
@@ -582,7 +525,6 @@ defword "constant",8,0,constant         ; ( n -- ) get name from input
     dw lit, lit, comma                  ; write addr of lit to word
     dw comma                            ; write tos to word
     dw lit, exit, comma                 ; write addr of lit to word
-    dw lit, ret_opcode, ccomma          ; write z80 jp opcode to word
     EXIT
 
 defword "variable",8,0,variable         ; ( n -- ) get name from input
@@ -610,7 +552,6 @@ defword "kreate",6,0,kreate             ; --
     dw lit, create1, comma             ; i.e. push
     EXIT                             ; exit from forth
 create1:
-    pop HL                              ; throw away address of enter
     pop HL                              ; address of next word
     ppush H,L                           ; push onto stack
     NEXT                                 ; return to parent caller
@@ -621,8 +562,7 @@ defword "(does>)", 7, 0, xdoes
     dw latest,fetch,tcfa
     dw lit, jp_opcode, over, cStore
     dw oneplus, store
-    EXIT1
-    pop HL
+    dw EXIT_FORTH
     pop HL
     NEXT
 
@@ -636,6 +576,57 @@ defword "does>", 5, msk_immed, does
     dw lit, 1, allot                    ; update here variable
     EXIT
 
+defword "postpone",8,msk_immed,postpone         ; --
+    rst $08
+	dw lit, $20, word, count        ; pstr -- ptr len
+    dw dup, zEqual
+    cIf
+        dw drop, drop                           ; ptr len --
+    cElse
+        dw postponeToken                       ; interpret the next word
+    cEndif
+    EXIT
+
+postponeToken:                                   ; --
+    rst $08
+    dw over, over, find                     ; ptr len -- ptr len addr
+    dw dup, zNotEqual
+    cIf
+        dw postponeWord
+    cElse
+        dw postponeLiteral
+    cEndif
+    EXIT
+
+postponeWord:                               ; ( headptr -- )
+    rst $08                                 ; enter forth
+    dw swap, drop, swap, drop               ; ptr len addr -- addr
+    dw dup, lit, 2, plus, cfetch            ; ( headptr -- headptr flags ) add 2 to headptr
+    dw lit, msk_immed, and                  ; ( headptr flags -- headptr immedflag )
+    dw zEqual
+    cIf
+        dw lit, lit, comma
+        dw tcfa, comma
+        dw lit, comma, comma
+    cElse
+        dw tcfa, comma
+    cEndIf
+    EXIT
+
+postponeLiteral:                            ; ( ptr len -- )
+    rst $08                                 ; enter forth
+    dw drop                                 ; ptr len addr - ptr len
+    dw number, zEqual                       ; parse to number
+    cif
+        dw lit, lit                     ; (val -- val "lit" )
+        dw comma, comma                 ; compile "lit" val
+    cElse
+        dw drop                             ; ( ptr len zero -- ptr len ), not found
+        dw litstr                           ; err != 0, parse error
+        .pstr "Error: parsing"
+        dw type
+    cEndIf
+    EXIT
 
 defvar "framePtr", 8, 0, framePtr, var_framePtr
 defvar "pad", 3, 0, pad, var_pad

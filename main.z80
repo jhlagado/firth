@@ -69,25 +69,18 @@ TESTS_START:
 
 .if TESTMODE = 2
 
-ppushValue 1
-TEST_SET_TEXT "dup"
-rst $08
-dw interpret
-dw exit_forth
-EXPECT 1, "1 interpret dup"
-EXPECT 1, "1 interpret dup 2"
-
-    ; rst $08
-    ; dw litStr
-    ; .pstr 'x'
-    ; dw exit_forth
-
-    ; TEST_SET_TEXT ": x kreate does> 1 . ;"
-    ; call INTERPRET
-    ; TEST_SET_TEXT "x y"
-    ; call INTERPRET
-    ; TEST_SET_TEXT "y"
-    ; call INTERPRET
+    TEST_SET_TEXT ": x kreate does> 1 . ;"
+    rst $08
+    dw interpret
+    dw exit_forth
+    TEST_SET_TEXT "x y"
+    rst $08
+    dw interpret
+    dw exit_forth
+    TEST_SET_TEXT "y"
+    rst $08
+    dw interpret
+    dw exit_forth
 .endif
 
 .if TESTMODE

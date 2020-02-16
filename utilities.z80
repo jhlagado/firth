@@ -59,36 +59,15 @@ enter:
     inc HL
     push HL
     ex DE,HL
-    ; ld DE, enter
-    ; push DE
     jp (HL)
 
 exit:
     pop HL
-    ; ret
     jp enter
 
 exit_forth:
-    ; ex DE,HL
     pop HL
     jp (HL)
-
-.macro NEXT
-    ; ret
-    jp enter
-.endm
-
-.macro EXIT
-    dw exit
-    ; ret
-    jp enter
-.endm
-
-.macro EXIT1
-    dw exit
-.endm
-
-
 
 serialIn:
     push AF
@@ -182,13 +161,11 @@ getc:
 
 putc:
     push     AF              ; Store character
-; conout1:
     _do
         in A,($80)         ; Status byte
         bit 1,A             ; Set Zero flag if still transmitting character
     _until nz
     _enddo
-    ; jr z,conout1       ; Loop until flag signals ready
     pop AF              ; Retrieve character
     out ($81),A         ; Output the character
     ret

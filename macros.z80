@@ -4,6 +4,15 @@
 ;; macros used by forth and a few utility routines
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+.macro NEXT
+    jp enter
+.endm
+
+.macro EXIT
+    dw exit
+    jp enter
+.endm
+
 ; Store the chain of links.
 link: .set 0
 

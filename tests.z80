@@ -4,322 +4,449 @@
 ;; these tests will evaluate when TESTMODE = 1
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-TEST_SET_TEXT "hello\r\n"
-call KEY
-EXPECT $68, "key 'h'"
-call KEY
-EXPECT $65, "key 'e'"
-
-TEST_SET_TEXT "x"
-ppushValue $20
-call WORD
-call COUNT
-EXPECT 1, "word 'x'"
-ppop H,L   ; drop
-
-TEST_SET_TEXT "xyz"
-ppushValue $20
-call WORD
-call COUNT
-EXPECT 3, "word 'xyz'"
-ppop H,L   ; drop
-
-TEST_SET_TEXT "a xyz "
-ppushValue $20
-call WORD
-call COUNT
-EXPECT 1, "word 'a xyz'"
-ppushValue $20
-call WORD
-call COUNT
-EXPECT 3, "word 'a xyz'"
-ppop H,L   ; drop
-
-call HERE
-call FETCH
-EXPECT START_USER, "here"
-
-TEST_SET_TEXT "xyz"
-call CREATE
-call LATEST
-call FETCH
-EXPECT START_USER, "create xyz latest"
-call HERE
-call FETCH
-EXPECT START_USER + 6, "create xyz here"
+TEST_SET_TEXT ": x kreate does> 1 . ;"
+rst $08
+dw interpret
+dw exit_forth
+TEST_SET_TEXT "x y"
+rst $08
+dw interpret
+dw exit_forth
+TEST_SET_TEXT "y"
+rst $08
+dw interpret
+dw exit_forth
 
 ppushValue 1
 TEST_SET_TEXT "dup"
-call INTERPRET
+rst $08
+dw interpret
+dw exit_forth
 EXPECT 1, "1 interpret dup"
 EXPECT 1, "1 interpret dup 2"
 
 TEST_SET_TEXT "123"
-call INTERPRET
+rst $08
+dw interpret
+dw exit_forth
 EXPECT 123, "interpret 123"
 
 ppushValue 999
 TEST_SET_TEXT "$$123"
-call INTERPRET
+rst $08
+dw interpret
+dw exit_forth
 EXPECT 999, "interpret $$123"
 
-ppushValue 1
-ppushValue 2
-call DUP
-EXPECT 2, "dup 2"
-EXPECT 2, "dup 2"
-
 TEST_SET_TEXT "123 constant x123"
-call INTERPRET
+rst $08
+dw interpret
+dw exit_forth
 TEST_SET_TEXT "x123"
-call INTERPRET
+rst $08
+dw interpret
+dw exit_forth
 EXPECT 123, "constant x123 = 123"
 
 TEST_SET_TEXT "variable v1"
-call INTERPRET
+rst $08
+dw interpret
+dw exit_forth
 ppushValue 123
 TEST_SET_TEXT "123 v1 !"
-call INTERPRET
+rst $08
+dw interpret
+dw exit_forth
 
 TEST_SET_TEXT "v1 @"
-call INTERPRET
+rst $08
+dw interpret
+dw exit_forth
 EXPECT 123, "variable v1 = 123"
 
 
 
 TEST_SET_TEXT ": dbl dup + ;"
-call INTERPRET
+rst $08
+dw interpret
+dw exit_forth
 ppushValue 2
 TEST_SET_TEXT "dbl"
-call INTERPRET
+rst $08
+dw interpret
+dw exit_forth
 EXPECT 4, "colon dbl 2 = 4"
 
-call CR
-
 TEST_SET_TEXT "100 100 +"
-call INTERPRET
+rst $08
+dw interpret
+dw exit_forth
 EXPECT 200, "100 100 + = 200"
 
-ld HL, 12
-ld C, 10
-call divideWordByByte
-ld B, 0
-ld C, A
-EXPECT 2, "div 11 / 10 = 1 1"
-
 TEST_SET_TEXT "100 10 + ."
-call INTERPRET
+rst $08
+dw interpret
+dw exit_forth
 
 TEST_SET_TEXT "16 base ! 20"
-call INTERPRET
+rst $08
+dw interpret
+dw exit_forth
 EXPECT 32, "expect $20 to be 32"
 
 TEST_SET_TEXT "0A base ! 20"
-call INTERPRET
+rst $08
+dw interpret
+dw exit_forth
 EXPECT 20, "expect decimal 20 to be 32"
 
 TEST_SET_TEXT "-10 abs"
-call INTERPRET
+rst $08
+dw interpret
+dw exit_forth
 EXPECT 10, "expect abs -10 to be 10"
 
 TEST_SET_TEXT "10 abs"
-call INTERPRET
+rst $08
+dw interpret
+dw exit_forth
 EXPECT 10, "expect abs 10 to be 10"
 
-ppushValue -10
-ppushValue 10
-call STAR
-EXPECT -100, "expect -10 * 10 to be -100"
-
-ppushValue -10
-ppushValue -20
-call STAR
-EXPECT 200, "expect -10 * -20 to be 200"
-
-ppushValue 10
-ppushValue -20
-call STAR
-EXPECT -200, "expect -10 * -20 to be 200"
-
-ppushValue -101
-ppushValue 20
-call SLASHMOD
-EXPECT -5, "expect -101 / 20 to be -5"
-EXPECT -1, "expect -101 % 20 to be -1"
-
-ppushValue -101
-ppushValue -20
-call SLASHMOD
-EXPECT 5,  "expect -101 / -20 to be 5"
-EXPECT -1, "expect -101 % -20 to be -1"
-
-ppushValue 101
-ppushValue -20
-call SLASHMOD
-EXPECT -5,  "expect 101 / -20 to be -5"
-EXPECT 1, "expect 101 % -20 to be 1"
-
-TEST_SET_TEXT ": testif2 if 100 endif ;"
-
-call INTERPRET
+rst $08
+dw interpret
+dw exit_forth
 
 ppushValue 200
 ppushValue 1
 
+TEST_SET_TEXT ": testif2 if 100 endif ;"
+rst $08
+dw interpret
+dw exit_forth
+
 TEST_SET_TEXT "testif2"
-call INTERPRET
+rst $08
+dw interpret
+dw exit_forth
 EXPECT 100, "1 if 100 endif --> 100"
 
 ppushValue 0
 
 TEST_SET_TEXT "testif2"
-call INTERPRET
+rst $08
+dw interpret
+dw exit_forth
 EXPECT 200, "0 if 100 endif --> 200"
 
 TEST_SET_TEXT ": testif3 if 100 else 200 endif ;"
 
-call INTERPRET
+rst $08
+dw interpret
+dw exit_forth
 
 ppushValue 0
 
 TEST_SET_TEXT "testif3"
-call INTERPRET
+rst $08
+dw interpret
+dw exit_forth
 EXPECT 200, "0 --> 200"
 
 ppushValue 1
 
 TEST_SET_TEXT "testif3"
-call INTERPRET
+rst $08
+dw interpret
+dw exit_forth
 EXPECT 100, "1 --> 100"
 
 TEST_SET_TEXT ": testloop begin dup 5 < while dup . 1+ repeat ;"
-
-call INTERPRET
-
+rst $08
+dw interpret
+dw exit_forth
 ppushValue 0
-
 TEST_SET_TEXT "testloop"
-call INTERPRET
+rst $08
+dw interpret
+dw exit_forth
 EXPECT 5, "Loop until limit < 5"
 
-ppushPText "xyz"
-call COUNT
-EXPECT 3, "xyz length 3"
-call CFETCH
-EXPECT "x" + 0, "xyz --> x"
-
-ppushValue HEADER_LATEST
-call TCFA
-EXPECT HEADER_LATEST + 3 + 6, "cfa 3 bytes plus length of name"
-
-ppushValue 1
-ppushValue 2
-ppushValue HEADER_PLUS
-call TCFA
-call EXECUTE
-EXPECT 3, "1 2 plus = 3"
-
-ppushText "100",3
-call NUMBER
-EXPECT 0, "0 = no parse err"
-EXPECT 100, "parse 100"
-
-ppushText "latest",6
-call FIND
-EXPECT HEADER_LATEST, "find header of LATEST"
 
 TEST_SET_TEXT "100"
-call INTERPRET
+rst $08
+dw interpret
+dw exit_forth
 EXPECT 100, "interpret parse 100"
 
-TEST_SET_TEXT "base"
-call INTERPRET
-call FETCH
-EXPECT 10, "expect base to be 10"
-
 TEST_SET_TEXT "3 2 +"
-call INTERPRET
+rst $08
+dw interpret
+dw exit_forth
 EXPECT 5, "3 + 2 = 5"
 
 TEST_SET_TEXT ": add + ;"
-call INTERPRET
+rst $08
+dw interpret
+dw exit_forth
 
 ppushValue 2
 ppushValue 2
 TEST_SET_TEXT "add"
-call INTERPRET
+rst $08
+dw interpret
+dw exit_forth
 EXPECT 4, "2 2 add = 4"
 
 TEST_SET_TEXT ": dump 16 base ! over + swap begin over over swap < while dup 7 and 0= if cr dup . endif dup c@ . 1+ repeat cr 10 base ! ;"
 
-call INTERPRET
-
-ppushText "add",3
-call FIND
-ppushValue 64
+rst $08
+dw interpret
+dw exit_forth
 
 TEST_SET_TEXT "dump"
-call INTERPRET
+rst $08
+dw interpret
+dw exit_forth
 
 TEST_SET_TEXT {": str s",$22," xyz",$22," ;"}
-call INTERPRET
+rst $08
+dw interpret
+dw exit_forth
 TEST_SET_TEXT "str type"
-call INTERPRET
+rst $08
+dw interpret
+dw exit_forth
 TEST_SET_TEXT "str"
-call INTERPRET
+rst $08
+dw interpret
+dw exit_forth
 EXPECT 3, "str len = 3"
 
 TEST_SET_TEXT {$22," xyz",$22}
-call INTERPRET
+rst $08
+dw interpret
+dw exit_forth
 TEST_SET_TEXT "dup"
-call INTERPRET
+rst $08
+dw interpret
+dw exit_forth
 EXPECT 3, "str len = 3"
 TEST_SET_TEXT "type"
-call INTERPRET
+rst $08
+dw interpret
+dw exit_forth
 
 TEST_SET_TEXT "100 buffer: xvar"
-call INTERPRET
+rst $08
+dw interpret
+dw exit_forth
 TEST_SET_TEXT {$22," xyz",$22}
-call INTERPRET
+rst $08
+dw interpret
+dw exit_forth
 TEST_SET_TEXT "xvar pack"
-call INTERPRET
+rst $08
+dw interpret
+dw exit_forth
 TEST_SET_TEXT "xvar count dup"
-call INTERPRET
+rst $08
+dw interpret
+dw exit_forth
 EXPECT 3, "str len = 3"
 TEST_SET_TEXT "type"
-call INTERPRET
+rst $08
+dw interpret
+dw exit_forth
 
 TEST_SET_TEXT {".",$22," immediate xyz",$22}
-call INTERPRET
+rst $08
+dw interpret
+dw exit_forth
 TEST_SET_TEXT {": x1 .",$22," compiled xyz",$22," ;"}
-call INTERPRET
+rst $08
+dw interpret
+dw exit_forth
 TEST_SET_TEXT "x1"
-call INTERPRET
+rst $08
+dw interpret
+dw exit_forth
 
 TEST_SET_TEXT "1 0 if 1 else 2 endif +"
-call INTERPRET
+rst $08
+dw interpret
+dw exit_forth
 EXPECT 3, "1 false -> 1 2 -> 1 2 + -> 3"
 
 TEST_SET_TEXT "0 1 if if 100 else 200 endif else 300 endif"
-call INTERPRET
+rst $08
+dw interpret
+dw exit_forth
 EXPECT 200, "select"
 
 TEST_SET_TEXT "0 begin dup 5 < while dup . 1+ repeat"
-call INTERPRET
+rst $08
+dw interpret
+dw exit_forth
 EXPECT 5, "Loop until limit < 5"
 
 TEST_SET_TEXT "{ if 100 else 200 endif } define: q"
-call INTERPRET
+rst $08
+dw interpret
+dw exit_forth
 TEST_SET_TEXT "0 q"
-call INTERPRET
+rst $08
+dw interpret
+dw exit_forth
 EXPECT 200, "define: q 0 = 200"
 TEST_SET_TEXT "1 q"
-call INTERPRET
+rst $08
+dw interpret
+dw exit_forth
 EXPECT 100, "define: q 1 = 100"
 
 rst $08
 dw litstr
 .pstr "Hello"
 dw type
-dw exit
+dw exit_forth
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+; ld HL, 12
+; ld C, 10
+; call divideWordByByte
+; ld B, 0
+; ld C, A
+; EXPECT 2, "div 11 / 10 = 1 1"
+
+; TEST_SET_TEXT "hello\r\n"
+; call KEY
+; EXPECT $68, "key 'h'"
+; call KEY
+; EXPECT $65, "key 'e'"
+
+; TEST_SET_TEXT "x"
+; ppushValue $20
+; call WORD
+; call COUNT
+; EXPECT 1, "word 'x'"
+; ppop H,L   ; drop
+
+; TEST_SET_TEXT "xyz"
+; ppushValue $20
+; call WORD
+; call COUNT
+; EXPECT 3, "word 'xyz'"
+; ppop H,L   ; drop
+
+; TEST_SET_TEXT "a xyz "
+; ppushValue $20
+; call WORD
+; call COUNT
+; EXPECT 1, "word 'a xyz'"
+; ppushValue $20
+; call WORD
+; call COUNT
+; EXPECT 3, "word 'a xyz'"
+; ppop H,L   ; drop
+
+; call HERE
+; call FETCH
+; EXPECT START_USER, "here"
+
+; TEST_SET_TEXT "xyz"
+; call CREATE
+; call LATEST
+; call FETCH
+; EXPECT START_USER, "create xyz latest"
+; call HERE
+; call FETCH
+; EXPECT START_USER + 6, "create xyz here"
+
+; ppushValue 1
+; ppushValue 2
+; call DUP
+; EXPECT 2, "dup 2"
+; EXPECT 2, "dup 2"
+
+; ppushValue -10
+; ppushValue 10
+; call STAR
+; EXPECT -100, "expect -10 * 10 to be -100"
+
+; ppushValue -10
+; ppushValue -20
+; call STAR
+; EXPECT 200, "expect -10 * -20 to be 200"
+
+; ppushValue 10
+; ppushValue -20
+; call STAR
+; EXPECT -200, "expect -10 * -20 to be 200"
+
+; ppushValue -101
+; ppushValue 20
+; call SLASHMOD
+; EXPECT -5, "expect -101 / 20 to be -5"
+; EXPECT -1, "expect -101 % 20 to be -1"
+
+; ppushValue -101
+; ppushValue -20
+; call SLASHMOD
+; EXPECT 5,  "expect -101 / -20 to be 5"
+; EXPECT -1, "expect -101 % -20 to be -1"
+
+; ppushValue 101
+; ppushValue -20
+; call SLASHMOD
+; EXPECT -5,  "expect 101 / -20 to be -5"
+; EXPECT 1, "expect 101 % -20 to be 1"
+
+; TEST_SET_TEXT ": testif2 if 100 endif ;"
+
+; ppushValue 0
+
+; TEST_SET_TEXT "testloop"
+; call INTERPRET
+; EXPECT 5, "Loop until limit < 5"
+
+; ppushPText "xyz"
+; call COUNT
+; EXPECT 3, "xyz length 3"
+; call CFETCH
+; EXPECT "x" + 0, "xyz --> x"
+
+; ppushValue HEADER_LATEST
+; call TCFA
+; EXPECT HEADER_LATEST + 3 + 6, "cfa 3 bytes plus length of name"
+
+; ppushValue 1
+; ppushValue 2
+; ppushValue HEADER_PLUS
+; call TCFA
+; call EXECUTE
+; EXPECT 3, "1 2 plus = 3"
+
+; ppushText "100",3
+; call NUMBER
+; EXPECT 0, "0 = no parse err"
+; EXPECT 100, "parse 100"
+
+; ppushText "latest",6
+; call FIND
+; EXPECT HEADER_LATEST, "find header of LATEST"
+
+; TEST_SET_TEXT "base"
+; rst $08
+; dw interpret
+; dw exit_forth
+; call FETCH
+; EXPECT 10, "expect base to be 10"
+
+; ppushText "add",3
+; call FIND
+; ppushValue 64
+
 

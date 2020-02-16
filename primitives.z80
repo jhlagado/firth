@@ -127,19 +127,13 @@ defword "0branch",7,0,ZBRANCH
     checkZeroWord B,C               ; test old TOS
     ppop0 B,C                       ; POP new TOS
     jr z,BRANCH                     ; if old TOS=0, branch
-;!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    ; pop HL                          ; NEXT address = enter
     pop DE
     inc DE                          ; else skip inline value
     inc DE
     push DE
-;!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    ; jp (HL)
     jp enter
 
 defword "branch",6,0,BRANCH         ; relative branching
-;!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    ; pop HL                          ; throw away return
     pop HL                          ; add the offset to the instruction pointer
     ld E,(HL)
     inc HL
@@ -150,16 +144,10 @@ defword "branch",6,0,BRANCH         ; relative branching
     jp enter
 
 defword "lit",3,0,LIT
-
 	ppush0 B,C                      ; pushTOS
-;!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    ; pop DE                          ; pop return address into DE
 	pop HL                          ; pop address of next Forth word in HL
 	readWord HL, B,C                ; read next word and push on TOS, inc HL by 2
     push HL                         ; push address of next Forth word
-;!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    ; ex DE,HL                        ; push return address in HL
-    ; jp (HL)                         ; return to caller
     jp enter
 
 ; U*   u1 u2 -- ud   unsigned mutliply
@@ -515,9 +503,6 @@ defword "over",4,0,OVER
 defword ">r",2,0,TOR
     LD IY,0
     ADD IY,SP
-;!!!!!!!!!!!!!!!!!!!!!!!!!
-    ; LD (IY+6),C
-    ; LD (IY+7),B
     LD (IY+2),C
     LD (IY+3),B
     ppop0 B,C
@@ -528,9 +513,6 @@ defword "r>",2,0,RFROM
     ppush0 B,C
     LD IY,0
     ADD IY,SP
-;!!!!!!!!!!!!!!!!!!!!!!!!!
-    ; LD C,(IY+6)
-    ; LD B,(IY+7)
     LD C,(IY+2)
     LD B,(IY+3)
     NEXT
@@ -615,5 +597,9 @@ defword "pack",4,0,pack             ; ( adr1 len adr2 -- adr2 )
     ldir
     pop BC                          ; TOS = adr2
     pop DE
+    NEXT
+
+defword "cr",2,0,cr                     ; ( -- )
+    call printcr
     NEXT
 
