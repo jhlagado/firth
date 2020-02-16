@@ -377,18 +377,13 @@ defword "<",1,0,LESSTHAN	        ; less than
     ppop0 H,L
     or A
     sbc HL,BC       ; n1-n2 in HL, SZVC valid
-    ; jp pe,revsense  ; if OV, use rev. sense
     _if pe
-        ; jp m,tosfalse ; OV: if -ve, reslt false
-        ; jr tostrue      ;     if +ve, result true
         _if m
             ld bc, 0
         _else
             ld bc, 1       ;   if -ve, result true
         _endif
     _else
-        ; jp p,tosfalse   ;   if +ve, result false
-        ; jp tostrue
         _if p
             ld bc, 0
         _else
@@ -501,20 +496,18 @@ defword "over",4,0,OVER
 
 ; >R    ( x -- ) ( R: -- x )  Move  x from TOS to the return stack.
 defword ">r",2,0,TOR
-    LD IY,0
-    ADD IY,SP
-    LD (IY+2),C
-    LD (IY+3),B
+    pop HL
+    push BC
+    push HL
     ppop0 B,C
     NEXT
 
 ; R>    ( -- x ) ( R: x -- )  Move x from the return stack to TOS
 defword "r>",2,0,RFROM
     ppush0 B,C
-    LD IY,0
-    ADD IY,SP
-    LD C,(IY+2)
-    LD B,(IY+3)
+    pop HL
+    pop BC
+    push HL
     NEXT
 
 defword "'",1,0,TICK                 ; ( -- addr ) PUSH code word ptr of following word

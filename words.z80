@@ -549,22 +549,12 @@ defword "kreate",6,0,kreate             ; --
     dw lit, $20, word                   ; read word token
     dw cfetch, oneplus, allot           ;
     dw lit, jp_opcode, cComma           ; compile default behavious
-    dw lit, create1, comma             ; i.e. push
+    dw lit, xcreate, comma             ; i.e. push
     EXIT                             ; exit from forth
-create1:
+xcreate:
     pop HL                              ; address of next word
     ppush H,L                           ; push onto stack
     NEXT                                 ; return to parent caller
-
-defword "(does>)", 7, 0, xdoes
-    rst $08                             ; enter forth
-    dw rfrom
-    dw latest,fetch,tcfa
-    dw lit, jp_opcode, over, cStore
-    dw oneplus, store
-    dw EXIT_FORTH
-    pop HL
-    NEXT
 
 ; experimetal: change call enter to rst $08 ???
 defword "does>", 5, msk_immed, does
@@ -574,6 +564,13 @@ defword "does>", 5, msk_immed, does
     dw here, fetch                      ; here
     dw cStore                           ; here    stored jp at here
     dw lit, 1, allot                    ; update here variable
+    EXIT
+xdoes:
+    rst $08                             ; enter forth
+    dw rfrom
+    dw latest,fetch,tcfa
+    dw lit, jp_opcode, over, cStore
+    dw oneplus, store
     EXIT
 
 defword "postpone",8,msk_immed,postpone         ; --

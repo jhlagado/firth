@@ -13,6 +13,12 @@
     jp enter
 .endm
 
+.macro INTERPRET
+    rst $08
+    dw interpret
+    dw exit_forth
+.endm
+
 ; Store the chain of links.
 link: .set 0
 

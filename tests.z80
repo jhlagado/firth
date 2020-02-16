@@ -5,303 +5,188 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 TEST_SET_TEXT ": x kreate does> 1 . ;"
-rst $08
-dw interpret
-dw exit_forth
+INTERPRET
 TEST_SET_TEXT "x y"
-rst $08
-dw interpret
-dw exit_forth
+INTERPRET
 TEST_SET_TEXT "y"
-rst $08
-dw interpret
-dw exit_forth
+INTERPRET
 
 ppushValue 1
 TEST_SET_TEXT "dup"
-rst $08
-dw interpret
-dw exit_forth
+INTERPRET
 EXPECT 1, "1 interpret dup"
 EXPECT 1, "1 interpret dup 2"
 
 TEST_SET_TEXT "123"
-rst $08
-dw interpret
-dw exit_forth
+INTERPRET
 EXPECT 123, "interpret 123"
 
 ppushValue 999
 TEST_SET_TEXT "$$123"
-rst $08
-dw interpret
-dw exit_forth
+INTERPRET
 EXPECT 999, "interpret $$123"
 
 TEST_SET_TEXT "123 constant x123"
-rst $08
-dw interpret
-dw exit_forth
+INTERPRET
 TEST_SET_TEXT "x123"
-rst $08
-dw interpret
-dw exit_forth
+INTERPRET
 EXPECT 123, "constant x123 = 123"
 
 TEST_SET_TEXT "variable v1"
-rst $08
-dw interpret
-dw exit_forth
+INTERPRET
 ppushValue 123
 TEST_SET_TEXT "123 v1 !"
-rst $08
-dw interpret
-dw exit_forth
-
+INTERPRET
 TEST_SET_TEXT "v1 @"
-rst $08
-dw interpret
-dw exit_forth
+INTERPRET
 EXPECT 123, "variable v1 = 123"
 
-
-
 TEST_SET_TEXT ": dbl dup + ;"
-rst $08
-dw interpret
-dw exit_forth
+INTERPRET
 ppushValue 2
 TEST_SET_TEXT "dbl"
-rst $08
-dw interpret
-dw exit_forth
+INTERPRET
 EXPECT 4, "colon dbl 2 = 4"
 
 TEST_SET_TEXT "100 100 +"
-rst $08
-dw interpret
-dw exit_forth
+INTERPRET
 EXPECT 200, "100 100 + = 200"
 
 TEST_SET_TEXT "100 10 + ."
-rst $08
-dw interpret
-dw exit_forth
+INTERPRET
 
 TEST_SET_TEXT "16 base ! 20"
-rst $08
-dw interpret
-dw exit_forth
+INTERPRET
 EXPECT 32, "expect $20 to be 32"
 
 TEST_SET_TEXT "0A base ! 20"
-rst $08
-dw interpret
-dw exit_forth
+INTERPRET
 EXPECT 20, "expect decimal 20 to be 32"
 
 TEST_SET_TEXT "-10 abs"
-rst $08
-dw interpret
-dw exit_forth
+INTERPRET
 EXPECT 10, "expect abs -10 to be 10"
 
 TEST_SET_TEXT "10 abs"
-rst $08
-dw interpret
-dw exit_forth
+INTERPRET
 EXPECT 10, "expect abs 10 to be 10"
 
-rst $08
-dw interpret
-dw exit_forth
+INTERPRET   ;????
 
 ppushValue 200
 ppushValue 1
-
 TEST_SET_TEXT ": testif2 if 100 endif ;"
-rst $08
-dw interpret
-dw exit_forth
+INTERPRET
 
 TEST_SET_TEXT "testif2"
-rst $08
-dw interpret
-dw exit_forth
+INTERPRET
 EXPECT 100, "1 if 100 endif --> 100"
 
 ppushValue 0
-
 TEST_SET_TEXT "testif2"
-rst $08
-dw interpret
-dw exit_forth
+INTERPRET
 EXPECT 200, "0 if 100 endif --> 200"
 
 TEST_SET_TEXT ": testif3 if 100 else 200 endif ;"
-
-rst $08
-dw interpret
-dw exit_forth
+INTERPRET
 
 ppushValue 0
 
 TEST_SET_TEXT "testif3"
-rst $08
-dw interpret
-dw exit_forth
+INTERPRET
 EXPECT 200, "0 --> 200"
 
 ppushValue 1
 
 TEST_SET_TEXT "testif3"
-rst $08
-dw interpret
-dw exit_forth
+INTERPRET
 EXPECT 100, "1 --> 100"
 
 TEST_SET_TEXT ": testloop begin dup 5 < while dup . 1+ repeat ;"
-rst $08
-dw interpret
-dw exit_forth
+INTERPRET
 ppushValue 0
 TEST_SET_TEXT "testloop"
-rst $08
-dw interpret
-dw exit_forth
+INTERPRET
 EXPECT 5, "Loop until limit < 5"
 
 
 TEST_SET_TEXT "100"
-rst $08
-dw interpret
-dw exit_forth
+INTERPRET
 EXPECT 100, "interpret parse 100"
 
 TEST_SET_TEXT "3 2 +"
-rst $08
-dw interpret
-dw exit_forth
+INTERPRET
 EXPECT 5, "3 + 2 = 5"
 
 TEST_SET_TEXT ": add + ;"
-rst $08
-dw interpret
-dw exit_forth
+INTERPRET
 
 ppushValue 2
 ppushValue 2
 TEST_SET_TEXT "add"
-rst $08
-dw interpret
-dw exit_forth
+INTERPRET
 EXPECT 4, "2 2 add = 4"
 
 TEST_SET_TEXT ": dump 16 base ! over + swap begin over over swap < while dup 7 and 0= if cr dup . endif dup c@ . 1+ repeat cr 10 base ! ;"
-
-rst $08
-dw interpret
-dw exit_forth
+INTERPRET
 
 TEST_SET_TEXT "dump"
-rst $08
-dw interpret
-dw exit_forth
+INTERPRET
 
 TEST_SET_TEXT {": str s",$22," xyz",$22," ;"}
-rst $08
-dw interpret
-dw exit_forth
+INTERPRET
 TEST_SET_TEXT "str type"
-rst $08
-dw interpret
-dw exit_forth
+INTERPRET
 TEST_SET_TEXT "str"
-rst $08
-dw interpret
-dw exit_forth
+INTERPRET
 EXPECT 3, "str len = 3"
 
 TEST_SET_TEXT {$22," xyz",$22}
-rst $08
-dw interpret
-dw exit_forth
+INTERPRET
 TEST_SET_TEXT "dup"
-rst $08
-dw interpret
-dw exit_forth
+INTERPRET
 EXPECT 3, "str len = 3"
 TEST_SET_TEXT "type"
-rst $08
-dw interpret
-dw exit_forth
+INTERPRET
 
 TEST_SET_TEXT "100 buffer: xvar"
-rst $08
-dw interpret
-dw exit_forth
+INTERPRET
 TEST_SET_TEXT {$22," xyz",$22}
-rst $08
-dw interpret
-dw exit_forth
+INTERPRET
 TEST_SET_TEXT "xvar pack"
-rst $08
-dw interpret
-dw exit_forth
+INTERPRET
 TEST_SET_TEXT "xvar count dup"
-rst $08
-dw interpret
-dw exit_forth
+INTERPRET
 EXPECT 3, "str len = 3"
 TEST_SET_TEXT "type"
-rst $08
-dw interpret
-dw exit_forth
+INTERPRET
 
 TEST_SET_TEXT {".",$22," immediate xyz",$22}
-rst $08
-dw interpret
-dw exit_forth
+INTERPRET
 TEST_SET_TEXT {": x1 .",$22," compiled xyz",$22," ;"}
-rst $08
-dw interpret
-dw exit_forth
+INTERPRET
 TEST_SET_TEXT "x1"
-rst $08
-dw interpret
-dw exit_forth
+INTERPRET
 
 TEST_SET_TEXT "1 0 if 1 else 2 endif +"
-rst $08
-dw interpret
-dw exit_forth
+INTERPRET
 EXPECT 3, "1 false -> 1 2 -> 1 2 + -> 3"
 
 TEST_SET_TEXT "0 1 if if 100 else 200 endif else 300 endif"
-rst $08
-dw interpret
-dw exit_forth
+INTERPRET
 EXPECT 200, "select"
 
 TEST_SET_TEXT "0 begin dup 5 < while dup . 1+ repeat"
-rst $08
-dw interpret
-dw exit_forth
+INTERPRET
 EXPECT 5, "Loop until limit < 5"
 
 TEST_SET_TEXT "{ if 100 else 200 endif } define: q"
-rst $08
-dw interpret
-dw exit_forth
+INTERPRET
 TEST_SET_TEXT "0 q"
-rst $08
-dw interpret
-dw exit_forth
+INTERPRET
 EXPECT 200, "define: q 0 = 200"
 TEST_SET_TEXT "1 q"
-rst $08
-dw interpret
-dw exit_forth
+INTERPRET
 EXPECT 100, "define: q 1 = 100"
 
 rst $08
