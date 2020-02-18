@@ -13,21 +13,16 @@ defword "xword",6,0,xword               ; delim limit addr -- c-addr
 
 defword "words", 5, 0, WORDS
     push BC
-    push DE
     call listWords
-    pop DE
     pop BC
     NEXT
 
 defword "find",4,0,FIND
     ppop0 H,L
 
-    push DE
     call lookup                     ; params: HL = string address, BC = string length
                                     ; returns: DE = found header ptr or 0
-    loadWord B,C, D,E
-    pop DE
-
+    loadWord B,C, D,E               ; move to TOS
     NEXT
 
 defword "execute",7,0,EXECUTE
@@ -36,21 +31,15 @@ defword "execute",7,0,EXECUTE
 
 defword "number",6,0,NUMBER             ; ( ptr len -- num err )
     ppop0 H,L
-
-    push DE
 	call toNumber                   ; params: HL = string address, BC = string length
 			                        ; Returns the parsed number in DE,
 	                                ; BC = 0, success
     ppush0 D,E
-    pop DE
-
     NEXT
 
 defword "print",5,0,PRINT
-    push DE
     ppop D,E
     call printPStr
-    pop DE
     NEXT
 
 defword "+!",2,0,ADDSTORE               ; (n addr -- )
@@ -152,13 +141,11 @@ defword "lit",3,0,LIT
 
 ; U*   u1 u2 -- ud   unsigned mutliply
 defword "u*",2,0,USTAR              ; u1 u2 -- ud
-    push DE
                                     ; u2 in BC
     ppop0 D,E                       ; u1 in DE
 	call unsignedMultiply
     ppush0 D,E                      ; udlo result
                                     ; udhi result
-    pop DE
     NEXT
 
 ;C 0<     n -- flag      true if TOS negative
@@ -284,11 +271,9 @@ defword "-",1,0,MINUS
 
 ; U/MOD   u1 u2 -- u1 u2    unsigned 16 / 16 -> r q
 defword "u/mod",5,0,USLASHMOD
-    push DE
     ppop D,E                ; DE = divisor
                             ; BC = dividend
     call divideWordByWord
-    pop DE
 
     ppush0 H,L           ; PUSH remainder,
     NEXT
@@ -453,32 +438,26 @@ defword "dup",3,0,DUP        ; x -- x x
 
 ; SWAP     x1 x2 -- x2 x1    swap top two items
 defword "swap",4,0,SWAP      ; x1 x2 -- x2 x1
-    push DE
     ppop0 D,E
     ppush D,E
-    pop DE
     NEXT
 
 defword "rot",3,0,ROT       ; x1 x2 x3 -- x2 x3 x1
-    push DE
                             ; x3 in BC
     ppop0 D,E               ; x2 in DE
     ppop0 H,L               ; x1 in HL
     ppush0 D,E              ; x2 on stack
     ppush H,L               ; PUSH x1 - x2 x3 x1
                             ; x1 in BC
-    pop DE
     NEXT
 
 defword "-rot",4,0,NROT     ; x1 x2 x3 -- x3 x1 x2
-    push DE
                             ; x3 in BC
     ppop0 D,E               ; x2 in DE
     ppop0 H,L               ; x1 in HL
     ppush H,L               ; PUSH x1 - x3 x1
     ppush D,E               ; PUSH x2 - x3 x1 x2
                             ; x2 in BC
-    pop DE
     NEXT
 
 ; R@ r-fetch
@@ -538,11 +517,9 @@ defword "immediate",9,MSK_IMMED,IMMEDIATE
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 defword "accept",6,0,ACCEPT              ; ( addr max -- len )
-    push DE
     ppop D,E                    ; max - up to 255
 	ppop0 H,L                          ; addr
     call getline
-    pop DE
     NEXT
 
 defword "key",3,0,KEY                ; ( -- c )
@@ -572,15 +549,12 @@ defword ".",1,0,DOT                 ; print top of stack in BASE
     NEXT
 
 defword "type",4,0,TYPE             ; ( str len -- )
-    push DE
     ppop0 D,E                       ; DE = str BC = length
     call printStr
     ppop0 B,C                       ; clear TOS
-    pop DE
     NEXT
 
 defword "pack",4,0,pack             ; ( adr1 len adr2 -- adr2 )
-    push DE
     ppop D,E                        ; DE = adr2, BC = len
     push DE
     ppop0 H,L                       ; HL = adr1
@@ -589,9 +563,9 @@ defword "pack",4,0,pack             ; ( adr1 len adr2 -- adr2 )
     inc DE                          ; adr2 += 1
     ldir
     pop BC                          ; TOS = adr2
-    pop DE
     NEXT
 
 defword "cr",2,0,cr                     ; ( -- )
     call printcr
     NEXT
+
