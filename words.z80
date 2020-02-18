@@ -4,12 +4,6 @@
 ;; forth word defintions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-defconst "version",7,0,version,1
-defconst "r0",2,0,rz, ret_stack
-defconst "msk_immed",9,0,__msk_immed,msk_immed
-defconst "msk_hidden",10,0,__msk_hidden,msk_hidden
-defconst "msk_length",10,0,__msk_length,msk_length
-
 defword "interpret",6,0,interpret
     rst $08
     cDo
