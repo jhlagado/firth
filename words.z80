@@ -319,244 +319,51 @@ defword "word",5,0,WORD                 ; delim -- c-addr
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
-;; Firth non-standard words
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-defword "define:",7,0,defineColon
-    rst $08                             ; enter forth
-    dw create                           ; create the dictionary entry / header
-    dw lit, jp_opcode, ccomma          ; write z80 jp opcode to word
-    dw comma                            ; compile address TOS
-    EXIT                             ; return from the function.
-
-defword "{",1,msk_immed,lbrace
-    rst $08                             ; enter forth
-    dw state, fetch, zEqual
-    dw nesting, fetch, zEqual
-    dw and
-    cIf
-        dw here, fetch                  ; TOS = here
-        dw lit, rst08_opcode, ccomma    ; write z80 jp opcode to word
-    cEndIf
-    dw nestPlus                         ; increase nesting
-    EXIT                             ; return from the function.
-
-defword "}",1,msk_immed,rbrace
-    rst $08                             ; enter forth
-    dw nestMinus                        ; reduce nesting
-    dw state, fetch, zEqual
-    dw nesting, fetch, zEqual
-    dw and
-    cIf
-        dw lit, exit, comma                 ; append exit (so the word will return).
-    cEndIf
-    EXIT                             ; return from the function.
-
-defword "}exec",5,msk_immed,rbraceExec
-    rst $08                             ; enter forth
-    dw rbrace
-    dw state, fetch, zEqual
-    dw nesting, fetch, zEqual
-    dw and
-    cIf
-        dw dup
-        dw here, store
-        dw execute
-    cEndIf
-    EXIT                             ; return from the function.
-
-defword "stack",6,0,stackColon          ; ( n -- addr ) allocates memory and puts pointer at 0
-    rst $08                             ; enter forth
-    dw twoPlus, allot                   ; allocate n + 2 bytes, push addr
-    dw dup                              ; addr -- addr addr
-    dw dup, twoPlus, swap, store        ; addr addr -- addr
-    EXIT
-
-defword "stackPush",5,0,stackPush       ; value stack --
-    rst $08                             ; enter forth
-    dw dup, nrot                        ; value stack - stack value stack
-    dw fetch, dup, nrot                 ; stack value ptr -- stack ptr value ptr
-    dw store                            ; stack ptr value ptr -- stack ptr
-    dw twoplus, swap, store             ; stack ptr --
-    EXIT
-
-defword "stackPop",5,0,stackPop         ; stack -- value
-    rst $08                             ; enter forth
-    dw dup                              ; stack -- stack stack
-    dw fetch, dup                       ; stack stack -- stack ptr ptr
-    dw fetch, nrot                      ; stack ptr ptr -- value stack ptr
-    dw twominus, swap                   ; value stack ptr -- value ptr stack
-    dw store
-    EXIT
-
-defword "S[",2,0,beginFrame    ; begin a stack frame
-    rst $08                             ; enter forth
-    dw framePtr, dup                    ;  -- addr addr
-    dw fetch, swap                      ; addr addr -- framePtr0 addr
-    dw spfetch, swap                    ; framePtr0 attr -- framePtr0 paramSP addr
-    dw store                            ; framePtr0 paramSP addr -- framePtr0
-    EXIT                             ; TOS = framePtr0
-
-defword "]S",2,0,endFrame        ; end a stack frame
-    rst $08                             ; enter forth
-                                        ; TOS = framePtr0
-    dw framePtr, store                  ; store TOS in framePtr
-    EXIT
-
-defword "param",5,0,param               ; n -- addr return addr of param n, -ve args, +ve locals
-    rst $08                             ; enter forth
-    dw oneminus, cells                            ; n *= 2
-    dw framePtr, fetch, plus
-    EXIT
-
-defword "p1",2,0,p1                     ;  -- p1addr
-    rst $08                             ; enter forth
-    dw lit, -1, param, fetch
-    EXIT
-
-defword "p2",2,0,p2                     ;  -- p2addr
-    rst $08                             ; enter forth
-    dw lit, -2, param, fetch
-    EXIT
-
-defword "p3",2,0,p3                     ;  -- p3addr
-    rst $08                             ; enter forth
-    dw lit, -3, param, fetch
-    EXIT
-
-defword "v1",2,0,v1                     ;  -- v1addr
-    rst $08                             ; enter forth
-    dw lit, 1, param
-    EXIT
-
-defword "v2",2,0,v2                     ;  -- v2addr
-    rst $08                             ; enter forth
-    dw lit, 2, param
-    EXIT
-
-defword "v3",2,0,v3                     ;  -- v3addr
-    rst $08                             ; enter forth
-    dw lit, 3, param
-    EXIT
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-;; Firth literal words (not in dictionary)
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-litStr:                                 ; pushes ptr to string and length on stack
-    rst $08                             ; enter forth
-    dw rfrom
-    dw count, over, over, plus
-    dw tor
-    EXIT
-
-litIf:
-    rst $08
-    dw rfrom, dup
-    dw lit, 4, plus, tor                ;
-    dw swap
-    cIf
-        dw fetch
-    cElse
-        dw twoplus, fetch
-    cEndif
-    EXIT
-
-litComma:                                 ; pushes ptr to string and length on stack
-    rst $08                             ; enter forth
-    dw rfrom, dup
-    dw lit, 2, plus, tor                ;
-    dw fetch, comma
-    EXIT
-
-litCComma:                                 ; pushes ptr to string and length on stack
-    rst $08                             ; enter forth
-    dw rfrom, dup
-    dw lit, 2, plus, tor                ;
-    dw fetch, cComma
-    EXIT
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
 ;; dictionary words
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-defword "create",6,0,create ; --
+defword "create",6,0,create             ; --
     rst $08                             ; enter forth
-    dw here, fetch                  ; save old here
-    dw latest, fetch, comma         ; write link to previous word to here
-    dw latest, store                ; update latest to old here
-    dw lit, $20, word               ; read word token
-    dw cfetch, oneplus, allot       ; allocate string plus length byte
+    dw here, fetch                      ; get old "here"
+    dw latest, fetch, comma             ; write link to previous word to "here"
+    dw latest, store                    ; update latest to old "here"
+    dw lit, $20, word                   ; read word token
+    dw cfetch, oneplus, allot           ;
+    dw lit, jp_opcode, cComma           ; compile default behavious
+    dw lit, xcreate, comma              ; i.e. push addr of data area
     dw drop
-    EXIT                             ; exit from forth
+    EXIT                                ; exit from forth
+xcreate:
+    rst $08                             ; enter forth
+    dw rfrom                            ; push onto stack
+    EXIT
+
+defword ":",1,0,colon
+    rst $08                             ; enter forth
+    dw create                           ; create the dictionary entry / header
+    dw here,fetch                       ; back up 3 bytes to start of data area
+    dw lit, 3, minus
+    dw here, store
+    dw lit, rst08_opcode, ccomma        ; write z80 jp opcode to word
+    dw latest, fetch, hidden            ; make the word hidden (see below for definition).
+    dw rbrac                            ; go into compile mode.
+    EXIT                                ; return from the function.
 
 defword ";",1,msk_immed,semicolon
     rst $08                             ; enter forth
     dw lit, exit, comma                 ; append exit (so the word will return).
     dw latest, fetch, hidden            ; toggle hidden flag -- unhide the word (see below for definition).
     dw lbrac                            ; go back to immediate mode.
-    EXIT                             ; return from the function.
+    EXIT                                ; return from the function.
 
 defword ":noname",7,0,colonNoName
     rst $08                             ; enter forth
     dw here, fetch                      ; TOS = here
     dw lit, rst08_opcode, ccomma        ; write z80 jp opcode to word
     dw rbrac                            ; go into compile mode.
-    EXIT                             ; return from the function.
+    EXIT                                ; return from the function.
 
-defword ":",1,0,colon
-    rst $08                             ; enter forth
-    dw create                           ; create the dictionary entry / header
-    dw lit, rst08_opcode, ccomma        ; write z80 jp opcode to word
-    dw latest, fetch, hidden            ; make the word hidden (see below for definition).
-    dw rbrac                            ; go into compile mode.
-    EXIT                             ; return from the function.
-
-; constant   n --      define a forth constant
-defword "constant",8,0,constant         ; ( n -- ) get name from input
-    rst $08                             ; enter forth
-    dw create                           ; create header
-    dw lit, rst08_opcode, ccomma        ; write z80 jp opcode to word
-    dw lit, lit, comma                  ; write addr of lit to word
-    dw comma                            ; write tos to word
-    dw lit, exit, comma                 ; write addr of lit to word
-    EXIT
-
-defword "variable",8,0,variable         ; ( n -- ) get name from input
-    rst $08                             ; enter forth
-    dw lit, 1, cells
-    dw allot                            ; allocate n bytes, push addr
-    dw constant
-    EXIT
-
-defword "buffer:",7,0,bufferColon       ; ( n -- ) get name from input
-    rst $08                             ; enter forth
-    dw allot                            ; allocate n bytes, push addr
-    dw constant
-    EXIT
-
-; rename to create
-defword "kreate",6,0,kreate             ; --
-    rst $08                             ; enter forth
-    dw here, fetch                      ; get old here
-    dw latest, fetch, comma             ; write link to previous word to here
-    dw latest, store                    ; update latest to old here
-    dw lit, $20, word                   ; read word token
-    dw cfetch, oneplus, allot           ;
-    dw lit, jp_opcode, cComma           ; compile default behavious
-    dw lit, xcreate, comma             ; i.e. push
-    EXIT                             ; exit from forth
-xcreate:
-    pop HL                              ; address of next word
-    ppush H,L                           ; push onto stack
-    NEXT                                 ; return to parent caller
-
-; experimetal: change call enter to rst $08 ???
 defword "does>", 5, msk_immed, does
     rst $08                             ; enter forth
     dw lit, xdoes, comma
@@ -573,20 +380,43 @@ xdoes:
     dw oneplus, store
     EXIT
 
-defword "postpone",8,msk_immed,postpone         ; --
+defword "constant",8,0,constant             ; --
+    rst $08                             ; enter forth
+    dw create,comma,xdoes
+    ppush H,L                           ; push address of data area
+    rst $08                             ; enter forth
+    dw lit, 3
+    dw plus
+    dw fetch
+    EXIT
+
+defword "variable",8,0,variable         ; ( n -- ) get name from input
+    rst $08                             ; enter forth
+    dw lit, 1, cells
+    dw allot                            ; allocate n bytes, push addr
+    dw constant
+    EXIT
+
+defword "buffer:",7,0,bufferColon       ; ( n -- ) get name from input
+    rst $08                             ; enter forth
+    dw allot                            ; allocate n bytes, push addr
+    dw constant
+    EXIT
+
+defword "postpone",8,msk_immed,postpone ; --
     rst $08
-	dw lit, $20, word, count        ; pstr -- ptr len
+	dw lit, $20, word, count            ; pstr -- ptr len
     dw dup, zEqual
     cIf
-        dw drop, drop                           ; ptr len --
+        dw drop, drop                   ; ptr len --
     cElse
-        dw postponeToken                       ; interpret the next word
+        dw postponeToken                ; interpret the next word
     cEndif
     EXIT
 
-postponeToken:                                   ; --
+postponeToken:                          ; --
     rst $08
-    dw over, over, find                     ; ptr len -- ptr len addr
+    dw over, over, find                 ; ptr len -- ptr len addr
     dw dup, zNotEqual
     cIf
         dw postponeWord
@@ -625,13 +455,42 @@ postponeLiteral:                            ; ( ptr len -- )
     cEndIf
     EXIT
 
-defvar "framePtr", 8, 0, framePtr, var_framePtr
-defvar "pad", 3, 0, pad, var_pad
-defvar "here", 4, 0, here, var_here
-defvar "intp_stop", 9, 0, intp_stop, var_intp_stop
-defvar "state",5,0,state, var_state
-defvar "nesting",7,0,nesting, var_nesting
-defvar "sp0",3,0,sp0, var_sp0
-defvar "base",4,0,base, var_base
-defvar "latestStr",6,0,latestStr, var_latest_str
-defvar "latest",6,0,latest, var_latest
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; Firth literal words (not in dictionary)
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+litStr:                                 ; pushes ptr to string and length on stack
+    rst $08                             ; enter forth
+    dw rfrom
+    dw count, over, over, plus
+    dw tor
+    EXIT
+
+litIf:
+    rst $08
+    dw rfrom, dup
+    dw lit, 4, plus, tor                ;
+    dw swap
+    cIf
+        dw fetch
+    cElse
+        dw twoplus, fetch
+    cEndif
+    EXIT
+
+litComma:                               ; pushes ptr to string and length on stack
+    rst $08                             ; enter forth
+    dw rfrom, dup
+    dw lit, 2, plus, tor
+    dw fetch, comma
+    EXIT
+
+litCComma:                              ; pushes ptr to string and length on stack
+    rst $08                             ; enter forth
+    dw rfrom, dup
+    dw lit, 2, plus, tor
+    dw fetch, cComma
+    EXIT
+

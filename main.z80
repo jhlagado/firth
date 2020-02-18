@@ -40,6 +40,8 @@ RST66:
 .include "utilities.z80"
 .include "primitives.z80"
 .include "words.z80"
+.include "extended-words.z80"
+.include "def-words.z80"
 
 start:
     ld SP, RET_STACK                        ; Initialise the return stack.
@@ -69,18 +71,12 @@ TESTS_START:
 
 .if TESTMODE = 2
 
-    TEST_SET_TEXT ": x kreate does> 1 . ;"
-    rst $08
-    dw interpret
-    dw exit_forth
-    TEST_SET_TEXT "x y"
-    rst $08
-    dw interpret
-    dw exit_forth
-    TEST_SET_TEXT "y"
-    rst $08
-    dw interpret
-    dw exit_forth
+TEST_SET_TEXT "23 constant y"
+INTERPRET
+TEST_SET_TEXT "y"
+INTERPRET
+EXPECT 23, "expect 23"
+
 .endif
 
 .if TESTMODE

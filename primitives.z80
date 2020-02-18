@@ -595,4 +595,3 @@ defword "pack",4,0,pack             ; ( adr1 len adr2 -- adr2 )
 defword "cr",2,0,cr                     ; ( -- )
     call printcr
     NEXT
-

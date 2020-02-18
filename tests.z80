@@ -4,12 +4,36 @@
 ;; these tests will evaluate when TESTMODE = 1
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-TEST_SET_TEXT ": x kreate does> 1 . ;"
+rst $08
+dw litstr
+.pstr "Expected parse error"
+dw type
+dw exit_forth
+
+ppushValue 999
+TEST_SET_TEXT "$$123"
+INTERPRET
+EXPECT 999, "interpret $$123"
+
+TEST_SET_TEXT ": x create does> 1 . ;"
 INTERPRET
 TEST_SET_TEXT "x y"
 INTERPRET
 TEST_SET_TEXT "y"
 INTERPRET
+
+TEST_SET_TEXT ": const create does> , ;"
+INTERPRET
+TEST_SET_TEXT "23 const x"
+INTERPRET
+TEST_SET_TEXT "x ."
+INTERPRET
+
+TEST_SET_TEXT "23 constant y"
+INTERPRET
+TEST_SET_TEXT "y"
+INTERPRET
+EXPECT 23, "expect 23"
 
 ppushValue 1
 TEST_SET_TEXT "dup"
@@ -20,11 +44,6 @@ EXPECT 1, "1 interpret dup 2"
 TEST_SET_TEXT "123"
 INTERPRET
 EXPECT 123, "interpret 123"
-
-ppushValue 999
-TEST_SET_TEXT "$$123"
-INTERPRET
-EXPECT 999, "interpret $$123"
 
 TEST_SET_TEXT "123 constant x123"
 INTERPRET
@@ -70,8 +89,6 @@ EXPECT 10, "expect abs -10 to be 10"
 TEST_SET_TEXT "10 abs"
 INTERPRET
 EXPECT 10, "expect abs 10 to be 10"
-
-INTERPRET   ;????
 
 ppushValue 200
 ppushValue 1
@@ -188,13 +205,6 @@ EXPECT 200, "define: q 0 = 200"
 TEST_SET_TEXT "1 q"
 INTERPRET
 EXPECT 100, "define: q 1 = 100"
-
-rst $08
-dw litstr
-.pstr "Hello"
-dw type
-dw exit_forth
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
