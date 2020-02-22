@@ -70,38 +70,32 @@ TESTS_START:
 .endif
 
 .if TESTMODE = 2
+nop
 
-TEST_SET_TEXT "23 constant y"
+; rst 08
+; dw SPFETCH, dot
+; dw EXIT_forth
+
+; rst 08
+; dw SPFETCH, dot
+; dw EXIT_forth
+
+TEST_SET_TEXT "16 base !"
+INTERPRET
+TEST_SET_TEXT ": const kreate drop , doez> @ ;"
+INTERPRET
+TEST_SET_TEXT "100 const y"
 INTERPRET
 TEST_SET_TEXT "y"
 INTERPRET
-EXPECT 23, "expect 23"
+nop
+EXPECT $100, "expect $100"
 
 .endif
 
 .if TESTMODE
     PRINT_STR DONE
     halt
-
-testSF:                                 ; n -- addr return addr of param n, -ve args, +ve locals
-    rst $08                             ; enter forth
-    dw beginFrame
-    dw lit, 100
-    dw lit, 200
-    dw lit, 300
-    dw p3, dot
-    dw p2, dot
-    dw p1, dot
-    dw cr
-    dw lit, 0, param, fetch, dot
-    dw cr
-    dw v1, fetch, dot
-    dw v2, fetch, dot
-    dw v3, fetch, dot
-    dw drop, drop, drop                 ; clean up locals
-    dw endFrame
-    dw exit
-    ret
 
 .endif
 
