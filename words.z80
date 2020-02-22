@@ -69,6 +69,17 @@ interpLiteral:                              ; ptr len addr --
     cEndIf
     EXIT
 
+defword ",cf",3,0,commacf                   ; adrs --
+    rst $08                             ; enter forth
+    dw here, fetch, storecf
+    dw lit, 3, allot
+    EXIT
+
+defword "!cf",3,0,storecf                   ; adrs --
+    rst $08                             ; enter forth
+    dw lit, call_opcode, over, cstore
+    dw oneplus, store
+    EXIT
 
 defword ">cfa",4,0,tcfa
     rst $08                             ; enter forth
@@ -85,16 +96,17 @@ defword "count",5,0,count
     dw swap, cfetch                     ; ( ptr ptr+1 -- ptr+1 len)
     EXIT
 
-; allot                                 ( n -- addr ) allocate n bytes of memory
-defword "allot",5,0,allot
+; xallot                                 ( n -- addr ) allocate n bytes of memory
+defword "(allot)",5,0,xallot
     rst $08                             ; enter forth
     dw here, fetch, swap                ; here n
     dw here, addstore                   ; adds n to here, old value of here left on stack
     EXIT
 
-defword "alloc",5,0,alloc
+; allot                                   ( n -- ) allocate n bytes of memory
+defword "allot",5,0,allot               ;
     rst $08                             ; enter forth
-    dw here, addstore                   ; adds n to here, old value of here left on stack
+    dw here, addstore                   ; adds n to here
     EXIT
 
 ; negate  n1 -- n2                      negate n1
@@ -386,26 +398,16 @@ defword ":noname",7,0,colonNoName
     dw rbrac                            ; go into compile mode.
     EXIT                                ; return from the function.
 
-defword "constant",8,0,constant             ; --
-    rst $08                             ; enter forth
-    dw create,comma,xdoes
-    ppush H,L                           ; push address of data area
-    rst $08                             ; enter forth
-    dw lit, 3
-    dw plus
-    dw fetch
-    EXIT
-
 defword "variable",8,0,variable         ; ( n -- ) get name from input
     rst $08                             ; enter forth
     dw lit, 1, cells
-    dw allot                            ; allocate n bytes, push addr
+    dw xallot                            ; allocate n bytes, push addr
     dw constant
     EXIT
 
 defword "buffer:",7,0,bufferColon       ; ( n -- ) get name from input
     rst $08                             ; enter forth
-    dw allot                            ; allocate n bytes, push addr
+    dw xallot                            ; allocate n bytes, push addr
     dw constant
     EXIT
 
@@ -470,51 +472,15 @@ defword "create",6,0,create             ; --
     dw cfetch, oneplus, allot           ;
     dw lit, jp_opcode, cComma           ; compile default behavious
     dw lit, xcreate, comma              ; i.e. push addr of data area
-    dw drop
     EXIT                                ; exit from forth
 xcreate:
     rst $08                             ; enter forth
     dw rfrom                            ; push onto stack
     EXIT
 
-defword "does>", 5, msk_immed, does
+defword "does>", 5, msk_immed, does         ; --
     rst $08                             ; enter forth
     dw lit, xdoes, comma
-    dw lit, rst08_opcode                ; rst08
-    dw here, fetch                      ; here
-    dw cStore                           ; here    stored jp at here
-    dw lit, 1, allot                    ; update here variable
-    EXIT
-xdoes:
-    rst $08                             ; enter forth
-    dw rfrom
-    dw latest,fetch,tcfa
-    dw lit, jp_opcode, over, cStore
-    dw oneplus, store
-    EXIT
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-defword "kreate",6,0,kreate             ; --
-    rst $08                             ; enter forth
-    dw here, fetch                      ; get old "here"
-    dw latest, fetch, comma             ; write link to previous word to head
-    dw latest, store                    ; update latest to old "here"
-    dw lit, $20, word                   ; read word token
-    dw cfetch, oneplus, allot           ; allocate string
-    dw lit, docreate, commacf
-    EXIT
-
-docreate:           ; -- a-addr
-    pop HL          ; parameter field address
-    ld DE, 3
-    add HL,DE
-    ppush H,L       ; pfa = variable's adrs -> TOS
-    NEXT
-
-defword "doez>", 5, msk_immed, doez         ; --
-    rst $08                             ; enter forth
-    dw lit, xdoez, comma
     dw lit, dodoes, commacf
     EXIT
 
@@ -525,23 +491,19 @@ dodoes:             ; -- a-addr
     push HL
     NEXT
 
-defword "(doez>)",6,0,xdoez                 ; --
+defword "(does>)",6,0,xdoes             ; --
     rst $08                             ; enter forth
     dw rfrom
     dw latest, fetch, tcfa
     dw storecf
     EXIT
 
-defword ",cf",3,0,commacf                   ; adrs --
+defword "constant",8,0,constant         ; --
     rst $08                             ; enter forth
-    dw here, fetch, storecf
-    dw lit, 3, alloc
+    dw create,comma,xdoes
+docon:                                  ; -- x
+    rst $08
+    dw rfrom                            ; push onto stack
+    dw fetch
     EXIT
-
-defword "!cf",3,0,storecf                   ; adrs --
-    rst $08                             ; enter forth
-    dw lit, call_opcode, over, cstore
-    dw oneplus, store
-    EXIT
-
 

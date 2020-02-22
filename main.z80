@@ -64,7 +64,6 @@ TESTS_START:
     .include "test-macros.z80"
 .endif
 
-
 .if TESTMODE = 1
     .include "tests.z80"
 .endif
@@ -72,24 +71,32 @@ TESTS_START:
 .if TESTMODE = 2
 nop
 
-; rst 08
-; dw SPFETCH, dot
-; dw EXIT_forth
-
-; rst 08
-; dw SPFETCH, dot
-; dw EXIT_forth
-
-TEST_SET_TEXT "16 base !"
+TEST_SET_TEXT "hex"
 INTERPRET
-TEST_SET_TEXT ": const kreate drop , doez> @ ;"
-INTERPRET
-TEST_SET_TEXT "100 const y"
+
+TEST_SET_TEXT "100 konstant y"
 INTERPRET
 TEST_SET_TEXT "y"
 INTERPRET
-nop
 EXPECT $100, "expect $100"
+
+
+; rst 08
+; dw SPFETCH, dot
+; dw EXIT_forth
+
+; rst 08
+; dw SPFETCH, dot
+; dw EXIT_forth
+
+; TEST_SET_TEXT "16 base !"
+; INTERPRET
+; TEST_SET_TEXT "100 konstant k1"
+; INTERPRET
+; nop
+; TEST_SET_TEXT "k1"
+; INTERPRET
+; EXPECT $100, "expect $100"
 
 .endif
 
