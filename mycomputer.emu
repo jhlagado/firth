@@ -1,8 +1,8 @@
 cpu Z80
 
 memory.rom.from 0x0000
-memory.rom.to 0x0fff
-memory.ram.from 0x1000
+memory.rom.to 0x1fff
+memory.ram.from 0x2000
 memory.ram.to 0xffff
 
 serial 6850
