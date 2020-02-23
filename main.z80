@@ -48,7 +48,7 @@ RST66:
 
 start:
     ld SP, RET_STACK                        ; Initialise the return stack.
-    call intialize
+    call init
 
 .if TESTMODE
     jp TESTS_START

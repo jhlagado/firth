@@ -4,6 +4,23 @@
 ;; forth word defintions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+defword "decimal",7,0,decimal           ; pushes ptr to string and length on stack
+    rst $08                             ; enter forth
+    dw lit,10,base,store
+    EXIT
+
+defword "hex",3,0,hex                   ; pushes ptr to string and length on stack
+    rst $08                             ; enter forth
+    dw lit,16,base,store
+    EXIT
+
+defword "word",5,0,WORD                 ; delim -- c-addr
+    rst $08                             ; enter forth
+    dw lit, 64                          ; limit
+    dw here, fetch
+    dw xword                            ; writes to HERE!
+    EXIT
+
 defword ",cf",3,0,commacf                   ; adrs --
     rst $08                             ; enter forth
     dw here, fetch, storecf
@@ -31,7 +48,7 @@ defword "count",5,0,count
     dw swap, cfetch                     ; ( ptr ptr+1 -- ptr+1 len)
     EXIT
 
-; allot                                   ( n -- ) allocate n bytes of memory
+; allocate n bytes of memory                                   ( n -- ) allocate n bytes of memory
 defword "allot",5,0,allot               ;
     rst $08                             ; enter forth
     dw here, addstore                   ; adds n to here
@@ -78,8 +95,6 @@ defword "/mod",4,0,slashmod             ; dvend dvisr -- rem quot
     dw zeroless                         ; b1 u1 u2 u1 -- b1 u1 u2 b2  zero if signs are the same
     dw nrot                             ; b1 u1 u2 b2 -- b1 b2 u1 u2  move to bottom
 
-    ; dw dot, dot, dot, dot, cr  ; u2=-20 u1=-101 b2=1 b1=0
-
     dw ABS, swap, ABS, swap             ; remove sign from both args
     dw uslashmod                        ; b1 b2 u1 u2 -- b1 b2 r q    unsigned divide (remainder, quotient)
     dw swap                             ; b1 b2 u1 u2 -- b1 b2 q r
@@ -105,6 +120,36 @@ defword "mod",3,0,mod                   ; dvend dvisr -- remainder
     dw slashmod
     dw drop                             ; drop quotient
     EXIT
+
+; using {"s",$22} because it's surprisingly difficult
+; to define the name s" using asm80
+defword {"s",$22},2,msk_immed,squote
+    jr qt
+
+defword $22,1,msk_immed,qt
+    rst $08                             ; enter forth
+    dw state, fetch, zequal
+    cIf
+        dw lit, $22                     ; delim
+        dw lit, 63                      ; limit 63 + length
+        dw latestStr, fetch
+        dw lit, wordBuf, equal
+        cIf
+            dw lit, wordBuf2
+        cElse
+            dw lit, wordBuf
+        cEndIf
+        dw latestStr, store             ; store here in latestStr
+        dw latestStr, fetch
+        dw xword, count
+    cElse
+        dw lit, litstr, comma
+        dw lit, $22, word
+        dw cfetch, oneplus
+        dw allot
+    cEndif
+    EXIT
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -182,8 +227,8 @@ defword "repeat",6,msk_immed,repeat
 
 defword ".s",2,0,dots                   ; ( -- )
     rst $08                             ; enter forth
-    dw spfetch
-    dw sp0, fetch
+    dw spfetch                          ; psp
+    dw sp0, fetch                       ; psp0
     dw minus, zequal, zequal
     cif
         dw sp0, fetch, lit, 2, plus
@@ -199,35 +244,6 @@ defword ".s",2,0,dots                   ; ( -- )
     cendif
     EXIT
 
-; using {"s",$27} because it's surprisingly difficult
-; to define the name s' using asm80
-defword {"s",$22},2,msk_immed,squote
-    jr qt
-
-defword $22,1,msk_immed,qt
-    rst $08                             ; enter forth
-    dw state, fetch, zequal
-    cIf
-        dw lit, $22                     ; delim
-        dw lit, 63                      ; limit 63 + length
-        dw latestStr, fetch
-        dw lit, wordBuf, equal
-        cIf
-            dw lit, wordBuf2
-        cElse
-            dw lit, wordBuf
-        cEndIf
-        dw latestStr, store             ; store here in latestStr
-        dw latestStr, fetch
-        dw xword, count
-    cElse
-        dw lit, litstr, comma
-        dw lit, $22, word
-        dw cfetch, oneplus
-        dw allot
-    cEndif
-    EXIT
-
 defword {".",$22},2,msk_immed,dotquote
     rst $08                             ; enter forth
     dw qt
@@ -237,22 +253,5 @@ defword {".",$22},2,msk_immed,dotquote
     cElse
         dw lit, type, comma
     cEndIf
-    EXIT
-
-defword "decimal",7,0,decimal           ; pushes ptr to string and length on stack
-    rst $08                             ; enter forth
-    dw lit,10,base,store
-    EXIT
-
-defword "hex",3,0,hex                   ; pushes ptr to string and length on stack
-    rst $08                             ; enter forth
-    dw lit,16,base,store
-    EXIT
-
-defword "word",5,0,WORD                 ; delim -- c-addr
-    rst $08                             ; enter forth
-    dw lit, 64                          ; limit
-    dw here, fetch
-    dw xword                            ; writes to HERE!
     EXIT
 

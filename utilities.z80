@@ -13,7 +13,7 @@ FAILED:         .pstr "Failed: \r\n"
 
 nestingErr:     .pstr "Error: Definitions cannot be nested"
 
-intialize:
+init:
     ld IX, data_stack                       ; initialise the param stack.
     ld (var_sp0), IX
     ld BC, 0                                ; tos
@@ -24,7 +24,6 @@ intialize:
     ld (var_intp_stop), HL
     ld (is_literal), HL
     ld (var_nesting), HL
-    ld (var_sp0), HL
     ld (var_state), HL
 
     ld HL,serbuf
@@ -748,75 +747,8 @@ listWords:
     ret
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; getWord -  returns a word string as delimited by spaces
-; ignores leading spaces, ignores comments starting with /
-;
-; params: E = delim
-; returns: HL = address of pstr
-; destroys: AF
+; utility routines used by xword
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-getWord:
-    ; Search for first non-delim character.
-    ; Also skip \ comments.
-    _do
-        call getKey                 ; get next key, returned in A
-
-        _switch
-
-            bit 7, A                    ; check end of input
-            _if nz
-                ld (HL),0
-                ret
-            _endif
-
-            cp $5C                      ; \ start of a comment?
-            _case z                       ; if yes skip to end of line
-                _do
-                    call getKey
-                    cp "\r"             ; end of line yet?
-                    _if nz
-                        cp "\n"         ; end of line yet?
-                    _endif
-                _until z
-                _enddo
-            _endcase
-
-            cp E                      ; = space?
-            _case z
-            _endcase
-
-            cp " "                      ; < space?
-            _case c
-            _endcase
-
-            ; default case
-            _break
-
-        _endswitch
-
-    _enddo
-
-    ld B,0
-    ld D,63
-    push HL                 ; save a copy of HL
-    inc HL                  ; move to leave space for length byte
-    _do
-        ld (HL), A          ; add character to return lineBuf
-        inc HL
-        inc B
-        call getKey         ; get next key
-        cp E                ; = space?
-    _until z
-        cp " "              ; < space?
-    _until c
-        dec D
-    _until z
-    _enddo
-    ; Return the word (well, the static lineBuf) and length.
-    pop HL                  ; restore HL
-    ld (HL),B               ; write length
-    ret
-
 
 xwordSkip:                              ; delim addr -- delim addr char
     ppop H,L
