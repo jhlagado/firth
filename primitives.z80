@@ -26,10 +26,10 @@ defword "find",4,0,FIND
     NEXT
 
 defword "execute",7,0,EXECUTE
-    ppop H,L                     ; POP TOS into HL
+    ppop H,L                        ; POP TOS into HL
     jp (hl)                         ; go do Forth word
 
-defword "number",6,0,NUMBER             ; ( ptr len -- num err )
+defword "number",6,0,NUMBER         ; ( ptr len -- num err )
     ppop0 H,L
 	call toNumber                   ; params: HL = string address, BC = string length
 			                        ; Returns the parsed number in DE,
@@ -116,11 +116,10 @@ defword "0branch",7,0,ZBRANCH
     checkZeroWord B,C               ; test old TOS
     ppop0 B,C                       ; POP new TOS
     jr z,BRANCH                     ; if old TOS=0, branch
-    pop DE
-    inc DE                          ; else skip inline value
-    inc DE
-    push DE
-    jp enter
+    pop HL
+    inc HL                          ; else skip inline value
+    inc HL
+    NEXT1
 
 defword "branch",6,0,BRANCH         ; relative branching
     pop HL                          ; add the offset to the instruction pointer
@@ -129,15 +128,13 @@ defword "branch",6,0,BRANCH         ; relative branching
     ld D,(HL)
     dec HL
     add HL,DE
-    push HL
-    jp enter
+    NEXT1
 
 defword "lit",3,0,LIT
 	ppush0 B,C                      ; pushTOS
 	pop HL                          ; pop address of next Forth word in HL
 	readWord HL, B,C                ; read next word and push on TOS, inc HL by 2
-    push HL                         ; push address of next Forth word
-    jp enter
+    NEXT1
 
 ; U*   u1 u2 -- ud   unsigned mutliply
 defword "u*",2,0,USTAR              ; u1 u2 -- ud

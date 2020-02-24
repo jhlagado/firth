@@ -1,19 +1,20 @@
 # TODO
 
-- fix .s which currently crashes
 - implement POSTPONE, COMPILE
 - debugger
-- see
+- see - decompiler
 - separate buffer used by tokenizer from wordBuf and wordBuf2
 - change boolean to 0, \$FFFF
 - implement most of open firmware forth
 - update manual with string examples
+- save last line buffer
+- simple editor
+- replace Z80 routines with more Forth ones
 
 ## Ideas
 
 - formal arguments, proposed syntax `( a b c -- d e )`, named return results
 - mark & restore `here`
-- look into protecting from overwriting with `preserve` which moves here to end.
 - look into `forget`, or `mark`
 
 if nesting > 0 then create would cause an error because of collision with memory use
@@ -24,7 +25,7 @@ solutions:
 - defer immediate words... complex
 - change memory use
 
-## words
+## words to add
 
 ```
 bl

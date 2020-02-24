@@ -8,6 +8,10 @@
     jp enter
 .endm
 
+.macro NEXT1
+    jp enter1
+.endm
+
 .macro EXIT
     dw exit
     jp enter
