@@ -45,7 +45,7 @@ RST66:
 .include "interp-words.z80"
 .include "primitives.z80"
 
-.include "def-words.z80"                    ; must be included last
+.include "definitions.z80"                  ; must be included last
 
 start:
     ld SP, RET_STACK                        ; Initialise the return stack.
