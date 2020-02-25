@@ -105,6 +105,24 @@ defword "abs",3,0,ABS                   ; case sensitive for ABS label for some 
     cendif
     EXIT
 
+; min   n1 n2 -- u                      minimum
+defword "min",3,0,min
+    rst $08
+    dw over, over
+    dw lessThan
+    cif
+        dw drop
+    cElse
+        dw swap, drop
+    cendif
+    EXIT
+
+; max   n1 n2 -- u                      maximum
+defword "max",3,0,max
+    rst $08
+    dw swap, min
+    EXIT
+
 defword "*",1,0,star                    ; u1 u2 -- ud
     rst $08                             ; enter forth
     dw over, over                       ; dupe both args
@@ -290,4 +308,9 @@ defword {".",$22},2,msk_immed,dotquote
     cElse
         dw lit, type, comma
     cEndIf
+    EXIT
+
+defword "bl",2,0,bl
+    rst $08                             ; enter forth
+    dw lit, $20                         ; compile branch on zero
     EXIT

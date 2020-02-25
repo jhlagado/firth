@@ -330,19 +330,6 @@ defword "true",4,0,TRUE
     ld BC,1
     NEXT
 
-; LSHIFT  x1 u -- x2       logical L shift u places
-defword "lshift",6,0,LSHIFT
-    ppop0 H,L              ;   NB: hi 8 bits ignored!
-    ld B,C              ; b = loop counter
-    inc B               ; test for counter=0 case
-    jr LSHIFT2
-    _do
-        add HL,HL        ; left shift HL, n times
-LSHIFT2:
-    _djnz
-    loadWord B,C, H,L     ; result is new TOS
-    NEXT
-
 ; =      x1 x2 -- flag         test x1=x2
 defword "=",1,0,equal
     ppop0 H,L
@@ -408,6 +395,22 @@ defword "false",5,0,FALSE
     ld BC,0
     NEXT
 
+; LSHIFT  x1 u -- x2       logical L shift u places
+defword "lshift",6,0,lShift
+    ppop0 H,L              ;   NB: hi 8 bits ignored!
+    ld B,C              ; b = loop counter
+    inc B               ; test for counter=0 case
+    jr LSHIFT2
+    _do
+        add HL,HL        ; left shift HL, n times
+LSHIFT2:
+    _djnz
+    loadWord B,C, H,L     ; result is new TOS
+    NEXT
+
+defword "<<",2,0,ltlt
+    jr lShift
+
 ;RSHIFT  x1 u -- x2    logical R shift u places
 defword "rshift",6,0,RSHIFT
     ppop0 H,L         ;   NB: hi 8 bits ignored!
@@ -421,6 +424,9 @@ RSHIFT2:
     _djnz
     loadWord B,C, H,L     ; result is new TOS
     NEXT
+
+defword ">>",2,0,gtgt
+    jr rShift
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
