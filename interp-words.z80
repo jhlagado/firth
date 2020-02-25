@@ -80,6 +80,18 @@ defword "postpone",8,msk_immed,postpone ; --
     cEndif
     EXIT
 
+defword "nest+",5,MSK_IMMED,nestPlus
+	ld HL, (VAR_NESTING)
+    INC HL
+	ld (VAR_NESTING), HL
+    NEXT
+
+defword "nest-",5,MSK_IMMED,nestMinus
+	ld HL, (VAR_NESTING)
+    DEC HL
+	ld (VAR_NESTING), HL
+    NEXT
+
 postponeToken:                          ; --
     rst $08
     dw over, over, find                 ; ptr len -- ptr len addr

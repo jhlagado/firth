@@ -38,18 +38,6 @@ defword "#d",2,0,hashd                  ; switch to decimal for one word
     dw lit,10,hashbase
     EXIT
 
-defword "nest+",5,MSK_IMMED,nestPlus
-	ld HL, (VAR_NESTING)
-    INC HL
-	ld (VAR_NESTING), HL
-    NEXT
-
-defword "nest-",5,MSK_IMMED,nestMinus
-	ld HL, (VAR_NESTING)
-    DEC HL
-	ld (VAR_NESTING), HL
-    NEXT
-
 defword "define:",7,0,defineColon
     rst $08                             ; enter forth
     dw create                           ; create the dictionary entry / header
