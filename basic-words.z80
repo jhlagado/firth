@@ -26,18 +26,6 @@ defword "word",5,0,WORD                 ; delim -- c-addr
     dw xword                            ; writes to HERE!
     EXIT
 
-defword ",cf",3,0,commacf                   ; adrs --
-    rst $08                             ; enter forth
-    dw here, fetch, storecf
-    dw lit, 3, allot
-    EXIT
-
-defword "!cf",3,0,storecf                   ; adrs --
-    rst $08                             ; enter forth
-    dw lit, call_opcode, over, cstore
-    dw oneplus, store
-    EXIT
-
 defword ">cfa",4,0,tcfa
     rst $08                             ; enter forth
     dw lit, 2, plus
