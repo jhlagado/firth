@@ -7,7 +7,7 @@
 defword "interpret",6,0,interpret
     rst $08
     cDo
-    	dw lit, $20, word, count        ; pstr -- ptr len
+    	dw bl, word, count        ; pstr -- ptr len
         dw dup, zEqual
         cIf
             dw drop, drop                           ; ptr len --
@@ -71,7 +71,7 @@ interpLiteral:                              ; ptr len addr --
 
 defword "postpone",8,msk_immed,postpone ; --
     rst $08
-	dw lit, $20, word, count            ; pstr -- ptr len
+	dw bl, word, count            ; pstr -- ptr len
     dw dup, zEqual
     cIf
         dw drop, drop                   ; ptr len --

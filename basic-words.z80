@@ -4,6 +4,11 @@
 ;; forth word defintions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+defword "'",1,0,tick                    ; quotes next word
+    dw bl,word,find,zEqual
+    dw rFrom,count,over,over,plus,toR
+    dw EXIT
+
 defword "decimal",7,0,decimal           ; pushes ptr to string and length on stack
     rst $08                             ; enter forth
     dw lit,10,base,store
@@ -12,40 +17,6 @@ defword "decimal",7,0,decimal           ; pushes ptr to string and length on sta
 defword "hex",3,0,hex                   ; pushes ptr to string and length on stack
     rst $08                             ; enter forth
     dw lit,16,base,store
-    EXIT
-
-defword "#base",5,0,hashbase            ; n --      ; switch to basel for one word
-    rst $08
-    dw base,fetch                       ; 16 base0
-    dw swap, base, store                ; base0
-    dw lit, $20, word, count            ; base0 addr length
-    dw dup, zEqual
-    cIf
-        dw drop, drop                   ; base0
-    cElse
-        dw number                       ; base0 value error
-        dw zNotEqual                    ; base0 value
-        dw dup, dot
-        cif
-            dw drop                     ; base0
-            dw litstr
-            .pstr "Error: parsing"
-            dw type
-        cElse
-            dw swap                     ; value base0
-        cEndIf
-    cEndif
-    dw base, store                      ; restore base0
-    EXIT
-
-defword "#h",2,0,hashh                  ; switch to hex for one word
-    rst $08                             ; enter forth
-    dw lit,16,hashbase
-    EXIT
-
-defword "#d",2,0,hashd                  ; switch to decimal for one word
-    rst $08                             ; enter forth
-    dw lit,10,hashbase
     EXIT
 
 defword "word",5,0,WORD                 ; delim -- c-addr
@@ -120,7 +91,13 @@ defword "min",3,0,min
 ; max   n1 n2 -- u                      maximum
 defword "max",3,0,max
     rst $08
-    dw swap, min
+    dw over, over
+    dw lessThan
+    cif
+        dw swap, drop
+    cElse
+        dw drop
+    cendif
     EXIT
 
 defword "*",1,0,star                    ; u1 u2 -- ud

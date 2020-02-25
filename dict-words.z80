@@ -49,7 +49,7 @@ defword "create",6,0,create             ; --
     dw here, fetch                      ; get old "here"
     dw latest, fetch, comma             ; write link to previous word to "here"
     dw latest, store                    ; update latest to old "here"
-    dw lit, $20, word                   ; read word token
+    dw bl, word                   ; read word token
     dw cfetch, oneplus, allot           ;
     dw lit, jp_opcode, cComma           ; compile default behavious
     dw lit, xcreate, comma              ; i.e. push addr of data area
