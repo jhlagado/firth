@@ -259,11 +259,13 @@ defword "repeat",6,msk_immed,repeat
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+; .s print stack (non-destructively)
 defword ".s",2,0,dots                   ; ( -- )
     rst $08                             ; enter forth
     dw spfetch                          ; psp
     dw sp0, fetch                       ; psp0
-    dw minus, zequal, zequal
+    dw minus
+    dw lit, 0, greaterThan
     cif
         dw sp0, fetch, lit, 2, plus
         cdo
@@ -278,6 +280,7 @@ defword ".s",2,0,dots                   ; ( -- )
     cendif
     EXIT
 
+; ." print string"
 defword {".",$22},2,msk_immed,dotquote
     rst $08                             ; enter forth
     dw qt
@@ -288,4 +291,3 @@ defword {".",$22},2,msk_immed,dotquote
         dw lit, type, comma
     cEndIf
     EXIT
-
