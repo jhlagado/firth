@@ -5,7 +5,7 @@ TXT_NEWLINE:    .pstr "\r\n"
 TXT_PROMPT:     .pstr "\r\n> "
 StackPrompt:    .pstr "=> "
 
-TXT_INTRO:      .pstr "Forth Z80\r\n\r\n"
+TXT_INTRO:      .pstr "Firth - a Z80 Forth by John Hardy\r\n\r\n"
 TXT_STACK_UNDERFLOW:
                 .pstr "Error: Stack underflow\r\n"
 DONE:           .pstr "\r\nDone! \r\n"
@@ -31,8 +31,12 @@ init:
     ld (serrdptr),HL
 
     ld HL, linebuf
+    ld (lineBufStart), HL
     ld (currkey), HL
     ld (linebuftop), HL
+
+    ld HL, LINE_BUFSIZE
+    ld (lineBufSize), HL
 
     ld HL, 10
     ld (var_base), HL
@@ -257,8 +261,8 @@ getKey:
     or A
     sbc HL, DE                  ; exhausted the input lineBuf?
     _if nc
-        ld HL, lineBuf
-        ld DE, LINE_BUFSIZE
+        ld HL, (lineBufStart)   ; lineBuf
+        ld DE, (lineBufSize)    ; LINE_BUFSIZE
         call getline
         ld HL, lineBuf
         ld (currkey), HL

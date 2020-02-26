@@ -8,8 +8,10 @@ serBuf:         ds SER_BUFSIZE
 serInPtr:       dw 0
 serRdPtr:       dw 0
 serBufUsed:     dw 0
-currkey:        dw lineBuf
-lineBufTop:     dw lineBuf
+lineBufStart    dw 0
+lineBufSize     dw 0
+currkey:        dw 0
+lineBufTop:     dw 0
 lineBuf:        ds LINE_BUFSIZE
 
 ; A static lineBuf TOKEN fills.  Subsequent calls
@@ -22,7 +24,7 @@ IS_LITERAL:     dw 0            ; Flag used to record if reading a literal
 
 var_framePtr    dw 0
 VAR_PAD:        ds PAD_SIZE
-VAR_HERE:       dw START_USER
+VAR_HERE:       dw 0
 VAR_INTP_STOP:  dw 0
 VAR_STATE:      dw 0
 VAR_NESTING:    dw 0

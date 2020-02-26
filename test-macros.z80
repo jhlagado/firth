@@ -5,7 +5,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 .macro TEST_SET_TEXT, s1
-    ld HL, lineBuf
+    ld HL, (lineBufStart)
     ld (lineBufTop),HL
     ld (currkey),HL
     ld HL, tst_text%%M
