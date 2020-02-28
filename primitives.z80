@@ -557,3 +557,12 @@ defword "cr",2,0,cr                     ; ( -- )
     call printcr
     NEXT
 
+; headless words
+
+exit:
+    pop HL
+    jp enter
+
+exit_forth:
+    ret
+

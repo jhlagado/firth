@@ -65,14 +65,6 @@ enter1:
     ex DE,HL
     jp (HL)
 
-exit:
-    pop HL
-    jp enter
-
-exit_forth:
-    pop HL
-    jp (HL)
-
 serialIn:
     push AF
     push HL
