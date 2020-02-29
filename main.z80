@@ -73,17 +73,12 @@ TESTS_START:
 .endif
 
 .if TESTMODE = 2
-nop
 
-TEST_SET_TEXT "hex"
-INTERPRET
-
-TEST_SET_TEXT "100 konstant y"
-INTERPRET
-TEST_SET_TEXT "y"
-INTERPRET
-EXPECT $100, "expect $100"
-
+ppushValue 2
+ppushValue 3
+ld DE, PLUS
+call forth
+EXPECT 5, "2 + 3 expect 6"
 
 ; rst 08
 ; dw SPFETCH, dot

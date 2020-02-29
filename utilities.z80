@@ -15,6 +15,7 @@ nestingErr:     .pstr "Error: Definitions cannot be nested"
 
 init:
     ld IX, data_stack                       ; initialise the param stack.
+    ld IY, enter
     ld (var_sp0), IX
     ld BC, 0                                ; tos
 
@@ -62,6 +63,13 @@ enter1:
     ld D,(HL)
     inc HL
     push HL
+    ex DE,HL
+    jp (HL)
+
+forth:                                      ; for calling forth words from assembly
+    ld HL, exitAddr
+    ex (SP),HL
+    ld (exitAddr),HL
     ex DE,HL
     jp (HL)
 

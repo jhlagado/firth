@@ -15,6 +15,12 @@ TEST_SET_TEXT "$$123"
 INTERPRET
 EXPECT 999, "interpret $$123"
 
+ppushValue 2
+ppushValue 3
+ld DE, PLUS
+call forth
+EXPECT 5, "2 + 3 expect 6"
+
 TEST_SET_TEXT "decimal"
 INTERPRET
 
