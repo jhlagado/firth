@@ -1,0 +1,25 @@
+; TEST_SET_TEXT "decimal"
+; INTERPRET
+
+; TEST_SET_TEXT "#h 100"
+; INTERPRET
+; EXPECT $100, "expect hex $100"
+
+; TEST_SET_TEXT "hex"
+; INTERPRET
+
+; TEST_SET_TEXT "#d 100"
+; INTERPRET
+; EXPECT 100, "expect decimal 100"
+
+; TEST_SET_TEXT "decimal"
+; INTERPRET
+
+TEST_SET_TEXT "16 base ! 20"
+INTERPRET
+EXPECT 32, "expect $20 to be 32"
+
+TEST_SET_TEXT "0A base ! 20"
+INTERPRET
+EXPECT 20, "expect decimal 20 to be 32"
+

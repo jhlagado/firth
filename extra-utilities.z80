@@ -1,0 +1,53 @@
+; extra utilities
+
+; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; ; toLowercase -  converts ASCII value register A
+; ; to lowercase
+; ;
+; ; params: A = ASCII char
+; ; returns: A = lowercase ASCII char
+; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; toLowercase:
+;     cp 'A'
+;     _if nc
+;         cp 'Z' + 1
+;         _if c
+;             or $20      ; set bit 6
+;         _endif
+;     _endif
+;     ret
+
+
+; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; ; reverseLookup - CFA -> header
+; ;
+; ; params: BC = CFA of word
+; ; returns: DE = found header ptr or 0
+; ; destroys: AF, HL
+; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; reverseLookup:
+;     ld DE, (VAR_LATEST)             ; search dictionary backwards from LATEST
+;     _do
+;         checkZeroWord D,E                ; NULL pointer?  (end of the linked list)
+;     _until z
+;         push DE                     ; save ptr to header
+;         inc DE                      ; skip over first field
+;         inc DE
+;         ld A, (DE)                  ; a = flags+length field
+;         and MSK_HIDDEN | MSK_LENGTH ; %al = name length
+;         ld H,0
+;         ld L,A
+;         add HL,DE
+;         or A
+;         sbc HL,BC
+;         pop DE
+;     _until z
+;         ex DE, HL                   ; load HL with link to previous header
+;         ld E,(HL)                   ; in dictionary
+;         inc HL
+;         ld D,(HL)
+;     _enddo
+;     ret
+

@@ -1,6 +1,6 @@
 .engine mycomputer
 
-TESTMODE equ 0
+TESTMODE equ 1
 
 .include "constants.z80"
 .include "macros.z80"
@@ -37,13 +37,17 @@ RST38:                                      ; rst 38 - INTERRUPT VECTOR [ for IM
 RST66:
     ret                                     ; do nothing
 
-.include "utilities.z80"
-
+.include "core-words.z80"
+.include "core-primitives.z80"
+.include "core-utilities.z80"
+.include "core-compiler.z80"
 .include "basic-words.z80"
-.include "dict-words.z80"
-.include "extended-words.z80"
-.include "interp-words.z80"
-.include "primitives.z80"
+.include "extra-words.z80"
+.include "extra-primitives.z80"
+.include "extra-utilities.z80"
+.include "headless-words.z80"
+
+.include "experimental.z80"
 
 .include "definitions.z80"                  ; must be included last
 
@@ -70,32 +74,12 @@ TESTS_START:
 
 .if TESTMODE = 1
     .include "tests.z80"
+    .include "test-base.z80"
+    .include "test-number.z80"
+    .include "test-experimental.z80"
 .endif
 
 .if TESTMODE = 2
-
-ppushValue 2
-ppushValue 3
-ld DE, PLUS
-call forth
-EXPECT 5, "2 + 3 expect 6"
-
-; rst 08
-; dw SPFETCH, dot
-; dw EXIT_forth
-
-; rst 08
-; dw SPFETCH, dot
-; dw EXIT_forth
-
-; TEST_SET_TEXT "16 base !"
-; INTERPRET
-; TEST_SET_TEXT "100 konstant k1"
-; INTERPRET
-; nop
-; TEST_SET_TEXT "k1"
-; INTERPRET
-; EXPECT $100, "expect $100"
 
 .endif
 

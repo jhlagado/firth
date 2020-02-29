@@ -1,0 +1,51 @@
+; TEST_SET_TEXT "100 buffer: xvar"
+; INTERPRET
+; TEST_SET_TEXT {$22," xyz",$22}
+; INTERPRET
+; TEST_SET_TEXT "xvar pack"
+; INTERPRET
+; TEST_SET_TEXT "xvar count dup"
+; INTERPRET
+; EXPECT 3, "str len = 3"
+; TEST_SET_TEXT "type"
+; INTERPRET
+
+; TEST_SET_TEXT {".",$22," immediate xyz",$22}
+; INTERPRET
+; TEST_SET_TEXT {": x1 .",$22," compiled xyz",$22," ;"}
+; INTERPRET
+; TEST_SET_TEXT "x1"
+; INTERPRET
+
+; TEST_SET_TEXT "1 0 if 1 else 2 endif +"
+; INTERPRET
+; EXPECT 3, "1 false -> 1 2 -> 1 2 + -> 3"
+
+; TEST_SET_TEXT "0 1 if if 100 else 200 endif else 300 endif"
+; INTERPRET
+; EXPECT 200, "select"
+
+; TEST_SET_TEXT "0 begin dup 5 < while dup . 1+ repeat"
+; INTERPRET
+; EXPECT 5, "Loop until limit < 5"
+
+; TEST_SET_TEXT "{ if 100 else 200 endif } define: q"
+; INTERPRET
+; TEST_SET_TEXT "0 q"
+; INTERPRET
+; EXPECT 200, "define: q 0 = 200"
+; TEST_SET_TEXT "1 q"
+; INTERPRET
+; EXPECT 100, "define: q 1 = 100"
+
+; rst $08
+; dw litstr
+; .pstr "Expected parse error"
+; dw type
+; dw exit_forth
+
+; ppushValue 999
+; TEST_SET_TEXT "$$123"
+; INTERPRET
+; EXPECT 999, "interpret $$123"
+

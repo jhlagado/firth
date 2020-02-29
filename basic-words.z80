@@ -19,51 +19,6 @@ defword "hex",3,0,hex                   ; pushes ptr to string and length on sta
     dw lit,16,base,store
     EXIT
 
-defword "word",5,0,WORD                 ; delim -- c-addr
-    rst $08                             ; enter forth
-    dw lit, 64                          ; limit
-    dw here, fetch
-    dw xword                            ; writes to HERE!
-    EXIT
-
-defword ">cfa",4,0,tcfa
-    rst $08                             ; enter forth
-    dw lit, 2, plus
-    dw count
-    dw lit, msk_length, and
-    dw plus
-    EXIT
-
-; count extract string length from pascal string  ( ptr -- ptr+1 len )
-defword "count",5,0,count
-    rst $08                             ; enter forth
-    dw dup, lit, 1, plus                ; ( ptr -- ptr ptr+1)
-    dw swap, cfetch                     ; ( ptr ptr+1 -- ptr+1 len)
-    EXIT
-
-; allocate n bytes of memory                                   ( n -- ) allocate n bytes of memory
-defword "allot",5,0,allot               ;
-    rst $08                             ; enter forth
-    dw here, addstore                   ; adds n to here
-    EXIT
-
-; negate  n1 -- n2                      negate n1
-defword "negate",6,0,negate
-    rst $08                             ; enter forth
-    dw invert
-    dw oneplus
-    EXIT
-
-; abs   n -- u                          absolute value
-defword "abs",3,0,ABS                   ; case sensitive for ABS label for some reason
-    rst $08                             ; enter forth
-    dw dup                              ; copy arg
-    dw zeroless
-    cif
-        dw negate                       ; if signs differ then negate answer
-    cendif
-    EXIT
-
 ; min   n1 n2 -- u                      minimum
 defword "min",3,0,min
     rst $08
@@ -138,97 +93,6 @@ defword "mod",3,0,mod                   ; dvend dvisr -- remainder
     dw drop                             ; drop quotient
     EXIT
 
-; using {"s",$22} because it's surprisingly difficult
-; to define the name s" using asm80
-defword {"s",$22},2,msk_immed,squote
-    jr qt
-
-defword $22,1,msk_immed,qt
-    rst $08                             ; enter forth
-    dw state, fetch, zequal
-    cIf
-        dw lit, $22                     ; delim
-        dw lit, 63                      ; limit 63 + length
-        dw latestStr, fetch
-        dw lit, wordBuf, equal
-        cIf
-            dw lit, wordBuf2
-        cElse
-            dw lit, wordBuf
-        cEndIf
-        dw latestStr, store             ; store here in latestStr
-        dw latestStr, fetch
-        dw xword, count
-    cElse
-        dw lit, litstr, comma
-        dw lit, $22, word
-        dw cfetch, oneplus
-        dw allot
-    cEndif
-    EXIT
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-;; flow control
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-defword "if",2,msk_immed,if
-    rst $08                             ; enter forth
-    dw lbrace
-    dw lit, zbranch, comma              ; compile 0branch
-    dw here, fetch, dup, comma          ; compile here and also push on stack
-    EXIT
-
-defword "else",4,msk_immed,else
-    rst $08                             ; enter forth
-    dw lit, branch, comma               ; definite branch to just over the false-part
-    dw here, fetch                      ; save here on stack
-    dw lit, 0, comma                    ; compile a dummy offset
-    dw swap                             ; now back-fill the original (if) offset
-    dw xendif                           ; must call xendif not endif
-    EXIT
-
-defword "endif",5,msk_immed,endif
-    rst $08                             ; enter forth
-    dw xendif                           ; must call xendif not endif
-    dw rbraceExec
-    EXIT
-
-xendif:                                 ; must call xendif not endif
-    rst $08                             ; enter forth
-    dw dup
-    dw here, fetch, swap, minus         ; calculate the offset from the address saved on the stack
-    dw swap, store                      ; store the offset in the back-filled location
-    EXIT
-
-; begin condition while ... repeat
-
-defword "begin",5,msk_immed,begin
-    rst $08                             ; enter forth
-    dw lbrace
-    dw here, fetch                      ; save here on stack (here1)
-    EXIT
-
-defword "while",5,msk_immed,while
-    rst $08                             ; enter forth
-    dw lit, zbranch, comma              ; compile branch on zero
-    dw here, fetch                      ; save here in stack (here2)
-    dw lit, 0, comma                    ; compile dummy offset
-    EXIT
-
-defword "repeat",6,msk_immed,repeat
-    rst $08                             ; enter forth
-    dw lit, branch, comma               ; compile branch
-    dw swap                             ; tos = here1
-    dw here, fetch, minus, comma        ; compile offset (here1 - here3)
-    dw dup
-    dw here, fetch, swap, minus         ; compile offset (here2 - here3)
-    dw swap, store                      ; save offset in here2
-    dw rbraceExec
-    EXIT
-
 ; ; do
 ; ; i
 ; ; again
@@ -275,7 +139,3 @@ defword {".",$22},2,msk_immed,dotquote
     cEndIf
     EXIT
 
-defword "bl",2,0,bl
-    rst $08                             ; enter forth
-    dw lit, $20                         ; compile branch on zero
-    EXIT

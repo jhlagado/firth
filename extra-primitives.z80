@@ -1,0 +1,228 @@
+; words must preserve: BC, DE, SP, IX
+; words may destroy: HL, IY, AF, AF', BC', DE' HL'
+
+defword "words", 5, 0, WORDS
+    push BC
+    call listWords
+    pop BC
+    NEXT
+
+defword "print",5,0,PRINT
+    ppop D,E
+    call printPStr
+    NEXT
+
+defword "1-",2,0,oneMinus
+    dec BC
+    NEXT
+
+defword "2-",2,0,twoMinus
+    dec BC
+    dec BC
+    NEXT
+
+; 1*      n1/u1 -- n2/u2            do nothing
+defword "noop",4,0,noop
+    NEXT
+
+; U*   u1 u2 -- ud   unsigned mutliply
+defword "u*",2,0,USTAR              ; u1 u2 -- ud
+                                    ; u2 in BC
+    ppop0 D,E                       ; u1 in DE
+	call unsignedMultiply
+    ppush0 D,E                      ; udlo result
+                                    ; udhi result
+    NEXT
+
+;z RSP!  a-addr --                  set return stack pointer
+defword "rsp!",4,0,RSPSTORE
+    SET_RET_SP B,C
+	ppop0 B,C                      ; POP TOS
+    NEXT
+
+defword "sp@",3,0,SPFETCH
+    push IX
+    pop HL
+    ppush H,L
+    NEXT
+
+defword "sp!",3,0,SPSTORE
+    ppop H,L
+    push HL
+    pop IX
+    NEXT
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; memory access
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; CELL+    c-addr1 -- c-addr2   add cell size to addr
+defword "cell+",5,0,CELLPLUS
+    jp twoplus
+
+; CHAR+    c-addr1 -- c-addr2   add char size to addr
+defword "char+",5,0,CHARPLUS
+    jp oneplus
+
+; CELLS   ( n1 -- n2 ) n2 is the size in address units of n1 cells.
+defword "chars",5,0,CHARS
+    jp noop
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; arithmetic
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; */MOD star-slash-mod
+
+; U/MOD   u1 u2 -- u1 u2    unsigned 16 / 16 -> r q
+defword "u/mod",5,0,USLASHMOD
+    ppop D,E                ; DE = divisor
+                            ; BC = dividend
+    call divideWordByWord
+
+    ppush0 H,L           ; PUSH remainder,
+    NEXT
+
+; 2/      x1 -- x2                  arithmetic right shift
+defword "2/",2,0,TWOSLASH
+    sra B
+    rr C
+    NEXT
+
+; xor    x1 x2 -- x3            logical xor
+defword "xor",3,0,xor	        ; bitwise xor
+    ppop0 H,L
+    ld A,B
+    xor H
+    ld B,A
+    ld A,C
+    xor L
+    ld C,A
+    NEXT
+
+; LSHIFT  x1 u -- x2       logical L shift u places
+defword "lshift",6,0,lShift
+    ppop0 H,L              ;   NB: hi 8 bits ignored!
+    ld B,C              ; b = loop counter
+    inc B               ; test for counter=0 case
+    jr LSHIFT2
+    _do
+        add HL,HL        ; left shift HL, n times
+LSHIFT2:
+    _djnz
+    loadWord B,C, H,L     ; result is new TOS
+    NEXT
+
+defword "<<",2,0,ltlt
+    jr lShift
+
+;RSHIFT  x1 u -- x2    logical R shift u places
+defword "rshift",6,0,RSHIFT
+    ppop0 H,L         ;   NB: hi 8 bits ignored!
+    ld B,C              ; b = loop counter
+    inc B               ; test for counter=0 case
+    jr RSHIFT2
+    _do
+        srl H           ; right shift HL, n times
+        rr L
+RSHIFT2:
+    _djnz
+    loadWord B,C, H,L     ; result is new TOS
+    NEXT
+
+defword ">>",2,0,gtgt
+    jr rShift
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; stack
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+defword "rot",3,0,ROT       ; x1 x2 x3 -- x2 x3 x1
+                            ; x3 in BC
+    ppop0 D,E               ; x2 in DE
+    ppop0 H,L               ; x1 in HL
+    ppush0 D,E              ; x2 on stack
+    ppush H,L               ; PUSH x1 - x2 x3 x1
+                            ; x1 in BC
+    NEXT
+
+defword "-rot",4,0,NROT     ; x1 x2 x3 -- x3 x1 x2
+                            ; x3 in BC
+    ppop0 D,E               ; x2 in DE
+    ppop0 H,L               ; x1 in HL
+    ppush H,L               ; PUSH x1 - x3 x1
+    ppush D,E               ; PUSH x2 - x3 x1 x2
+                            ; x2 in BC
+    NEXT
+
+; R@ r-fetch
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; definitions
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+defword "immediate",9,MSK_IMMED,IMMEDIATE
+    ld HL, (VAR_LATEST)                 ; get head of latest word
+    inc HL                              ; point to flags byte
+    inc HL
+    ld a, MSK_IMMED
+    xor (HL)                            ; toggle the IMMED bit.
+    ld (HL),a
+    NEXT
+
+
+; DOES> does
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; device
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+defword "accept",6,0,ACCEPT              ; ( addr max -- len )
+    ppop D,E                    ; max - up to 255
+	ppop0 H,L                          ; addr
+    call getline
+    NEXT
+
+defword "key",3,0,KEY                ; ( -- c )
+	call getKey
+    ld b, 0
+    ld c, a
+    NEXT
+
+defword "emit",4,0,EMIT              ; print the character on the stack
+	ld A, C                     ; (c -- )
+	call putc
+    ppop0 B,C                      ; clear stack
+    NEXT
+
+defword "key?",4,0,QKEY              ; ( -- c )
+	ppush0 B,C		                ; save TOS
+	call inputReady
+    ld BC, 1                    ; TOS = true
+    _if z
+        ld BC, 0                    ; TOS = false
+    _endif
+    NEXT
+
+defword "pack",4,0,pack             ; ( adr1 len adr2 -- adr2 )
+    ppop D,E                        ; DE = adr2, BC = len
+    push DE
+    ppop0 H,L                       ; HL = adr1
+    ld A,C
+    ld (DE),A                       ; write length byte to adr2
+    inc DE                          ; adr2 += 1
+    ldir
+    pop BC                          ; TOS = adr2
+    NEXT
+

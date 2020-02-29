@@ -4,53 +4,19 @@
 ;; these tests will evaluate when TESTMODE = 1
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-rst $08
-dw litstr
-.pstr "Expected parse error"
-dw type
-dw exit_forth
-
-ppushValue 999
-TEST_SET_TEXT "$$123"
-INTERPRET
-EXPECT 999, "interpret $$123"
-
-ppushValue 2
-ppushValue 3
-ld DE, PLUS
-call forth
-EXPECT 5, "2 + 3 expect 6"
-
-TEST_SET_TEXT "decimal"
-INTERPRET
-
-TEST_SET_TEXT "#h 100"
-INTERPRET
-EXPECT $100, "expect hex $100"
-
-TEST_SET_TEXT "hex"
-INTERPRET
-
-TEST_SET_TEXT "#d 100"
-INTERPRET
-EXPECT 100, "expect decimal 100"
-
 TEST_SET_TEXT ": const create , does> @ ;"
 INTERPRET
 TEST_SET_TEXT "100 const y"
 INTERPRET
 TEST_SET_TEXT "y"
 INTERPRET
-EXPECT $100, "expect $100"
+EXPECT 100, "expect 100"
 
 TEST_SET_TEXT "100 constant y"
 INTERPRET
 TEST_SET_TEXT "y"
 INTERPRET
-EXPECT $100, "expect $100"
-
-TEST_SET_TEXT "decimal"
-INTERPRET
+EXPECT 100, "expect 100"
 
 TEST_SET_TEXT ": x create does> 1 . ;"
 INTERPRET
@@ -103,29 +69,6 @@ ppushValue 2
 TEST_SET_TEXT "dbl"
 INTERPRET
 EXPECT 4, "colon dbl 2 = 4"
-
-TEST_SET_TEXT "100 100 +"
-INTERPRET
-EXPECT 200, "100 100 + = 200"
-
-TEST_SET_TEXT "100 10 + ."
-INTERPRET
-
-TEST_SET_TEXT "16 base ! 20"
-INTERPRET
-EXPECT 32, "expect $20 to be 32"
-
-TEST_SET_TEXT "0A base ! 20"
-INTERPRET
-EXPECT 20, "expect decimal 20 to be 32"
-
-TEST_SET_TEXT "-10 abs"
-INTERPRET
-EXPECT 10, "expect abs -10 to be 10"
-
-TEST_SET_TEXT "10 abs"
-INTERPRET
-EXPECT 10, "expect abs 10 to be 10"
 
 ppushValue 200
 ppushValue 1
@@ -202,46 +145,6 @@ INTERPRET
 EXPECT 3, "str len = 3"
 TEST_SET_TEXT "type"
 INTERPRET
-
-TEST_SET_TEXT "100 buffer: xvar"
-INTERPRET
-TEST_SET_TEXT {$22," xyz",$22}
-INTERPRET
-TEST_SET_TEXT "xvar pack"
-INTERPRET
-TEST_SET_TEXT "xvar count dup"
-INTERPRET
-EXPECT 3, "str len = 3"
-TEST_SET_TEXT "type"
-INTERPRET
-
-TEST_SET_TEXT {".",$22," immediate xyz",$22}
-INTERPRET
-TEST_SET_TEXT {": x1 .",$22," compiled xyz",$22," ;"}
-INTERPRET
-TEST_SET_TEXT "x1"
-INTERPRET
-
-TEST_SET_TEXT "1 0 if 1 else 2 endif +"
-INTERPRET
-EXPECT 3, "1 false -> 1 2 -> 1 2 + -> 3"
-
-TEST_SET_TEXT "0 1 if if 100 else 200 endif else 300 endif"
-INTERPRET
-EXPECT 200, "select"
-
-TEST_SET_TEXT "0 begin dup 5 < while dup . 1+ repeat"
-INTERPRET
-EXPECT 5, "Loop until limit < 5"
-
-TEST_SET_TEXT "{ if 100 else 200 endif } define: q"
-INTERPRET
-TEST_SET_TEXT "0 q"
-INTERPRET
-EXPECT 200, "define: q 0 = 200"
-TEST_SET_TEXT "1 q"
-INTERPRET
-EXPECT 100, "define: q 1 = 100"
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

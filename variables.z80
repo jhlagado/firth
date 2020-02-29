@@ -31,7 +31,6 @@ VAR_STATE:      dw 0
 VAR_NESTING:    dw 0
 VAR_SP0:        dw 0            ;PAR_STACK
 VAR_BASE:       dw 0
-
 VAR_LATEST_STR: dw 0
 VAR_LATEST:     dw 0
 
