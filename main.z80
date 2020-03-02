@@ -37,6 +37,8 @@ RST38:                                      ; rst 38 - INTERRUPT VECTOR [ for IM
 RST66:
     ret                                     ; do nothing
 
+.include "serial.z80"
+
 .include "core-words.z80"
 .include "core-primitives.z80"
 .include "core-utilities.z80"
@@ -53,6 +55,7 @@ RST66:
 
 start:
     ld SP, RET_STACK                        ; Initialise the return stack.
+    call initSerial
     call init
 
 .if TESTMODE
