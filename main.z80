@@ -43,14 +43,12 @@ RST66:
 .include "core-primitives.z80"
 .include "core-utilities.z80"
 .include "core-compiler.z80"
-.include "basic-words.z80"
 .include "extra-words.z80"
 .include "extra-primitives.z80"
 .include "extra-utilities.z80"
+
 .include "headless-words.z80"
-
 .include "experimental.z80"
-
 .include "definitions.z80"                  ; must be included last
 
 start:

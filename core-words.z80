@@ -78,6 +78,61 @@ defword "interpToken",11,0,interpToken          ; ptr len --
     cEndif
     EXIT
 
+defword "'",1,0,tick                    ; quotes next word
+    dw bl,word,find,zEqual
+    dw rFrom,count,over,over,plus,toR
+    dw EXIT
+
+defword "*",1,0,star                    ; u1 u2 -- ud
+    rst $08                             ; enter forth
+    dw over, over                       ; dupe both args
+    dw ABS, swap, ABS                   ; remove sign from both args
+    dw ustar, drop                      ; unsigned multiply, drop hi-word
+    dw nrot                             ; move to bottom
+    dw xor                              ; zero if signs are the same
+    dw zeroless                         ; if high bit set
+    cif
+        dw negate                       ; if signs differ then negate answer
+    cendif
+    EXIT
+
+defword "/mod",4,0,slashmod             ; dvend dvisr -- rem quot
+    rst $08                             ; enter forth
+    dw over, over                       ;       u1 u2 -- u1 u2 u1 u2  dupe both args
+    dw xor                              ; u1 u2 u1 u2 -- u1 u2 b1     xor hi bits
+    dw zeroless                         ; true if high bit still set
+    dw nrot                             ;    u1 u2 b1 -- b1 u1 u2     move to bottom
+
+    dw over                             ;    b1 u1 u2 -- b1 u1 u2 u1  dupe dividend
+    dw zeroless                         ; b1 u1 u2 u1 -- b1 u1 u2 b2  zero if signs are the same
+    dw nrot                             ; b1 u1 u2 b2 -- b1 b2 u1 u2  move to bottom
+
+    dw ABS, swap, ABS, swap             ; remove sign from both args
+    dw uslashmod                        ; b1 b2 u1 u2 -- b1 b2 r q    unsigned divide (remainder, quotient)
+    dw swap                             ; b1 b2 u1 u2 -- b1 b2 q r
+    dw rot                              ; b1 b2 q r -- b1 q r b2      bring to top
+    cif
+        dw negate                       ;   b1 q r b2 -- b1 q -r      if -ve then negate answer
+    cendif
+    dw nrot                             ;     b1 q -r -- -r b1 q     bring to top
+    dw swap                             ;     -r b1 q -- -r q b1      bring to top
+    cif
+        dw negate                       ;     -r q b1 -- -r -q       if signs differ then negate answer
+    cendif
+    EXIT
+
+defword "/",1,0,slash                   ; dvend dvisr -- quot
+    rst $08                             ; enter forth
+    dw slashmod
+    dw swap, drop                       ; drop remainder
+    EXIT
+
+defword "mod",3,0,mod                   ; dvend dvisr -- remainder
+    rst $08                             ; enter forth
+    dw slashmod
+    dw drop                             ; drop quotient
+    EXIT
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;; flow control

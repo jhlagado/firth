@@ -4,6 +4,86 @@
 ;; forth word defintions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+defword "decimal",7,0,decimal           ; pushes ptr to string and length on stack
+    rst $08                             ; enter forth
+    dw lit,10,base,store
+    EXIT
+
+defword "hex",3,0,hex                   ; pushes ptr to string and length on stack
+    rst $08                             ; enter forth
+    dw lit,16,base,store
+    EXIT
+
+; min   n1 n2 -- u                      minimum
+defword "min",3,0,min
+    rst $08
+    dw over, over
+    dw lessThan
+    cif
+        dw drop
+    cElse
+        dw swap, drop
+    cendif
+    EXIT
+
+; max   n1 n2 -- u                      maximum
+defword "max",3,0,max
+    rst $08
+    dw over, over
+    dw lessThan
+    cif
+        dw swap, drop
+    cElse
+        dw drop
+    cendif
+    EXIT
+
+; ; do
+; ; i
+; ; again
+; ; loop
+; ; j
+; ; until
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; device
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; .s print stack (non-destructively)
+defword ".s",2,0,dots                   ; ( -- )
+    rst $08                             ; enter forth
+    dw spfetch                          ; psp
+    dw sp0, fetch                       ; psp0
+    dw minus
+    dw lit, 0, greaterThan
+    cif
+        dw sp0, fetch, lit, 2, plus
+        cdo
+            dw dup
+            dw spfetch, lit, 2, minus
+            dw swap, minus, zequal
+        cuntil
+            dw dup, fetch, dot
+            dw lit, 2, plus
+        cenddo
+        dw drop
+    cendif
+    EXIT
+
+; ." print string"
+defword {".",$22},2,msk_immed,dotquote
+    rst $08                             ; enter forth
+    dw qt
+    dw state, fetch, zequal
+    cIf
+        dw type
+    cElse
+        dw lit, type, comma
+    cEndIf
+    EXIT
+
 ; defword "postpone",8,msk_immed,postpone ; --
 ;     rst $08
 ; 	dw bl, word, count            ; pstr -- ptr len
