@@ -70,22 +70,6 @@ defword "does>", 5, msk_immed, does         ; --
     dw lit, 3, allot
     EXIT
 
-dodoes:             ; -- a-addr
-    ppush0 B,C
-    pop HL          ; parameter field address
-    pop BC
-    push HL
-    NEXT
-
-defword "(does>)",6,0,xdoes             ; --
-    rst $08                             ; enter forth
-    dw rfrom
-    dw latest, fetch, tcfa
-    dw lit, call_opcode
-    dw over, cstore
-    dw oneplus, store
-    EXIT
-
 defword "constant",8,0,constant         ; --
     rst $08                             ; enter forth
     dw create,comma,xdoes

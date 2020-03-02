@@ -77,7 +77,7 @@ defword "interpToken",11,0,interpToken          ; ptr len --
         dw interpLiteral
     cEndif
     EXIT
-    
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;; flow control
@@ -208,18 +208,4 @@ defword "}exec",5,msk_immed,rbraceExec
         dw execute
     cEndIf
     EXIT                             ; return from the function.
-
-defword "nest+",5,MSK_IMMED,nestPlus
-	ld HL, (VAR_NESTING)
-    INC HL
-	ld (VAR_NESTING), HL
-    NEXT
-
-defword "nest-",5,MSK_IMMED,nestMinus
-	ld HL, (VAR_NESTING)
-    DEC HL
-	ld (VAR_NESTING), HL
-    NEXT
-
-    
 

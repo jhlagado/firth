@@ -58,5 +58,33 @@ interpLiteral:                              ; ptr len addr --
         dw type
     cEndIf
     EXIT
-    
+
+nestPlus:
+	ld HL, (VAR_NESTING)
+    INC HL
+	ld (VAR_NESTING), HL
+    NEXT
+
+nestMinus:
+	ld HL, (VAR_NESTING)
+    DEC HL
+	ld (VAR_NESTING), HL
+    NEXT
+
+dodoes:             ; -- a-addr
+    ppush0 B,C
+    pop HL          ; parameter field address
+    pop BC
+    push HL
+    NEXT
+
+xdoes:                                  ; --
+    rst $08                             ; enter forth
+    dw rfrom
+    dw latest, fetch, tcfa
+    dw lit, call_opcode
+    dw over, cstore
+    dw oneplus, store
+    EXIT
+
 
