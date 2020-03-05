@@ -4,6 +4,12 @@
 ;; forth word defintions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+defword "quit",4,0,quit
+    rst $08                             ; enter forth
+    dw sp0, fetch, spStore
+    dw interpret
+    EXIT
+
 defword "word",5,0,WORD                 ; delim -- c-addr
     rst $08                             ; enter forth
     dw lit, 64                          ; limit
@@ -65,17 +71,6 @@ defword "interpret",6,0,interpret
         cEndif
         dw interpToken                       ; interpret the next word
     cEndDo
-    EXIT
-
-defword "interpToken",11,0,interpToken          ; ptr len --
-    rst $08
-    dw over, over, find                     ; ptr len -- ptr len addr
-    dw dup, zNotEqual
-    cIf
-        dw interpWord
-    cElse
-        dw interpLiteral
-    cEndif
     EXIT
 
 defword "'",1,0,tick                    ; quotes next word

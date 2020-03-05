@@ -1,8 +1,67 @@
-; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; ;;
-; ;; Firth extended (non-standard) words
-; ;;
-; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; Firth extended (non-standard) words
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+defword "S[",2,0,beginFrame             ; begin a stack frame
+    rst $08                             ; enter forth
+    dw framePtr, dup                    ; addr addr
+    dw fetch, swap                      ; framePtr0 addr
+    dw spfetch, swap                    ; framePtr0 addr -- framePtr0 paramSP addr
+    dw store                            ; framePtr0 paramSP addr -- framePtr0
+    EXIT                                ; TOS = framePtr0
+
+; ]S                                    ; framePtr0 result --
+defword "]S",2,0,endFrame               ; end a stack frame
+    rst $08                             ; enter forth
+                                        ; TOS = framePtr0
+    dw swap, dup                        ; result framePtr0 framePtr0
+    dw framePtr, store                  ; result framePtr0
+    dw swap, over, oneplus              ; framePtr0 result framePtr0+1
+    dw store                            ; framePtr0
+    dw spstore                          ; store framePtr0 in sp
+    EXIT
+
+defword "param",5,0,param               ; n -- addr return addr of param n, -ve args, +ve locals
+    rst $08                             ; enter forth
+    dw oneminus, cells                  ; n *= 2
+    dw framePtr, fetch, plus
+    EXIT
+
+defword "p1",2,0,p1                     ;  -- p1addr
+    rst $08                             ; enter forth
+    dw lit, -1, param, fetch
+    EXIT
+
+defword "p2",2,0,p2                     ;  -- p2addr
+    rst $08                             ; enter forth
+    dw lit, -2, param, fetch
+    EXIT
+
+defword "p3",2,0,p3                     ;  -- p3addr
+    rst $08                             ; enter forth
+    dw lit, -3, param, fetch
+    EXIT
+
+defword "v1",2,0,v1                     ;  -- v1addr
+    rst $08                             ; enter forth
+    dw lit, 1, param
+    EXIT
+
+defword "v2",2,0,v2                     ;  -- v2addr
+    rst $08                             ; enter forth
+    dw lit, 2, param
+    EXIT
+
+defword "v3",2,0,v3                     ;  -- v3addr
+    rst $08                             ; enter forth
+    dw lit, 3, param
+    EXIT
+
+
+
+
 
 ; defword "#base",5,0,hashbase            ; n --      ; switch to basel for one word
 ;     rst $08
@@ -70,56 +129,6 @@
 ;     dw fetch, nrot                      ; stack ptr ptr -- value stack ptr
 ;     dw twominus, swap                   ; value stack ptr -- value ptr stack
 ;     dw store
-;     EXIT
-
-; defword "S[",2,0,beginFrame    ; begin a stack frame
-;     rst $08                             ; enter forth
-;     dw framePtr, dup                    ;  -- addr addr
-;     dw fetch, swap                      ; addr addr -- framePtr0 addr
-;     dw spfetch, swap                    ; framePtr0 attr -- framePtr0 paramSP addr
-;     dw store                            ; framePtr0 paramSP addr -- framePtr0
-;     EXIT                             ; TOS = framePtr0
-
-; defword "]S",2,0,endFrame        ; end a stack frame
-;     rst $08                             ; enter forth
-;                                         ; TOS = framePtr0
-;     dw framePtr, store                  ; store TOS in framePtr
-;     EXIT
-
-; defword "param",5,0,param               ; n -- addr return addr of param n, -ve args, +ve locals
-;     rst $08                             ; enter forth
-;     dw oneminus, cells                            ; n *= 2
-;     dw framePtr, fetch, plus
-;     EXIT
-
-; defword "p1",2,0,p1                     ;  -- p1addr
-;     rst $08                             ; enter forth
-;     dw lit, -1, param, fetch
-;     EXIT
-
-; defword "p2",2,0,p2                     ;  -- p2addr
-;     rst $08                             ; enter forth
-;     dw lit, -2, param, fetch
-;     EXIT
-
-; defword "p3",2,0,p3                     ;  -- p3addr
-;     rst $08                             ; enter forth
-;     dw lit, -3, param, fetch
-;     EXIT
-
-; defword "v1",2,0,v1                     ;  -- v1addr
-;     rst $08                             ; enter forth
-;     dw lit, 1, param
-;     EXIT
-
-; defword "v2",2,0,v2                     ;  -- v2addr
-;     rst $08                             ; enter forth
-;     dw lit, 2, param
-;     EXIT
-
-; defword "v3",2,0,v3                     ;  -- v3addr
-;     rst $08                             ; enter forth
-;     dw lit, 3, param
 ;     EXIT
 
 ; litIf:

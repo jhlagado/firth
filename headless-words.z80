@@ -11,11 +11,22 @@ exit:
 exit_forth:
     ret
 
-litStr:                                 ; pushes ptr to string and length on stack
-    rst $08                             ; enter forth
+litStr:                                     ; pushes ptr to string and length on stack
+    rst $08                                 ; enter forth
     dw rfrom
     dw count, over, over, plus
     dw tor
+    EXIT
+
+interpToken:                                ; ptr len --
+    rst $08
+    dw over, over, find                     ; ptr len -- ptr len addr
+    dw dup, zNotEqual
+    cIf
+        dw interpWord
+    cElse
+        dw interpLiteral
+    cEndif
     EXIT
 
 interpWord:                                 ; ptr len addr --

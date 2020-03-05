@@ -1,0 +1,80 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; dictionary words
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+defword ":",1,0,colon
+    rst $08                             ; enter forth
+    dw create                           ; create the dictionary entry / header
+    dw here,fetch                       ; back up 3 bytes to start of data area
+    dw lit, 3, minus
+    dw here, store
+    dw lit, rst08_opcode, ccomma        ; write z80 jp opcode to word
+    dw latest, fetch, hidden            ; make the word hidden (see below for definition).
+    dw rbrac                            ; go into compile mode.
+    EXIT                                ; return from the function.
+
+defword ";",1,msk_immed,semicolon
+    rst $08                             ; enter forth
+    dw lit, exit, comma                 ; append exit (so the word will return).
+    dw latest, fetch, hidden            ; toggle hidden flag -- unhide the word (see below for definition).
+    dw lbrac                            ; go back to immediate mode.
+    EXIT                                ; return from the function.
+
+defword ":noname",7,0,colonNoName
+    rst $08                             ; enter forth
+    dw here, fetch                      ; TOS = here
+    dw lit, rst08_opcode, ccomma        ; write z80 jp opcode to word
+    dw rbrac                            ; go into compile mode.
+    EXIT                                ; return from the function.
+
+defword "variable",8,0,variable         ; ( n -- ) get name from input
+    rst $08                             ; enter forth
+    dw lit, 1, cells
+    dw here, fetch, swap                ; n -- here n
+    dw allot                            ; allocate n bytes, push addr
+    dw constant
+    EXIT
+
+defword "buffer:",7,0,bufferColon       ; ( n -- ) get name from input
+    rst $08                             ; enter forth
+    dw here, fetch, swap                ; n -- here n
+    dw allot                           ; allocate n bytes, push addr
+    dw constant
+    EXIT
+
+defword "create",6,0,create             ; --
+    rst $08                             ; enter forth
+    dw here, fetch                      ; get old "here"
+    dw latest, fetch, comma             ; write link to previous word to "here"
+    dw latest, store                    ; update latest to old "here"
+    dw bl, word                   ; read word token
+    dw cfetch, oneplus, allot           ;
+    dw lit, jp_opcode, cComma           ; compile default behavious
+    dw lit, xcreate, comma              ; i.e. push addr of data area
+    EXIT                                ; exit from forth
+xcreate:
+    rst $08                             ; enter forth
+    dw rfrom                            ; push onto stack
+    EXIT
+
+defword "does>", 5, msk_immed, does         ; --
+    rst $08                             ; enter forth
+    dw lit, xdoes, comma
+    dw lit, dodoes
+    dw here, fetch
+    dw lit, call_opcode
+    dw over, cstore
+    dw oneplus, store
+    dw lit, 3, allot
+    EXIT
+
+defword "constant",8,0,constant         ; --
+    rst $08                             ; enter forth
+    dw create,comma,xdoes
+    rst $08
+    dw rfrom                            ; push onto stack
+    dw fetch
+    EXIT
+

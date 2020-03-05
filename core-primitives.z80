@@ -1,11 +1,6 @@
 ; ; words must preserve: BC, DE, SP, IX
 ; ; words may destroy: HL, IY, AF, AF', BC', DE' HL'
 
-defword "quit",4,0,quit
-    ld sp, ret_stack
-    call interpret                      ; interpret the next word
-    NEXT
-
 defword "xword",6,0,xword               ; delim limit addr -- c-addr
     call xwordSkip
     call xwordRead
@@ -242,6 +237,25 @@ defword "-",1,0,MINUS
     loadWord B,C, H,L
     NEXT
 
+; U*   u1 u2 -- ud   unsigned mutliply
+defword "u*",2,0,USTAR              ; u1 u2 -- ud
+                                    ; u2 in BC
+    ppop0 D,E                       ; u1 in DE
+	call unsignedMultiply
+    ppush0 D,E                      ; udlo result
+                                    ; udhi result
+    NEXT
+
+; U/MOD   u1 u2 -- u1 u2    unsigned 16 / 16 -> r q
+defword "u/mod",5,0,USLASHMOD
+    ppop D,E                ; DE = divisor
+                            ; BC = dividend
+    call divideWordByWord
+
+    ppush0 H,L           ; PUSH remainder,
+    NEXT
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;; logic
@@ -295,6 +309,41 @@ defword "or",2,0,OR	            ; bitwise OR
     or L
     ld C,A
     NEXT
+    
+; xor    x1 x2 -- x3            logical xor
+defword "xor",3,0,xor	        ; bitwise xor
+    ppop0 H,L
+    ld A,B
+    xor H
+    ld B,A
+    ld A,C
+    xor L
+    ld C,A
+    NEXT
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; stack
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+defword "rot",3,0,ROT       ; x1 x2 x3 -- x2 x3 x1
+                            ; x3 in BC
+    ppop0 D,E               ; x2 in DE
+    ppop0 H,L               ; x1 in HL
+    ppush0 D,E              ; x2 on stack
+    ppush H,L               ; PUSH x1 - x2 x3 x1
+                            ; x1 in BC
+    NEXT
+
+defword "-rot",4,0,NROT     ; x1 x2 x3 -- x3 x1 x2
+                            ; x3 in BC
+    ppop0 D,E               ; x2 in DE
+    ppop0 H,L               ; x1 in HL
+    ppush H,L               ; PUSH x1 - x3 x1
+    ppush D,E               ; PUSH x2 - x3 x1 x2
+                            ; x2 in BC
+    NEXT
 
 defword "dup",3,0,DUP        ; x -- x x
     ppush0 B,C
@@ -340,7 +389,19 @@ defword "r>",2,0,RFROM
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 defword ".",1,0,DOT                 ; print top of stack in BASE
-    call printNum
+    push HL
+    push DE
+    push BC
+    loadWord H,L, B,C
+    ld A,(VAR_BASE)
+    ld C,A
+    ld DE, wordBuf
+    call formatNum
+    call printStr
+    call printSpace
+    pop BC
+    pop DE
+    pop HL
     ppop0 B,C
     NEXT
 
@@ -350,7 +411,59 @@ defword "type",4,0,TYPE             ; ( str len -- )
     ppop0 B,C                       ; clear TOS
     NEXT
 
-defword "cr",2,0,cr                     ; ( -- )
+defword "cr",2,0,cr                 ; ( -- )
     call printcr
     NEXT
+
+    
+    ; dw dup, 0<                      ; ptr data data 
+    ; cIf                             
+    ;     dw swap                     ; data ptr 
+    ;     dw dup, lit, '-'            ; data ptr ptr '-'
+    ;     dw swap, store              ; data ptr
+    ; cEndif
+    
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; HL = data, DE = ptr to lineBuf, C = base ***
+; DE = ptr to string, BC = length
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; formatNumber:                       ; base data ptr -- ptr length
+    ; bit 7, H
+    ; _if nz
+    ;     ; HL is negative. Output '-' to string and negate HL.
+    ;     ld A, '-'
+    ;     ld (DE), A
+    ;     inc DE
+    ;     call negateNum
+    ; _endif
+
+    ; ld B, 0     ; B will count character length of number
+    ; _do
+    ;     push BC
+    ;     call divideWordByByte  ; HL = HL / A, A = remainder
+    ;     pop BC
+    ;     push AF
+    ;     inc B
+    ;     checkZeroWord H,L
+    ; _until z
+    ; _enddo
+    ; _do
+    ;     pop AF
+    ;     add A,$30                     ; convert digit to ASCII
+    ;     cp $3A
+    ;     _if nc
+    ;         add A,7
+    ;     _endif
+    ;     ld (DE), A
+    ;     inc DE
+    ; _djnz
+
+    ; ld HL,wordBuf           ;calc length
+    ; ex DE,HL
+    ; or A
+    ; sbc HL,DE
+    ; loadWord B,C, H,L
+    ; ret
+
 

@@ -25,15 +25,6 @@ defword "2-",2,0,twoMinus
 defword "noop",4,0,noop
     NEXT
 
-; U*   u1 u2 -- ud   unsigned mutliply
-defword "u*",2,0,USTAR              ; u1 u2 -- ud
-                                    ; u2 in BC
-    ppop0 D,E                       ; u1 in DE
-	call unsignedMultiply
-    ppush0 D,E                      ; udlo result
-                                    ; udhi result
-    NEXT
-
 ;z RSP!  a-addr --                  set return stack pointer
 defword "rsp!",4,0,RSPSTORE
     SET_RET_SP B,C
@@ -79,30 +70,10 @@ defword "chars",5,0,CHARS
 
 ; */MOD star-slash-mod
 
-; U/MOD   u1 u2 -- u1 u2    unsigned 16 / 16 -> r q
-defword "u/mod",5,0,USLASHMOD
-    ppop D,E                ; DE = divisor
-                            ; BC = dividend
-    call divideWordByWord
-
-    ppush0 H,L           ; PUSH remainder,
-    NEXT
-
 ; 2/      x1 -- x2                  arithmetic right shift
 defword "2/",2,0,TWOSLASH
     sra B
     rr C
-    NEXT
-
-; xor    x1 x2 -- x3            logical xor
-defword "xor",3,0,xor	        ; bitwise xor
-    ppop0 H,L
-    ld A,B
-    xor H
-    ld B,A
-    ld A,C
-    xor L
-    ld C,A
     NEXT
 
 ; LSHIFT  x1 u -- x2       logical L shift u places
@@ -137,30 +108,6 @@ RSHIFT2:
 
 defword ">>",2,0,gtgt
     jr rShift
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-;; stack
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-defword "rot",3,0,ROT       ; x1 x2 x3 -- x2 x3 x1
-                            ; x3 in BC
-    ppop0 D,E               ; x2 in DE
-    ppop0 H,L               ; x1 in HL
-    ppush0 D,E              ; x2 on stack
-    ppush H,L               ; PUSH x1 - x2 x3 x1
-                            ; x1 in BC
-    NEXT
-
-defword "-rot",4,0,NROT     ; x1 x2 x3 -- x3 x1 x2
-                            ; x3 in BC
-    ppop0 D,E               ; x2 in DE
-    ppop0 H,L               ; x1 in HL
-    ppush H,L               ; PUSH x1 - x3 x1
-    ppush D,E               ; PUSH x2 - x3 x1 x2
-                            ; x2 in BC
-    NEXT
 
 ; R@ r-fetch
 
