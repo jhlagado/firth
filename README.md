@@ -2,6 +2,8 @@
 
 Firth is a minimal (~4K) implementation of Forth for the Z80.
 
+![Bridge at Firth](firth.gif)
+
 ## Contents
 
 - [Motivation](#Motivation)
