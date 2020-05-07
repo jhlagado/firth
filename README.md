@@ -53,7 +53,7 @@ Firth is a minimal (~4K) implementation of Forth for the Z80.
 
 ## Motivation
 
-Back in 1983, I designed a computer kit with my friend Ken Stone which we called the TEC-1. It was a single-board computer kit which we published in Talking Electronics, a Melbourne-based electronics hobbyist magazine.
+A long time ago, I designed a computer kit with my friend Ken Stone which we called the TEC-1. It was a single-board computer kit which we published in Talking Electronics, a Melbourne-based electronics hobbyist magazine.
 
 The configuration of the TEC-1 was a Z80 CPU with 2K of ROM and 2K of RAM. It also included a hexidecimal keyboard and a 6 digit 7-segment display.
 
