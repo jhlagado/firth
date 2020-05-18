@@ -51,6 +51,7 @@ Firth is a minimal (~4K) implementation of Forth for the Z80.
   - [Further reading](#Further-reading)
   - [Running unit tests](#Running-unit-tests)
 
+<!--
 ## Motivation
 
 A long time ago, I designed a computer kit with my friend Ken Stone which we called the TEC-1. It was a single-board computer kit which we published in Talking Electronics, a Melbourne-based electronics hobbyist magazine.
@@ -68,7 +69,7 @@ In its original form, the TEC-1 offered very little to the programmer. All code 
 Fast-forward to the modern era, I started to think about augmenting the TEC-1 circuit with a proper serial interface. I then went to consider (before rejecting) adding a BASIC interpreter to the TEC-1. Instead I decided to pursue another longtime interest of mine (which also dates from the early 80s) I decided that what the TEC-1 needed was a self-hosted programming environment based on Charles Moore's [Forth](https://en.wikipedia.org/wiki/Forth) programming language.
 
 This is where Firth comes from. "Firth" is named after the [Firth of Forth](https://en.wikipedia.org/wiki/Firth_of_Forth) an estuary on the river Forth in Scotland -- for no other reason than it's a cool-sounding name although it could be because this is also my "first Forth".
-
+-->
 ## Firth
 
 ### License
