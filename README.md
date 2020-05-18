@@ -59,11 +59,11 @@ The configuration of the TEC-1 was a Z80 CPU with 2K of ROM and 2K of RAM. It al
 
 The kit was quite successful and was released at a critical time in Australian computer history. A few thousand TEC-1 kits were sold and, as we learned over the years from people who remember the kit, it introduced many people to computing and programming for the very first time.
 
-The kit continues on to this day with other people creating TEC-1 boards and new TEC-1s continue to be built by hobbyists. If they install version 1 of the monitor ROM that came with the original kit they are greeted with a 37-year-old message from me:
+The kit continues on to this day with other people creating TEC-1 boards and new TEC-1s continue to be built by hobbyists. If they install version 1 of the monitor ROM that came with the original kit they're greeted with an old message from teen-age me:
 
 `hello there this is the tec-1 ... designed by john hardy for TE!`
 
-Looking back, I'm really happy that the TEC-1 continues to live. I do have one regret however: that the TEC-1 was so damned hard to program! In its original form, the TEC-1 offered very little to the programmer. All code needs to be hand assembled and hand entered in via the hexadecimal keyboard. I always wanted to provide the TEC-1 one with a proper programming environment.
+In its original form, the TEC-1 offered very little to the programmer. All code needs to be hand assembled and hand entered in via the hexadecimal keyboard. I always wanted to provide the TEC-1 one with a proper programming environment.
 
 Fast-forward to the modern era, I started to think about augmenting the TEC-1 circuit with a proper serial interface. I then went to consider (before rejecting) adding a BASIC interpreter to the TEC-1. Instead I decided to pursue another longtime interest of mine (which also dates from the early 80s) I decided that what the TEC-1 needed was a self-hosted programming environment based on Charles Moore's [Forth](https://en.wikipedia.org/wiki/Forth) programming language.
 
