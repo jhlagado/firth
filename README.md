@@ -169,7 +169,7 @@ Forth has been described as a "bottom-up" language because it builds up directly
 
 Forth is self-hosting which means that it is possible to write and edit code within the Forth system itself as opposed to targeting it from another system. Forth's abstractions are easy to understand and they simplify the process of writing programs for a microprocessor. Unlike conventional compiler languages, Forth imposes very in the way of system overhead.
 
-So why Forth? Because Forth can be written from a low base of assembly language, it becomes a relatively simple task to get Forth running on diverse range of CPUs. Forth is portable. It irons out the quirks and differences between instruction sets and presents the developer with a much smaller programming surface than traditional assembly language does. Forth unifies many low level programming tasks.
+So why Forth?? Because Forth can be written from a low base of assembly language, it becomes a relatively simple task to get Forth running on diverse range of CPUs. Forth is portable. It irons out the quirks and differences between instruction sets and presents the developer with a much smaller programming surface than traditional assembly language does. Forth unifies many low level programming tasks.
 
 Forth is lightweight. Even a language designed for systems programming such as C is much more "high-level" than Forth and adds considerably more overhead in terms of program size, memory size and computational overhead. Forth programs are extremely compact and are often smaller than the same code written in assembly language.
 
