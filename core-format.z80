@@ -1,3 +1,20 @@
+mCODE ".",1,0,DOT                 ; print top of stack in BASE
+    push HL
+    push DE
+    push BC
+    loadWord H,L, B,C
+    ld A,(VAR_BASE)
+    ld C,A
+    ld DE, wordBuf
+    call formatNum
+    call printStr
+    call printSpace
+    pop BC
+    pop DE
+    pop HL
+    ppop0 B,C
+    NEXT
+
 printNum:
     push HL
     push DE
@@ -151,4 +168,12 @@ toNumberExit:
     pop HL
     pop IY
     ret                 ; de = number, BC = err
+
+mCODE "number",6,0,NUMBER         ; ( ptr len -- num err )
+    ppop0 H,L
+	call toNumber                   ; params: HL = string address, BC = string length
+			                        ; Returns the parsed number in DE,
+	                                ; BC = 0, success
+    ppush0 D,E
+    NEXT
 

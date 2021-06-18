@@ -30,39 +30,3 @@ mCODE ">cfa",4,0,tcfa
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-mCODE "{",1,msk_immed,lbrace
-    ENTER
-    dw state, fetch, zEqual
-    dw nesting, fetch, zEqual
-    dw and
-    cIf
-        dw here, fetch                  ; TOS = here
-        dw lit, rst08_opcode, ccomma    ; write z80 jp opcode to word
-    cEndIf
-    dw nestPlus                         ; increase nesting
-    EXIT                             ; return from the function.
-
-mCODE "}",1,msk_immed,rbrace
-    ENTER
-    dw nestMinus                        ; reduce nesting
-    dw state, fetch, zEqual
-    dw nesting, fetch, zEqual
-    dw and
-    cIf
-        dw lit, exit, comma                 ; append exit (so the word will return).
-    cEndIf
-    EXIT                             ; return from the function.
-
-mCODE "}exec",5,msk_immed,rbraceExec
-    ENTER
-    dw rbrace
-    dw state, fetch, zEqual
-    dw nesting, fetch, zEqual
-    dw and
-    cIf
-        dw dup
-        dw here, store
-        dw execute
-    cEndIf
-    EXIT                             ; return from the function.
-

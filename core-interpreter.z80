@@ -1,3 +1,13 @@
+mCODE "lit",3,0,LIT
+	ppush0 B,C                      ; pushTOS
+	pop HL                          ; pop address of next Forth word in HL
+	readWord HL, B,C                ; read next word and push on TOS, inc HL by 2
+    NEXT1
+
+mCODE "execute",7,0,EXECUTE
+    ppop H,L                        ; POP TOS into HL
+    jp (hl)                         ; go do Forth word
+
 mCODE "interpret",6,0,interpret
     rst $08
     cDo

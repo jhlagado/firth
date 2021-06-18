@@ -45,4 +45,6 @@ forth:                                      ; for calling forth words from assem
     ex DE,HL
     jp (HL)
 
+mCODE "noop",4,0,noop
+    NEXT
 

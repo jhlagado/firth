@@ -34,6 +34,17 @@ mCODE $22,1,msk_immed,qt
     cEndif
     EXIT
 
+    mCODE "pack",4,0,pack             ; ( adr1 len adr2 -- adr2 )
+    ppop D,E                        ; DE = adr2, BC = len
+    push DE
+    ppop0 H,L                       ; HL = adr1
+    ld A,C
+    ld (DE),A                       ; write length byte to adr2
+    inc DE                          ; adr2 += 1
+    ldir
+    pop BC                          ; TOS = adr2
+    NEXT
+
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

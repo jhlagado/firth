@@ -3,3 +3,48 @@ mCODE "'",1,0,tick                    ; quotes next word
     dw rFrom,count,over,over,plus,toR
     dw EXIT
 
+mCODE "immediate",9,MSK_IMMED,IMMEDIATE
+    ld HL, (VAR_LATEST)                 ; get head of latest word
+    inc HL                              ; point to flags byte
+    inc HL
+    ld a, MSK_IMMED
+    xor (HL)                            ; toggle the IMMED bit.
+    ld (HL),a
+    NEXT
+
+    mCODE "xword",6,0,xword               ; delim limit addr -- c-addr
+    call xwordSkip
+    call xwordRead
+    NEXT
+
+mCODE "find",4,0,FIND
+    ppop0 H,L
+
+    call lookup                     ; params: HL = string address, BC = string length
+                                    ; returns: DE = found header ptr or 0
+    loadWord B,C, D,E               ; move to TOS
+    NEXT
+
+mCODE "hidden",6,0,HIDDEN
+    ppop H,L		            ; HL = Dictionary entry.
+    inc HL
+    inc HL                      ; Point to name/flags byte.
+
+    ld A, (HL)
+    xor MSK_HIDDEN        	    ; Toggle the HIDDEN bit.
+    ld (HL), A
+    NEXT
+
+mCODE "[",1,MSK_IMMED,LBRAC
+	ld HL, 0
+	ld (VAR_STATE), HL	; Set STATE to 0.
+    NEXT
+
+mCODE "]",1,0,RBRAC
+	ld HL, 1
+	ld (VAR_STATE), HL	; Set STATE to 1.
+    NEXT
+
+
+
+    

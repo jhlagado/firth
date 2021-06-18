@@ -423,3 +423,7 @@ unsignedMultiply:
     _until z
     _enddo
     ret
+
+; CELLS   ( n1 -- n2 ) n2 is the size in address units of n1 cells.
+mCODE "chars",5,0,CHARS
+    jp noop

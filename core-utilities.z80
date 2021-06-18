@@ -1,9 +1,29 @@
+; .s print stack (non-destructively)
+mCODE ".s",2,0,dots                   ; ( -- )
+    ENTER
+    dw spfetch                          ; psp
+    dw sp0, fetch                       ; psp0
+    dw minus
+    dw lit, 0, greaterThan
+    cif
+        dw sp0, fetch, lit, 2, plus
+        cdo
+            dw dup
+            dw spfetch, lit, 2, minus
+            dw swap, minus, zequal
+        cuntil
+            dw dup, fetch, dot
+            dw lit, 2, plus
+        cenddo
+        dw drop
+    cendif
+    EXIT
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; listWords - prints all the words in dictionary
-;
-; destroys: ?
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+mCODE "words", 5, 0, WORDS
+    push BC
+    call listWords
+    pop BC
+    NEXT
 
 listWords:
     ld DE, (VAR_LATEST)             ; search dictionary backwards from LATEST

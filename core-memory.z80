@@ -48,4 +48,33 @@ mCODE "allot",5,0,allot               ;
     dw here, addstore                   ; adds n to here
     EXIT
 
+mCODE "+!",2,0,ADDSTORE               ; (n addr -- )
+	ppop H, L		            ; HL = address, TOS = amount to add
+	ld A,(HL)
+	add A,C                         ; add TOS at (HL),
+	ld (HL),A
+	inc HL
+	ld A,(HL)
+	adc A,B
+	ld (HL),A
+	ppop0 B,C                      ; clear param stack
+    NEXT
+
+mCODE ",",1,0,COMMA
+	ld HL, (VAR_HERE)	; HERE
+	writeWord HL, B,C
+	ld (VAR_HERE), HL	; Update HERE (incremented)
+	ppop0 B,C		        ; cleanup TOS
+    NEXT
+
+mCODE "c,",1,0,CCOMMA
+    ppush0 H,L
+	ld HL, (VAR_HERE)	; HERE
+	ld (HL), C          ; Store DE at memory pointed to by VAR_HERE
+	inc HL
+	ld (VAR_HERE), HL	; Update HERE (incremented)
+    ppop0 H,L
+	ppop0 B,C		        ; cleanup TOS
+    NEXT
+
 

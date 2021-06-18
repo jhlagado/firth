@@ -52,3 +52,23 @@ mCODE "repeat",6,msk_immed,repeat
     dw swap, store                      ; save offset in here2
     dw rbraceExec
     EXIT
+
+; ?branch   x --              branch if TOS zero
+mCODE "0branch",7,0,ZBRANCH
+    checkZeroWord B,C               ; test old TOS
+    ppop0 B,C                       ; POP new TOS
+    jr z,BRANCH                     ; if old TOS=0, branch
+    pop HL
+    inc HL                          ; else skip inline value
+    inc HL
+    NEXT1
+
+mCODE "branch",6,0,BRANCH         ; relative branching
+    pop HL                          ; add the offset to the instruction pointer
+    ld E,(HL)
+    inc HL
+    ld D,(HL)
+    dec HL
+    add HL,DE
+    NEXT1
+

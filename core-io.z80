@@ -1,20 +1,3 @@
-mCODE ".",1,0,DOT                 ; print top of stack in BASE
-    push HL
-    push DE
-    push BC
-    loadWord H,L, B,C
-    ld A,(VAR_BASE)
-    ld C,A
-    ld DE, wordBuf
-    call formatNum
-    call printStr
-    call printSpace
-    pop BC
-    pop DE
-    pop HL
-    ppop0 B,C
-    NEXT
-
 mCODE "type",4,0,TYPE             ; ( str len -- )
     ppop0 D,E                       ; DE = str BC = length
     call printStr
@@ -56,4 +39,22 @@ mCODE "bl",2,0,bl
     ENTER
     dw lit, $20                         ; compile branch on zero
     EXIT
+
+mCODE "print",5,0,PRINT
+    ppop D,E
+    call printPStr
+    NEXT
+
+; ." print string"
+mCODE {".",$22},2,msk_immed,dotquote
+    ENTER
+    dw qt
+    dw state, fetch, zequal
+    cIf
+        dw type
+    cElse
+        dw lit, type, comma
+    cEndIf
+    EXIT
+
 
