@@ -27,11 +27,6 @@ RST66:
 
 .include "serial.z80"
 
-.include "compiler-words.z80"
-.include "headless-words.z80"
-
-.include "extra-words.z80"
-
 .include "core-alu.z80"
 .include "core-compiler.z80"
 .include "core-control.z80"
@@ -44,6 +39,7 @@ RST66:
 .include "core-stacks.z80"
 .include "core-strings.z80"
 .include "core-utilities.z80"
+.include "extra-words.z80"
 
 .include "definitions.z80"                  ; must be included last
 

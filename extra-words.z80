@@ -1,9 +1,3 @@
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; extra words
-;;
-;; forth word defintions
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
 mCODE "{",1,msk_immed,lbrace
     ENTER
     dw state, fetch, zEqual
@@ -24,6 +18,19 @@ mCODE "}",1,msk_immed,rbrace
     dw and
     cIf
         dw lit, exit, comma                 ; append exit (so the word will return).
+    cEndIf
+    EXIT                             ; return from the function.
+
+mCODE "}exec",5,msk_immed,rbraceExec
+    ENTER
+    dw rbrace
+    dw state, fetch, zEqual
+    dw nesting, fetch, zEqual
+    dw and
+    cIf
+        dw dup
+        dw here, store
+        dw execute
     cEndIf
     EXIT                             ; return from the function.
 
