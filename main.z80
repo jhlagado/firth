@@ -1,105 +1,95 @@
 .engine mycomputer
 
-TESTMODE equ 0
-
-.include "constants.z80"
-.include "macros.z80"
-.include "struct-macros.z80"
-.include "dloop-macros.z80"
-.include "compiler-macros.z80"
-
-.org START_ROM
-RST00:                                      ; Reset
-    di                                      ; Disable interrupts
-    jp start
-
-.org $0008
-RST08:                                      ; Check serial status
-    jp enter
-
-.org $0038
-RST38:                                      ; rst 38 - INTERRUPT VECTOR [ for IM 1 ]
-    jp serialIn
-
-.org $0066                                  ; rst 66 - NON-MASKABLE INTERRUPT
-RST66:
-    ret                                     ; do nothing
-
-.include "serial.z80"
-
-.include "core-primitives.z80"
-.include "core-utilities.z80"
-.include "core-words.z80"
-
-.include "compiler-words.z80"
-.include "experimental.z80"
-.include "headless-words.z80"
-
-.include "extra-primitives.z80"
-.include "extra-utilities.z80"
-.include "extra-words.z80"
-
-.include "core-alu.z80"
-.include "core-control.z80"
-.include "core-io.z80"
-.include "core-memory.z80"
-.include "core-stacks.z80"
-.include "core-messages.z80"
-
-.include "definitions.z80"                  ; must be included last
-
-start:
-    ld SP, RET_STACK                        ; Initialise the return stack.
-    call initSerial
-    call initForth
-
-.if TESTMODE
-    jp TESTS_START
-
-.else
-    PRINT_STR TXT_INTRO
-    jp QUIT
-.endif
-
-org START_RAM
-
-.if TESTMODE
-
-TESTS_START:
-
-    .include "test-macros.z80"
-.endif
-
-.if TESTMODE = 1
-    .include "tests.z80"
-    .include "test-base.z80"
-    .include "test-number.z80"
-    .include "test-experimental.z80"
-.endif
-
-.if TESTMODE = 2
-    rst $08
-    dw lit, 1
-    dw add100
-    dw exit_forth
-    EXPECT 101, "100 + 1"
-.endif
-
-.if TESTMODE
-    PRINT_STR DONE
-    halt
-
-.endif
-
-add100:                       ; base data ptr -- ptr length
-    rst $08
-    dw beginFrame 
-    dw lit, 100
-    dw p1, v1, fetch, plus  
-    dw endFrame
-    EXIT
-
-
-.include "variables.z80"
-
-START_USER:                                 ; user allocated data starts here
+    TESTMODE equ 0
+    
+    .include "constants.z80"
+    .include "macros.z80"
+    .include "struct-macros.z80"
+    .include "dloop-macros.z80"
+    .include "compiler-macros.z80"
+    
+    .org START_ROM
+    RST00:                                      ; Reset
+        di                                      ; Disable interrupts
+        jp start
+    
+    .org $0008
+    RST08:                                      ; Check serial status
+        jp enter
+    
+    .org $0038
+    RST38:                                      ; rst 38 - INTERRUPT VECTOR [ for IM 1 ]
+        jp serialIn
+    
+    .org $0066                                  ; rst 66 - NON-MASKABLE INTERRUPT
+    RST66:
+        ret                                     ; do nothing
+    
+    .include "serial.z80"
+    
+    .include "core-primitives.z80"
+    .include "core-utilities.z80"
+    .include "core-words.z80"
+    
+    .include "compiler-words.z80"
+    .include "headless-words.z80"
+    
+    .include "extra-primitives.z80"
+    .include "extra-words.z80"
+    
+    .include "core-alu.z80"
+    .include "core-control.z80"
+    .include "core-io.z80"
+    .include "core-memory.z80"
+    .include "core-stacks.z80"
+    .include "core-messages.z80"
+    
+    .include "definitions.z80"                  ; must be included last
+    
+    start:
+        ld SP, RET_STACK                        ; Initialise the return stack.
+        call initSerial
+        call initForth
+    
+    .if TESTMODE
+        jp TESTS_START
+    
+    .else
+        PRINT_STR TXT_INTRO
+        jp QUIT
+    .endif
+    
+    org START_RAM
+    
+    .if TESTMODE
+    
+    TESTS_START:
+    
+        .include "test-macros.z80"
+    .endif
+    
+    .if TESTMODE = 1
+        .include "tests.z80"
+        .include "test-base.z80"
+        .include "test-number.z80"
+        .include "test-experimental.z80"
+    .endif
+    
+    .if TESTMODE = 2
+        rst $08
+        dw lit, 1
+        dw add100
+        dw exit_forth
+        EXPECT 101, "100 + 1"
+    .endif
+    
+    .if TESTMODE
+        PRINT_STR DONE
+        halt
+    
+    .endif
+    
+    .include "variables.z80"
+    
+    START_USER:                                 ; user allocated data starts here
+    

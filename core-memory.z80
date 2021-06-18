@@ -42,4 +42,10 @@ mCODE "sp!",3,0,SPSTORE
     pop IX
     NEXT
 
+; allocate n bytes of memory                                   ( n -- ) allocate n bytes of memory
+mCODE "allot",5,0,allot               ;
+    ENTER
+    dw here, addstore                   ; adds n to here
+    EXIT
+
 

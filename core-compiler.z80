@@ -1,0 +1,5 @@
+mCODE "'",1,0,tick                    ; quotes next word
+    dw bl,word,find,zEqual
+    dw rFrom,count,over,over,plus,toR
+    dw EXIT
+

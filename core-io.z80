@@ -52,3 +52,8 @@ mCODE "key?",4,0,QKEY              ; ( -- c )
     _endif
     NEXT
 
+mCODE "bl",2,0,bl
+    ENTER
+    dw lit, $20                         ; compile branch on zero
+    EXIT
+

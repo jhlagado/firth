@@ -1,0 +1,48 @@
+initForth:
+    ld IX, data_stack                       ; initialise the param stack.
+    ld IY, enter
+    ld (var_sp0), IX
+    ld BC, 0                                ; tos
+
+    ld HL,0
+    ld (var_framePtr), HL
+    ld (var_intp_stop), HL
+    ld (is_literal), HL
+    ld (var_nesting), HL
+    ld (var_state), HL
+
+    ld HL, 10
+    ld (var_base), HL
+
+    ld HL, start_user
+    ld (var_here), HL
+
+    ld HL, header_latest
+    ld (var_latest), HL
+    ld (var_latest_str), HL
+
+    ld A,rts_low
+    out ($80),A                             ; initialise acia
+    im 1
+    ei
+    ret
+
+enter:
+    pop HL
+enter1:
+    ld E,(HL)
+    inc HL
+    ld D,(HL)
+    inc HL
+    push HL
+    ex DE,HL
+    jp (HL)
+
+forth:                                      ; for calling forth words from assembly
+    ld HL, exitAddr
+    ex (SP),HL
+    ld (exitAddr),HL
+    ex DE,HL
+    jp (HL)
+
+

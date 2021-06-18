@@ -316,3 +316,110 @@ mCODE "max",3,0,max
         dw drop
     cendif
     EXIT
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; negate ***
+; params: HL = number
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+negateNum:
+    ; Negate HL (using two's complement)
+    xor A
+    sub L
+    ld L, A
+    ld A, 0     ; Note that xor A or SUB A would disturb CF
+    sbc A, H
+    ld H, A
+    ret
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; divide word by byte ***
+; params: HL = dividend, C = divisor
+; returns: HL = result, A = remainder
+; destroys: ?
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+divideWordByByte:
+    ld B, 16
+    xor A
+    _do
+        add HL, HL
+        rla
+        _if c
+            sub C
+            inc L
+        _else
+            cp C
+            _if nc
+                sub C
+                inc L
+            _endif
+        _endif
+    _djnz
+    ret
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Divide word by word ***
+; params: BC = dividend, DE = divisor
+; returns: BC = result, HL = remainder
+; destroys: ?
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+divideWordByWord:
+    push DE
+    ld HL,0
+    ld A,B
+    ld B,8
+    _do
+        rla
+        adc HL,HL
+        sbc HL,DE
+        _if c
+            add HL,DE
+        _endif
+    _djnz
+    rla
+    cpl
+    ld B,A
+    ld A,C
+    ld C,B
+    ld B,8
+    _do
+        rla
+        adc HL,HL
+        sbc HL,DE
+        _if c
+            add HL,DE
+        _endif
+    _djnz
+    rla
+    cpl
+    ld B,C
+    ld C,A
+    pop DE
+    ret
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; unsignedMultiply -  unsigned multiply ***
+;
+; params:  u1 in BC, u2 in DE
+; returns: result in HLDE
+; destroys: AF
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+unsignedMultiply:
+    ld HL,0
+    ld A,17     ; loop counter
+    or A        ; clear carry
+    _do
+        rr H
+        rr L
+        rr D
+        rr E
+        _if c
+            add HL,BC
+        _endif
+        dec A
+    _until z
+    _enddo
+    ret

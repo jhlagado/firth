@@ -1,0 +1,67 @@
+; count extract string length from pascal string  ( ptr -- ptr+1 len )
+mCODE "count",5,0,count
+    ENTER
+    dw dup, lit, 1, plus                ; ( ptr -- ptr ptr+1)
+    dw swap, cfetch                     ; ( ptr ptr+1 -- ptr+1 len)
+    EXIT
+
+; using {"s",$22} because it's surprisingly difficult
+; to define the name s" using asm80
+mCODE {"s",$22},2,msk_immed,squote
+    jr qt
+
+mCODE $22,1,msk_immed,qt
+    ENTER
+    dw state, fetch, zequal
+    cIf
+        dw lit, $22                     ; delim
+        dw lit, 63                      ; limit 63 + length
+        dw latestStr, fetch
+        dw lit, wordBuf, equal
+        cIf
+            dw lit, wordBuf2
+        cElse
+            dw lit, wordBuf
+        cEndIf
+        dw latestStr, store             ; store here in latestStr
+        dw latestStr, fetch
+        dw xword, count
+    cElse
+        dw lit, litstr, comma
+        dw lit, $22, word
+        dw cfetch, oneplus
+        dw allot
+    cEndif
+    EXIT
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; compareStr - string equal
+; params: de = string1, HL = string2, BC = length
+; returns: a = -1, 0, 1, HL = mismatch char if a != 0
+; destroys: de, HL, BC
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+compareStr:
+
+    checkZeroWord B,C    ; test for Count=0
+    _if nz          ; length zero = match
+        _do
+            ld A,(DE)
+            inc DE
+            cpi
+            _if nz          ; char mismatch: exit
+                dec HL      ; point at mismatch char
+                cp (HL)     ; set carry if char1 < char2
+                sbc A,A
+                or 1        ; a = ff if carry, 1 if no carry
+                ret
+            _endif
+        _until po
+        _enddo
+    _endif
+    ; count exhausted & no mismatch found
+    ld A,0          ; a=0 (s1=s2)
+    ret
+
