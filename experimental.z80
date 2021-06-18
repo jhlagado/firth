@@ -4,8 +4,8 @@
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-defword "S[",2,0,beginFrame             ; begin a stack frame
-    rst $08                             ; enter forth
+mCODE "S[",2,0,beginFrame             ; begin a stack frame
+    ENTER
     dw framePtr, dup                    ; addr addr
     dw fetch, swap                      ; framePtr0 addr
     dw spfetch, swap                    ; framePtr0 addr -- framePtr0 paramSP addr
@@ -13,8 +13,8 @@ defword "S[",2,0,beginFrame             ; begin a stack frame
     EXIT                                ; TOS = framePtr0
 
 ; ]S                                    ; framePtr0 result --
-defword "]S",2,0,endFrame               ; end a stack frame
-    rst $08                             ; enter forth
+mCODE "]S",2,0,endFrame               ; end a stack frame
+    ENTER
                                         ; TOS = framePtr0
     dw swap, dup                        ; result framePtr0 framePtr0
     dw framePtr, store                  ; result framePtr0
@@ -23,139 +23,39 @@ defword "]S",2,0,endFrame               ; end a stack frame
     dw spstore                          ; store framePtr0 in sp
     EXIT
 
-defword "param",5,0,param               ; n -- addr return addr of param n, -ve args, +ve locals
-    rst $08                             ; enter forth
+mCODE "param",5,0,param               ; n -- addr return addr of param n, -ve args, +ve locals
+    ENTER
     dw oneminus, cells                  ; n *= 2
     dw framePtr, fetch, plus
     EXIT
 
-defword "p1",2,0,p1                     ;  -- p1addr
-    rst $08                             ; enter forth
+mCODE "p1",2,0,p1                     ;  -- p1addr
+    ENTER
     dw lit, -1, param, fetch
     EXIT
 
-defword "p2",2,0,p2                     ;  -- p2addr
-    rst $08                             ; enter forth
+mCODE "p2",2,0,p2                     ;  -- p2addr
+    ENTER
     dw lit, -2, param, fetch
     EXIT
 
-defword "p3",2,0,p3                     ;  -- p3addr
-    rst $08                             ; enter forth
+mCODE "p3",2,0,p3                     ;  -- p3addr
+    ENTER
     dw lit, -3, param, fetch
     EXIT
 
-defword "v1",2,0,v1                     ;  -- v1addr
-    rst $08                             ; enter forth
+mCODE "v1",2,0,v1                     ;  -- v1addr
+    ENTER
     dw lit, 1, param
     EXIT
 
-defword "v2",2,0,v2                     ;  -- v2addr
-    rst $08                             ; enter forth
+mCODE "v2",2,0,v2                     ;  -- v2addr
+    ENTER
     dw lit, 2, param
     EXIT
 
-defword "v3",2,0,v3                     ;  -- v3addr
-    rst $08                             ; enter forth
+mCODE "v3",2,0,v3                     ;  -- v3addr
+    ENTER
     dw lit, 3, param
     EXIT
-
-
-
-
-
-; defword "#base",5,0,hashbase            ; n --      ; switch to basel for one word
-;     rst $08
-;     dw base,fetch                       ; 16 base0
-;     dw swap, base, store                ; base0
-;     dw lit, $20, word, count            ; base0 addr length
-;     dw dup, zEqual
-;     cIf
-;         dw drop, drop                   ; base0
-;     cElse
-;         dw number                       ; base0 value error
-;         dw zNotEqual                    ; base0 value
-;         dw dup, dot
-;         cif
-;             dw drop                     ; base0
-;             dw litstr
-;             .pstr "Error: parsing"
-;             dw type
-;         cElse
-;             dw swap                     ; value base0
-;         cEndIf
-;     cEndif
-;     dw base, store                      ; restore base0
-;     EXIT
-
-; defword "#h",2,0,hashh                  ; switch to hex for one word
-;     rst $08                             ; enter forth
-;     dw lit,16,hashbase
-;     EXIT
-
-; defword "#d",2,0,hashd                  ; switch to decimal for one word
-;     rst $08                             ; enter forth
-;     dw lit,10,hashbase
-;     EXIT
-
-; defword "define:",7,0,defineColon
-;     rst $08                             ; enter forth
-;     dw create                           ; create the dictionary entry / header
-;     dw here,fetch                       ; back up 3 bytes to start of data area
-;     dw lit, 3, minus
-;     dw here, store
-;     dw lit, jp_opcode, ccomma          ; write z80 jp opcode to word
-;     dw comma                            ; compile address TOS
-;     EXIT                             ; return from the function.
-
-; defword "stack",6,0,stackColon          ; ( n -- addr ) allocates memory and puts pointer at 0
-;     rst $08                             ; enter forth
-;     dw twoPlus, allot                   ; allocate n + 2 bytes, push addr
-;     dw dup                              ; addr -- addr addr
-;     dw dup, twoPlus, swap, store        ; addr addr -- addr
-;     EXIT
-
-; defword "stackPush",5,0,stackPush       ; value stack --
-;     rst $08                             ; enter forth
-;     dw dup, nrot                        ; value stack - stack value stack
-;     dw fetch, dup, nrot                 ; stack value ptr -- stack ptr value ptr
-;     dw store                            ; stack ptr value ptr -- stack ptr
-;     dw twoplus, swap, store             ; stack ptr --
-;     EXIT
-
-; defword "stackPop",5,0,stackPop         ; stack -- value
-;     rst $08                             ; enter forth
-;     dw dup                              ; stack -- stack stack
-;     dw fetch, dup                       ; stack stack -- stack ptr ptr
-;     dw fetch, nrot                      ; stack ptr ptr -- value stack ptr
-;     dw twominus, swap                   ; value stack ptr -- value ptr stack
-;     dw store
-;     EXIT
-
-; litIf:
-;     rst $08
-;     dw rfrom, dup
-;     dw lit, 4, plus, tor                ;
-;     dw swap
-;     cIf
-;         dw fetch
-;     cElse
-;         dw twoplus, fetch
-;     cEndif
-;     EXIT
-
-; litComma:                               ; pushes ptr to string and length on stack
-;     rst $08                             ; enter forth
-;     dw rfrom, dup
-;     dw lit, 2, plus, tor
-;     dw fetch, comma
-;     EXIT
-
-; litCComma:                              ; pushes ptr to string and length on stack
-;     rst $08                             ; enter forth
-;     dw rfrom, dup
-;     dw lit, 2, plus, tor
-;     dw fetch, cComma
-;     EXIT
-
-
 

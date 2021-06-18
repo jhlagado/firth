@@ -1,12 +1,12 @@
 ; ; words must preserve: BC, DE, SP, IX
 ; ; words may destroy: HL, IY, AF, AF', BC', DE' HL'
 
-defword "xword",6,0,xword               ; delim limit addr -- c-addr
+mCODE "xword",6,0,xword               ; delim limit addr -- c-addr
     call xwordSkip
     call xwordRead
     NEXT
 
-defword "find",4,0,FIND
+mCODE "find",4,0,FIND
     ppop0 H,L
 
     call lookup                     ; params: HL = string address, BC = string length
@@ -14,11 +14,11 @@ defword "find",4,0,FIND
     loadWord B,C, D,E               ; move to TOS
     NEXT
 
-defword "execute",7,0,EXECUTE
+mCODE "execute",7,0,EXECUTE
     ppop H,L                        ; POP TOS into HL
     jp (hl)                         ; go do Forth word
 
-defword "number",6,0,NUMBER         ; ( ptr len -- num err )
+mCODE "number",6,0,NUMBER         ; ( ptr len -- num err )
     ppop0 H,L
 	call toNumber                   ; params: HL = string address, BC = string length
 			                        ; Returns the parsed number in DE,
@@ -26,7 +26,7 @@ defword "number",6,0,NUMBER         ; ( ptr len -- num err )
     ppush0 D,E
     NEXT
 
-defword "+!",2,0,ADDSTORE               ; (n addr -- )
+mCODE "+!",2,0,ADDSTORE               ; (n addr -- )
 	ppop H, L		            ; HL = address, TOS = amount to add
 	ld A,(HL)
 	add A,C                         ; add TOS at (HL),
@@ -38,7 +38,7 @@ defword "+!",2,0,ADDSTORE               ; (n addr -- )
 	ppop0 B,C                      ; clear param stack
     NEXT
 
-defword "hidden",6,0,HIDDEN
+mCODE "hidden",6,0,HIDDEN
     ppop H,L		            ; HL = Dictionary entry.
     inc HL
     inc HL                      ; Point to name/flags byte.
@@ -49,18 +49,18 @@ defword "hidden",6,0,HIDDEN
     NEXT
 
 ; 1+      n1/u1 -- n2/u2            add 1 to TOS
-defword "1+",2,0,onePlus
+mCODE "1+",2,0,onePlus
     inc BC
     NEXT
 
 ; 2+      n1/u1 -- n2/u2            add 2 to TOS
-defword "2+",2,0,twoPlus
+mCODE "2+",2,0,twoPlus
     inc BC
     inc BC
     NEXT
 
 ; ?branch   x --              branch if TOS zero
-defword "0branch",7,0,ZBRANCH
+mCODE "0branch",7,0,ZBRANCH
     checkZeroWord B,C               ; test old TOS
     ppop0 B,C                       ; POP new TOS
     jr z,BRANCH                     ; if old TOS=0, branch
@@ -69,7 +69,7 @@ defword "0branch",7,0,ZBRANCH
     inc HL
     NEXT1
 
-defword "branch",6,0,BRANCH         ; relative branching
+mCODE "branch",6,0,BRANCH         ; relative branching
     pop HL                          ; add the offset to the instruction pointer
     ld E,(HL)
     inc HL
@@ -78,14 +78,14 @@ defword "branch",6,0,BRANCH         ; relative branching
     add HL,DE
     NEXT1
 
-defword "lit",3,0,LIT
+mCODE "lit",3,0,LIT
 	ppush0 B,C                      ; pushTOS
 	pop HL                          ; pop address of next Forth word in HL
 	readWord HL, B,C                ; read next word and push on TOS, inc HL by 2
     NEXT1
 
 ; 0<     n -- flag                  true if TOS negative
-defword "0<",2,0,ZEROLESS
+mCODE "0<",2,0,ZEROLESS
     sla b                           ; sign bit -> cy flag
     sbc a,a         
     and 1                           ; <0 = -1, >0 = 0
@@ -94,7 +94,7 @@ defword "0<",2,0,ZEROLESS
     NEXT
 
 ; INVERT x1 -- x2               ; bitwise complement
-defword "invert",6,0,INVERT
+mCODE "invert",6,0,INVERT
     ld A,B
     cpl
     ld B,A
@@ -110,19 +110,19 @@ defword "invert",6,0,INVERT
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; TRUE
-defword "true",4,0,TRUE
+mCODE "true",4,0,TRUE
     ppush0 B,C
     ld BC,1
     NEXT
 
 ; FALSE
-defword "false",5,0,FALSE
+mCODE "false",5,0,FALSE
     ppush0 B,C
     ld BC,0
     NEXT
 
 ; =      x1 x2 -- flag         test x1=x2
-defword "=",1,0,equal
+mCODE "=",1,0,equal
     ppop0 H,L
     or A
     sbc HL,BC       ; x1-x2 in HL, SZVC valid
@@ -133,7 +133,7 @@ defword "=",1,0,equal
     NEXT
 
 ; <      n1 n2 -- flag          test n1<n2
-defword "<",1,0,LESSTHAN	        ; less than
+mCODE "<",1,0,LESSTHAN	        ; less than
     ppop0 H,L
     or A
     sbc HL,BC       ; n1-n2 in HL, SZVC valid
@@ -153,7 +153,7 @@ defword "<",1,0,LESSTHAN	        ; less than
     NEXT
 
 ; >      n1 n2 -- flag          test n1 > n2
-defword ">",1,0,GREATERTHAN	        ; less than
+mCODE ">",1,0,GREATERTHAN	        ; less than
     ppop0 H,L                  ; swap operands
     ppush H,L
     jr LESSTHAN
@@ -165,36 +165,36 @@ defword ">",1,0,GREATERTHAN	        ; less than
 ; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; !        x a-addr --   store cell in memory
-defword "!",1,0,STORE
+mCODE "!",1,0,STORE
     ppop H,L
     writeWord HL, B,C
     ppop0 B,C          ; POP new TOS
     NEXT
 
-defword ",",1,0,COMMA
+mCODE ",",1,0,COMMA
 	ld HL, (VAR_HERE)	; HERE
 	writeWord HL, B,C
 	ld (VAR_HERE), HL	; Update HERE (incremented)
 	ppop0 B,C		        ; cleanup TOS
     NEXT
 
-defword "@",1,0,FETCH
+mCODE "@",1,0,FETCH
     loadWord H,L, B,C ; HL = TOS
     readWord HL, B,C
     NEXT
 
 ; CELLS   ( n1 -- n2 ) n2 is the size in address units of n1 cells.
-defword "cells",5,0,CELLS
+mCODE "cells",5,0,CELLS
     jp twostar
 
 ; C!      char c-addr --    store char in memory
-defword "c!",2,0,CSTORE
+mCODE "c!",2,0,CSTORE
     ppop H,L
     ld (HL),C
     ppop0 B,C          ; POP new TOS
     NEXT
 
-defword "c,",1,0,CCOMMA
+mCODE "c,",1,0,CCOMMA
     ppush0 H,L
 	ld HL, (VAR_HERE)	; HERE
 	ld (HL), C          ; Store DE at memory pointed to by VAR_HERE
@@ -205,7 +205,7 @@ defword "c,",1,0,CCOMMA
     NEXT
 
 ; C@     c-addr -- char   fetch char from memory
-defword "c@",2,0,CFETCH
+mCODE "c@",2,0,CFETCH
     ld A,(BC)
     ld C,A
     ld B,0
@@ -218,19 +218,19 @@ defword "c@",2,0,CFETCH
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; +       n1/u1 n2/u2 -- n3/u3     add n1+n2
-defword "+",1,0,PLUS
+mCODE "+",1,0,PLUS
     ppop0 H,L
     add HL,BC
     loadWord B,C, H,L
     NEXT
 
 ; 2*      n1/u1 -- n2/u2            arithmetic left shift
-defword "2*",2,0,TWOSTAR
+mCODE "2*",2,0,TWOSTAR
     sla C
     rl B
     NEXT
 
-defword "-",1,0,MINUS
+mCODE "-",1,0,MINUS
     ppop0 H,L
     or A
     sbc HL,BC
@@ -238,7 +238,7 @@ defword "-",1,0,MINUS
     NEXT
 
 ; U*   u1 u2 -- ud   unsigned mutliply
-defword "u*",2,0,USTAR              ; u1 u2 -- ud
+mCODE "u*",2,0,USTAR              ; u1 u2 -- ud
                                     ; u2 in BC
     ppop0 D,E                       ; u1 in DE
 	call unsignedMultiply
@@ -247,7 +247,7 @@ defword "u*",2,0,USTAR              ; u1 u2 -- ud
     NEXT
 
 ; U/MOD   u1 u2 -- u1 u2    unsigned 16 / 16 -> r q
-defword "u/mod",5,0,USLASHMOD
+mCODE "u/mod",5,0,USLASHMOD
     ppop D,E                ; DE = divisor
                             ; BC = dividend
     call divideWordByWord
@@ -262,18 +262,18 @@ defword "u/mod",5,0,USLASHMOD
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-defword "[",1,MSK_IMMED,LBRAC
+mCODE "[",1,MSK_IMMED,LBRAC
 	ld HL, 0
 	ld (VAR_STATE), HL	; Set STATE to 0.
     NEXT
 
-defword "]",1,0,RBRAC
+mCODE "]",1,0,RBRAC
 	ld HL, 1
 	ld (VAR_STATE), HL	; Set STATE to 1.
     NEXT
 
 ; 0= zero-equal
-defword "0=",2,0,zEqual
+mCODE "0=",2,0,zEqual
     checkZeroWord B,C            ; returns 0 if not equal, 1 if equal
     _if nz
         ld BC, -1
@@ -281,7 +281,7 @@ defword "0=",2,0,zEqual
     inc BC
     NEXT
 
-defword "0<>",3,0,zNotEqual
+mCODE "0<>",3,0,zNotEqual
     checkZeroWord B,C            ; returns 0 if not equal, 1 if equal
     _if nz
         ld BC, 1
@@ -289,7 +289,7 @@ defword "0<>",3,0,zNotEqual
     NEXT
 
 ; and    x1 x2 -- x3            logical and
-defword "and",3,0,and	        ; bitwise and
+mCODE "and",3,0,and	        ; bitwise and
     ppop0 H,L
     ld A,b
     and H
@@ -300,7 +300,7 @@ defword "and",3,0,and	        ; bitwise and
     NEXT
 
 ; OR    x1 x2 -- x3             logical OR
-defword "or",2,0,OR	            ; bitwise OR
+mCODE "or",2,0,OR	            ; bitwise OR
     ppop0 H,L
     ld A,B
     or H
@@ -311,7 +311,7 @@ defword "or",2,0,OR	            ; bitwise OR
     NEXT
     
 ; xor    x1 x2 -- x3            logical xor
-defword "xor",3,0,xor	        ; bitwise xor
+mCODE "xor",3,0,xor	        ; bitwise xor
     ppop0 H,L
     ld A,B
     xor H
@@ -327,7 +327,7 @@ defword "xor",3,0,xor	        ; bitwise xor
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-defword "rot",3,0,ROT       ; x1 x2 x3 -- x2 x3 x1
+mCODE "rot",3,0,ROT       ; x1 x2 x3 -- x2 x3 x1
                             ; x3 in BC
     ppop0 D,E               ; x2 in DE
     ppop0 H,L               ; x1 in HL
@@ -336,7 +336,7 @@ defword "rot",3,0,ROT       ; x1 x2 x3 -- x2 x3 x1
                             ; x1 in BC
     NEXT
 
-defword "-rot",4,0,NROT     ; x1 x2 x3 -- x3 x1 x2
+mCODE "-rot",4,0,NROT     ; x1 x2 x3 -- x3 x1 x2
                             ; x3 in BC
     ppop0 D,E               ; x2 in DE
     ppop0 H,L               ; x1 in HL
@@ -345,29 +345,29 @@ defword "-rot",4,0,NROT     ; x1 x2 x3 -- x3 x1 x2
                             ; x2 in BC
     NEXT
 
-defword "dup",3,0,DUP        ; x -- x x
+mCODE "dup",3,0,DUP        ; x -- x x
     ppush0 B,C
     NEXT
 
 ; SWAP     x1 x2 -- x2 x1    swap top two items
-defword "swap",4,0,SWAP      ; x1 x2 -- x2 x1
+mCODE "swap",4,0,SWAP      ; x1 x2 -- x2 x1
     ppop0 D,E
     ppush D,E
     NEXT
 
-defword "drop",4,0,DROP      ; x --
+mCODE "drop",4,0,DROP      ; x --
     ppop0 B,C		    ; drop top of stack
     NEXT
 
 ; OVER    x1 x2 -- x1 x2 x1
-defword "over",4,0,OVER
+mCODE "over",4,0,OVER
     ppop0 H,L
     ppush0 H,L
     ppush H,L
     NEXT
 
 ; >R    ( x -- ) ( R: -- x )  Move  x from TOS to the return stack.
-defword ">r",2,0,TOR
+mCODE ">r",2,0,TOR
     pop HL
     push BC
     push HL
@@ -375,7 +375,7 @@ defword ">r",2,0,TOR
     NEXT
 
 ; R>    ( -- x ) ( R: x -- )  Move x from the return stack to TOS
-defword "r>",2,0,RFROM
+mCODE "r>",2,0,RFROM
     ppush0 B,C
     pop HL
     pop BC
@@ -388,7 +388,7 @@ defword "r>",2,0,RFROM
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-defword ".",1,0,DOT                 ; print top of stack in BASE
+mCODE ".",1,0,DOT                 ; print top of stack in BASE
     push HL
     push DE
     push BC
@@ -405,13 +405,13 @@ defword ".",1,0,DOT                 ; print top of stack in BASE
     ppop0 B,C
     NEXT
 
-defword "type",4,0,TYPE             ; ( str len -- )
+mCODE "type",4,0,TYPE             ; ( str len -- )
     ppop0 D,E                       ; DE = str BC = length
     call printStr
     ppop0 B,C                       ; clear TOS
     NEXT
 
-defword "cr",2,0,cr                 ; ( -- )
+mCODE "cr",2,0,cr                 ; ( -- )
     call printcr
     NEXT
 

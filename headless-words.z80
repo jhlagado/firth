@@ -90,7 +90,7 @@ dodoes:             ; -- a-addr
     NEXT
 
 xdoes:                                  ; --
-    rst $08                             ; enter forth
+    ENTER
     dw rfrom
     dw latest, fetch, tcfa
     dw lit, call_opcode

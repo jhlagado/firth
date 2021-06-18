@@ -59,7 +59,7 @@
 0000                 
 0000                             ; Store the chain of links.
 0000                LINK:     .SET   0   
-0000                .macro DEFWORD,name,namelen,flags,label
+0000                .macro mCODE,name,namelen,flags,label
 0000                             ; 
 0000                HEADER_label:
 0000                 DW link		            ; link
@@ -69,17 +69,17 @@
 0000                label:
 0000                .endm
 0000                 
-0000                .macro DEFVAR,name,namelen,flags,label,var_label
+0000                .macro mVAR,name,namelen,flags,label,var_label
 0000                             ; 
-0000                defword name,namelen,flags,label
+0000                mCODE name,namelen,flags,label
 0000                 ppush0 B,C
 0000                 ld BC, var_label
 0000                 NEXT
 0000                .endm
 0000                 
-0000                .macro DEFCONST,name,namelen,flags,label,value
+0000                .macro mCONST,name,namelen,flags,label,value
 0000                             ; 
-0000                defword name,namelen,flags,label
+0000                mCODE name,namelen,flags,label
 0000                 ppush0 B,C
 0000                 ld BC, value
 0000                 NEXT
@@ -1454,7 +1454,7 @@
 01FA   23 54 45 43 2D 31 20 4D 6F 6E 69 74 6F 72 20 33 2E 30 20 62 79 20 4A 6F 68 6E 20 48 61 72 64 79 0D 0A 0D 0A TXT_MONITOR_INTRO:   .PSTR   "TEC-1 Monitor 3.0 by John Hardy\r\n\r\n"   
 021E                             ; ; words must preserve: BC, DE, SP, IX
 021E                             ; ; words may destroy: HL, IY, AF, AF", BC", DE" HL"
-021E                          ;*Macro unroll: defword "xword",6,0,xword               ; delim limit addr -- c-addr
+021E                          ;*Macro unroll: mCODE "xword",6,0,xword               ; delim limit addr -- c-addr
 021E                HEADER_XWORD:      ; delim limit addr -- c-addr
 021E   00 00                  DW   link   
 0220                LINK:     .SET   HEADER_xword   
@@ -1465,7 +1465,7 @@
 0229   CD 4F 0A               CALL   xwordRead   
 022C                          ;*Macro unroll:  NEXT
 022C   C3 A8 07               JP   enter   
-022F                          ;*Macro unroll: defword "find",4,0,FIND
+022F                          ;*Macro unroll: mCODE "find",4,0,FIND
 022F                HEADER_FIND:      
 022F   1E 02                  DW   link   
 0231                LINK:     .SET   HEADER_FIND   
@@ -1484,7 +1484,7 @@
 0244   42                     LD   B,D   
 0245                          ;*Macro unroll:  NEXT
 0245   C3 A8 07               JP   enter   
-0248                          ;*Macro unroll: defword "execute",7,0,EXECUTE
+0248                          ;*Macro unroll: mCODE "execute",7,0,EXECUTE
 0248                HEADER_EXECUTE:      
 0248   2F 02                  DW   link   
 024A                LINK:     .SET   HEADER_EXECUTE   
@@ -1500,7 +1500,7 @@
 0259   DD 2B                  DEC   IX   
 025B   DD 4E 00               LD   C,(IX+0)   
 025E   E9                     JP   (hl)   ; go do Forth word
-025F                          ;*Macro unroll: defword "number",6,0,NUMBER         ; ( ptr len -- num err )
+025F                          ;*Macro unroll: mCODE "number",6,0,NUMBER         ; ( ptr len -- num err )
 025F                HEADER_NUMBER:      ; ( ptr len -- num err )
 025F   48 02                  DW   link   
 0261                LINK:     .SET   HEADER_NUMBER   
@@ -1522,7 +1522,7 @@
 027D   DD 23                  INC   IX   
 027F                          ;*Macro unroll:  NEXT
 027F   C3 A8 07               JP   enter   
-0282                          ;*Macro unroll: defword "+!",2,0,ADDSTORE               ; (n addr -- )
+0282                          ;*Macro unroll: mCODE "+!",2,0,ADDSTORE               ; (n addr -- )
 0282                HEADER_ADDSTORE:      ; (n addr -- )
 0282   5F 02                  DW   link   
 0284                LINK:     .SET   HEADER_ADDSTORE   
@@ -1551,7 +1551,7 @@
 02A1   DD 4E 00               LD   C,(IX+0)   
 02A4                          ;*Macro unroll:  NEXT
 02A4   C3 A8 07               JP   enter   
-02A7                          ;*Macro unroll: defword "hidden",6,0,HIDDEN
+02A7                          ;*Macro unroll: mCODE "hidden",6,0,HIDDEN
 02A7                HEADER_HIDDEN:      
 02A7   82 02                  DW   link   
 02A9                LINK:     .SET   HEADER_HIDDEN   
@@ -1574,7 +1574,7 @@
 02C2                          ;*Macro unroll:  NEXT
 02C2   C3 A8 07               JP   enter   
 02C5                             ; 1+      n1/u1 -- n2/u2            add 1 to TOS
-02C5                          ;*Macro unroll: defword "1+",2,0,onePlus
+02C5                          ;*Macro unroll: mCODE "1+",2,0,onePlus
 02C5                HEADER_ONEPLUS:      
 02C5   A7 02                  DW   link   
 02C7                LINK:     .SET   HEADER_onePlus   
@@ -1585,7 +1585,7 @@
 02CB                          ;*Macro unroll:  NEXT
 02CB   C3 A8 07               JP   enter   
 02CE                             ; 2+      n1/u1 -- n2/u2            add 2 to TOS
-02CE                          ;*Macro unroll: defword "2+",2,0,twoPlus
+02CE                          ;*Macro unroll: mCODE "2+",2,0,twoPlus
 02CE                HEADER_TWOPLUS:      
 02CE   C5 02                  DW   link   
 02D0                LINK:     .SET   HEADER_twoPlus   
@@ -1597,7 +1597,7 @@
 02D5                          ;*Macro unroll:  NEXT
 02D5   C3 A8 07               JP   enter   
 02D8                             ; ?branch   x --              branch if TOS zero
-02D8                          ;*Macro unroll: defword "0branch",7,0,ZBRANCH
+02D8                          ;*Macro unroll: mCODE "0branch",7,0,ZBRANCH
 02D8                HEADER_ZBRANCH:      
 02D8   CE 02                  DW   link   
 02DA                LINK:     .SET   HEADER_ZBRANCH   
@@ -1618,7 +1618,7 @@
 02F2   23                     INC   HL   
 02F3                          ;*Macro unroll:  NEXT1
 02F3   C3 A9 07               JP   enter1   
-02F6                          ;*Macro unroll: defword "branch",6,0,BRANCH         ; relative branching
+02F6                          ;*Macro unroll: mCODE "branch",6,0,BRANCH         ; relative branching
 02F6                HEADER_BRANCH:      ; relative branching
 02F6   D8 02                  DW   link   
 02F8                LINK:     .SET   HEADER_BRANCH   
@@ -1633,7 +1633,7 @@
 0304   19                     ADD   HL,DE   
 0305                          ;*Macro unroll:  NEXT1
 0305   C3 A9 07               JP   enter1   
-0308                          ;*Macro unroll: defword "lit",3,0,LIT
+0308                          ;*Macro unroll: mCODE "lit",3,0,LIT
 0308                HEADER_LIT:      
 0308   F6 02                  DW   link   
 030A                LINK:     .SET   HEADER_LIT   
@@ -1654,7 +1654,7 @@
 031D                          ;*Macro unroll:  NEXT1
 031D   C3 A9 07               JP   enter1   
 0320                             ; 0<     n -- flag                  true if TOS negative
-0320                          ;*Macro unroll: defword "0<",2,0,ZEROLESS
+0320                          ;*Macro unroll: mCODE "0<",2,0,ZEROLESS
 0320                HEADER_ZEROLESS:      
 0320   08 03                  DW   link   
 0322                LINK:     .SET   HEADER_ZEROLESS   
@@ -1669,7 +1669,7 @@
 032D                          ;*Macro unroll:  NEXT
 032D   C3 A8 07               JP   enter   
 0330                             ; INVERT x1 -- x2               ; bitwise complement
-0330                          ;*Macro unroll: defword "invert",6,0,INVERT
+0330                          ;*Macro unroll: mCODE "invert",6,0,INVERT
 0330                HEADER_INVERT:      
 0330   20 03                  DW   link   
 0332                LINK:     .SET   HEADER_INVERT   
@@ -1690,7 +1690,7 @@
 0342                             ; 
 0342                             ; 
 0342                             ; TRUE
-0342                          ;*Macro unroll: defword "true",4,0,TRUE
+0342                          ;*Macro unroll: mCODE "true",4,0,TRUE
 0342                HEADER_TRUE:      
 0342   30 03                  DW   link   
 0344                LINK:     .SET   HEADER_TRUE   
@@ -1706,7 +1706,7 @@
 0356                          ;*Macro unroll:  NEXT
 0356   C3 A8 07               JP   enter   
 0359                             ; FALSE
-0359                          ;*Macro unroll: defword "false",5,0,FALSE
+0359                          ;*Macro unroll: mCODE "false",5,0,FALSE
 0359                HEADER_FALSE:      
 0359   42 03                  DW   link   
 035B                LINK:     .SET   HEADER_FALSE   
@@ -1722,7 +1722,7 @@
 036E                          ;*Macro unroll:  NEXT
 036E   C3 A8 07               JP   enter   
 0371                             ; =      x1 x2 -- flag         test x1=x2
-0371                          ;*Macro unroll: defword "=",1,0,equal
+0371                          ;*Macro unroll: mCODE "=",1,0,equal
 0371                HEADER_EQUAL:      
 0371   59 03                  DW   link   
 0373                LINK:     .SET   HEADER_equal   
@@ -1779,7 +1779,7 @@
 038C                          ;*Macro unroll:  NEXT
 038C   C3 A8 07               JP   enter   
 038F                             ; <      n1 n2 -- flag          test n1<n2
-038F                          ;*Macro unroll: defword "<",1,0,LESSTHAN	        ; less than
+038F                          ;*Macro unroll: mCODE "<",1,0,LESSTHAN	        ; less than
 038F                HEADER_LESSTHAN:      ; less than
 038F   71 03                  DW   link   
 0391                LINK:     .SET   HEADER_LESSTHAN   
@@ -1938,7 +1938,7 @@
 03C7                          ;*Macro unroll:  NEXT
 03C7   C3 A8 07               JP   enter   
 03CA                             ; >      n1 n2 -- flag          test n1 > n2
-03CA                          ;*Macro unroll: defword ">",1,0,GREATERTHAN	        ; less than
+03CA                          ;*Macro unroll: mCODE ">",1,0,GREATERTHAN	        ; less than
 03CA                HEADER_GREATERTHAN:      ; less than
 03CA   8F 03                  DW   link   
 03CC                LINK:     .SET   HEADER_GREATERTHAN   
@@ -1965,7 +1965,7 @@
 03E6                             ; ;;
 03E6                             ; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 03E6                             ; !        x a-addr --   store cell in memory
-03E6                          ;*Macro unroll: defword "!",1,0,STORE
+03E6                          ;*Macro unroll: mCODE "!",1,0,STORE
 03E6                HEADER_STORE:      
 03E6   CA 03                  DW   link   
 03E8                LINK:     .SET   HEADER_STORE   
@@ -1994,7 +1994,7 @@
 0401   DD 4E 00               LD   C,(IX+0)   
 0404                          ;*Macro unroll:  NEXT
 0404   C3 A8 07               JP   enter   
-0407                          ;*Macro unroll: defword ",",1,0,COMMA
+0407                          ;*Macro unroll: mCODE ",",1,0,COMMA
 0407                HEADER_COMMA:      
 0407   E6 03                  DW   link   
 0409                LINK:     .SET   HEADER_COMMA   
@@ -2017,7 +2017,7 @@
 041C   DD 4E 00               LD   C,(IX+0)   
 041F                          ;*Macro unroll:  NEXT
 041F   C3 A8 07               JP   enter   
-0422                          ;*Macro unroll: defword "@",1,0,FETCH
+0422                          ;*Macro unroll: mCODE "@",1,0,FETCH
 0422                HEADER_FETCH:      
 0422   07 04                  DW   link   
 0424                LINK:     .SET   HEADER_FETCH   
@@ -2035,7 +2035,7 @@
 042C                          ;*Macro unroll:  NEXT
 042C   C3 A8 07               JP   enter   
 042F                             ; CELLS   ( n1 -- n2 ) n2 is the size in address units of n1 cells.
-042F                          ;*Macro unroll: defword "cells",5,0,CELLS
+042F                          ;*Macro unroll: mCODE "cells",5,0,CELLS
 042F                HEADER_CELLS:      
 042F   22 04                  DW   link   
 0431                LINK:     .SET   HEADER_CELLS   
@@ -2044,7 +2044,7 @@
 0437                CELLS:       
 0437   C3 AC 04               JP   twostar   
 043A                             ; C!      char c-addr --    store char in memory
-043A                          ;*Macro unroll: defword "c!",2,0,CSTORE
+043A                          ;*Macro unroll: mCODE "c!",2,0,CSTORE
 043A                HEADER_CSTORE:      
 043A   2F 04                  DW   link   
 043C                LINK:     .SET   HEADER_CSTORE   
@@ -2067,7 +2067,7 @@
 0453   DD 4E 00               LD   C,(IX+0)   
 0456                          ;*Macro unroll:  NEXT
 0456   C3 A8 07               JP   enter   
-0459                          ;*Macro unroll: defword "c,",1,0,CCOMMA
+0459                          ;*Macro unroll: mCODE "c,",1,0,CCOMMA
 0459                HEADER_CCOMMA:      
 0459   3A 04                  DW   link   
 045B                LINK:     .SET   HEADER_CCOMMA   
@@ -2096,7 +2096,7 @@
 0484                          ;*Macro unroll:  NEXT
 0484   C3 A8 07               JP   enter   
 0487                             ; C@     c-addr -- char   fetch char from memory
-0487                          ;*Macro unroll: defword "c@",2,0,CFETCH
+0487                          ;*Macro unroll: mCODE "c@",2,0,CFETCH
 0487                HEADER_CFETCH:      
 0487   59 04                  DW   link   
 0489                LINK:     .SET   HEADER_CFETCH   
@@ -2114,7 +2114,7 @@
 0493                             ; 
 0493                             ; 
 0493                             ; +       n1/u1 n2/u2 -- n3/u3     add n1+n2
-0493                          ;*Macro unroll: defword "+",1,0,PLUS
+0493                          ;*Macro unroll: mCODE "+",1,0,PLUS
 0493                HEADER_PLUS:      
 0493   87 04                  DW   link   
 0495                LINK:     .SET   HEADER_PLUS   
@@ -2133,7 +2133,7 @@
 04A4                          ;*Macro unroll:  NEXT
 04A4   C3 A8 07               JP   enter   
 04A7                             ; 2*      n1/u1 -- n2/u2            arithmetic left shift
-04A7                          ;*Macro unroll: defword "2*",2,0,TWOSTAR
+04A7                          ;*Macro unroll: mCODE "2*",2,0,TWOSTAR
 04A7                HEADER_TWOSTAR:      
 04A7   93 04                  DW   link   
 04A9                LINK:     .SET   HEADER_TWOSTAR   
@@ -2144,7 +2144,7 @@
 04AE   CB 10                  RL   B   
 04B0                          ;*Macro unroll:  NEXT
 04B0   C3 A8 07               JP   enter   
-04B3                          ;*Macro unroll: defword "-",1,0,MINUS
+04B3                          ;*Macro unroll: mCODE "-",1,0,MINUS
 04B3                HEADER_MINUS:      
 04B3   A7 04                  DW   link   
 04B5                LINK:     .SET   HEADER_MINUS   
@@ -2164,7 +2164,7 @@
 04C6                          ;*Macro unroll:  NEXT
 04C6   C3 A8 07               JP   enter   
 04C9                             ; U*   u1 u2 -- ud   unsigned mutliply
-04C9                          ;*Macro unroll: defword "u*",2,0,USTAR              ; u1 u2 -- ud
+04C9                          ;*Macro unroll: mCODE "u*",2,0,USTAR              ; u1 u2 -- ud
 04C9                HEADER_USTAR:      ; u1 u2 -- ud
 04C9   B3 04                  DW   link   
 04CB                LINK:     .SET   HEADER_USTAR   
@@ -2187,7 +2187,7 @@
 04E5                          ;*Macro unroll:  NEXT
 04E5   C3 A8 07               JP   enter   
 04E8                             ; U/MOD   u1 u2 -- u1 u2    unsigned 16 / 16 -> r q
-04E8                          ;*Macro unroll: defword "u/mod",5,0,USLASHMOD
+04E8                          ;*Macro unroll: mCODE "u/mod",5,0,USLASHMOD
 04E8                HEADER_USLASHMOD:      
 04E8   C9 04                  DW   link   
 04EA                LINK:     .SET   HEADER_USLASHMOD   
@@ -2216,7 +2216,7 @@
 050C                             ; logic
 050C                             ; 
 050C                             ; 
-050C                          ;*Macro unroll: defword "[",1,MSK_IMMED,LBRAC
+050C                          ;*Macro unroll: mCODE "[",1,MSK_IMMED,LBRAC
 050C                HEADER_LBRAC:      
 050C   E8 04                  DW   link   
 050E                LINK:     .SET   HEADER_LBRAC   
@@ -2227,7 +2227,7 @@
 0513   22 14 30               LD   (VAR_STATE),HL   ; Set STATE to 0.
 0516                          ;*Macro unroll:  NEXT
 0516   C3 A8 07               JP   enter   
-0519                          ;*Macro unroll: defword "]",1,0,RBRAC
+0519                          ;*Macro unroll: mCODE "]",1,0,RBRAC
 0519                HEADER_RBRAC:      
 0519   0C 05                  DW   link   
 051B                LINK:     .SET   HEADER_RBRAC   
@@ -2239,7 +2239,7 @@
 0523                          ;*Macro unroll:  NEXT
 0523   C3 A8 07               JP   enter   
 0526                             ; 0= zero-equal
-0526                          ;*Macro unroll: defword "0=",2,0,zEqual
+0526                          ;*Macro unroll: mCODE "0=",2,0,zEqual
 0526                HEADER_ZEQUAL:      
 0526   19 05                  DW   link   
 0528                LINK:     .SET   HEADER_zEqual   
@@ -2291,7 +2291,7 @@
 0536   03                     INC   BC   
 0537                          ;*Macro unroll:  NEXT
 0537   C3 A8 07               JP   enter   
-053A                          ;*Macro unroll: defword "0<>",3,0,zNotEqual
+053A                          ;*Macro unroll: mCODE "0<>",3,0,zNotEqual
 053A                HEADER_ZNOTEQUAL:      
 053A   26 05                  DW   link   
 053C                LINK:     .SET   HEADER_zNotEqual   
@@ -2343,7 +2343,7 @@
 054B                          ;*Macro unroll:  NEXT
 054B   C3 A8 07               JP   enter   
 054E                             ; and    x1 x2 -- x3            logical and
-054E                          ;*Macro unroll: defword "and",3,0,and	        ; bitwise and
+054E                          ;*Macro unroll: mCODE "and",3,0,and	        ; bitwise and
 054E                HEADER_AND:      ; bitwise and
 054E   3A 05                  DW   link   
 0550                LINK:     .SET   HEADER_and   
@@ -2364,7 +2364,7 @@
 0564                          ;*Macro unroll:  NEXT
 0564   C3 A8 07               JP   enter   
 0567                             ; OR    x1 x2 -- x3             logical OR
-0567                          ;*Macro unroll: defword "or",2,0,OR	            ; bitwise OR
+0567                          ;*Macro unroll: mCODE "or",2,0,OR	            ; bitwise OR
 0567                HEADER_OR:      ; bitwise OR
 0567   4E 05                  DW   link   
 0569                LINK:     .SET   HEADER_OR   
@@ -2385,7 +2385,7 @@
 057C                          ;*Macro unroll:  NEXT
 057C   C3 A8 07               JP   enter   
 057F                             ; xor    x1 x2 -- x3            logical xor
-057F                          ;*Macro unroll: defword "xor",3,0,xor	        ; bitwise xor
+057F                          ;*Macro unroll: mCODE "xor",3,0,xor	        ; bitwise xor
 057F                HEADER_XOR:      ; bitwise xor
 057F   67 05                  DW   link   
 0581                LINK:     .SET   HEADER_xor   
@@ -2410,7 +2410,7 @@
 0598                             ; stack
 0598                             ; 
 0598                             ; 
-0598                          ;*Macro unroll: defword "rot",3,0,ROT       ; x1 x2 x3 -- x2 x3 x1
+0598                          ;*Macro unroll: mCODE "rot",3,0,ROT       ; x1 x2 x3 -- x2 x3 x1
 0598                HEADER_ROT:      ; x1 x2 x3 -- x2 x3 x1
 0598   7F 05                  DW   link   
 059A                LINK:     .SET   HEADER_ROT   
@@ -2444,7 +2444,7 @@
 05C8                             ; x1 in BC
 05C8                          ;*Macro unroll:  NEXT
 05C8   C3 A8 07               JP   enter   
-05CB                          ;*Macro unroll: defword "-rot",4,0,NROT     ; x1 x2 x3 -- x3 x1 x2
+05CB                          ;*Macro unroll: mCODE "-rot",4,0,NROT     ; x1 x2 x3 -- x3 x1 x2
 05CB                HEADER_NROT:      ; x1 x2 x3 -- x3 x1 x2
 05CB   98 05                  DW   link   
 05CD                LINK:     .SET   HEADER_NROT   
@@ -2481,7 +2481,7 @@
 05FE                             ; x2 in BC
 05FE                          ;*Macro unroll:  NEXT
 05FE   C3 A8 07               JP   enter   
-0601                          ;*Macro unroll: defword "dup",3,0,DUP        ; x -- x x
+0601                          ;*Macro unroll: mCODE "dup",3,0,DUP        ; x -- x x
 0601                HEADER_DUP:      ; x -- x x
 0601   CB 05                  DW   link   
 0603                LINK:     .SET   HEADER_DUP   
@@ -2496,7 +2496,7 @@
 0611                          ;*Macro unroll:  NEXT
 0611   C3 A8 07               JP   enter   
 0614                             ; SWAP     x1 x2 -- x2 x1    swap top two items
-0614                          ;*Macro unroll: defword "swap",4,0,SWAP      ; x1 x2 -- x2 x1
+0614                          ;*Macro unroll: mCODE "swap",4,0,SWAP      ; x1 x2 -- x2 x1
 0614                HEADER_SWAP:      ; x1 x2 -- x2 x1
 0614   01 06                  DW   link   
 0616                LINK:     .SET   HEADER_SWAP   
@@ -2518,7 +2518,7 @@
 0630   4B                     LD   C,E   
 0631                          ;*Macro unroll:  NEXT
 0631   C3 A8 07               JP   enter   
-0634                          ;*Macro unroll: defword "drop",4,0,DROP      ; x --
+0634                          ;*Macro unroll: mCODE "drop",4,0,DROP      ; x --
 0634                HEADER_DROP:      ; x --
 0634   14 06                  DW   link   
 0636                LINK:     .SET   HEADER_DROP   
@@ -2533,7 +2533,7 @@
 0645                          ;*Macro unroll:  NEXT
 0645   C3 A8 07               JP   enter   
 0648                             ; OVER    x1 x2 -- x1 x2 x1
-0648                          ;*Macro unroll: defword "over",4,0,OVER
+0648                          ;*Macro unroll: mCODE "over",4,0,OVER
 0648                HEADER_OVER:      
 0648   34 06                  DW   link   
 064A                LINK:     .SET   HEADER_OVER   
@@ -2561,7 +2561,7 @@
 066F                          ;*Macro unroll:  NEXT
 066F   C3 A8 07               JP   enter   
 0672                             ; >R    ( x -- ) ( R: -- x )  Move  x from TOS to the return stack.
-0672                          ;*Macro unroll: defword ">r",2,0,TOR
+0672                          ;*Macro unroll: mCODE ">r",2,0,TOR
 0672                HEADER_TOR:      
 0672   48 06                  DW   link   
 0674                LINK:     .SET   HEADER_TOR   
@@ -2579,7 +2579,7 @@
 0684                          ;*Macro unroll:  NEXT
 0684   C3 A8 07               JP   enter   
 0687                             ; R>    ( -- x ) ( R: x -- )  Move x from the return stack to TOS
-0687                          ;*Macro unroll: defword "r>",2,0,RFROM
+0687                          ;*Macro unroll: mCODE "r>",2,0,RFROM
 0687                HEADER_RFROM:      
 0687   72 06                  DW   link   
 0689                LINK:     .SET   HEADER_RFROM   
@@ -2601,7 +2601,7 @@
 069C                             ; output
 069C                             ; 
 069C                             ; 
-069C                          ;*Macro unroll: defword ".",1,0,DOT                 ; print top of stack in BASE
+069C                          ;*Macro unroll: mCODE ".",1,0,DOT                 ; print top of stack in BASE
 069C                HEADER_DOT:      ; print top of stack in BASE
 069C   87 06                  DW   link   
 069E                LINK:     .SET   HEADER_DOT   
@@ -2630,7 +2630,7 @@
 06BF   DD 4E 00               LD   C,(IX+0)   
 06C2                          ;*Macro unroll:  NEXT
 06C2   C3 A8 07               JP   enter   
-06C5                          ;*Macro unroll: defword "type",4,0,TYPE             ; ( str len -- )
+06C5                          ;*Macro unroll: mCODE "type",4,0,TYPE             ; ( str len -- )
 06C5                HEADER_TYPE:      ; ( str len -- )
 06C5   9C 06                  DW   link   
 06C7                LINK:     .SET   HEADER_TYPE   
@@ -2650,7 +2650,7 @@
 06E0   DD 4E 00               LD   C,(IX+0)   
 06E3                          ;*Macro unroll:  NEXT
 06E3   C3 A8 07               JP   enter   
-06E6                          ;*Macro unroll: defword "cr",2,0,cr                 ; ( -- )
+06E6                          ;*Macro unroll: mCODE "cr",2,0,cr                 ; ( -- )
 06E6                HEADER_CR:      ; ( -- )
 06E6   C5 06                  DW   link   
 06E8                LINK:     .SET   HEADER_cr   
@@ -4610,7 +4610,7 @@
 0A99                             ; 
 0A99                             ; forth word defintions
 0A99                             ; 
-0A99                          ;*Macro unroll: defword "quit",4,0,quit
+0A99                          ;*Macro unroll: mCODE "quit",4,0,quit
 0A99                HEADER_QUIT:      
 0A99   E6 06                  DW   link   
 0A9B                LINK:     .SET   HEADER_quit   
@@ -4623,7 +4623,7 @@
 0AA9                          ;*Macro unroll:  EXIT
 0AA9   84 0F                  DW   exit   
 0AAB   C3 A8 07               JP   enter   
-0AAE                          ;*Macro unroll: defword "word",5,0,WORD                 ; delim -- c-addr
+0AAE                          ;*Macro unroll: mCODE "word",5,0,WORD                 ; delim -- c-addr
 0AAE                HEADER_WORD:      ; delim -- c-addr
 0AAE   99 0A                  DW   link   
 0AB0                LINK:     .SET   HEADER_WORD   
@@ -4637,7 +4637,7 @@
 0AC0                          ;*Macro unroll:  EXIT
 0AC0   84 0F                  DW   exit   
 0AC2   C3 A8 07               JP   enter   
-0AC5                          ;*Macro unroll: defword ">cfa",4,0,tcfa
+0AC5                          ;*Macro unroll: mCODE ">cfa",4,0,tcfa
 0AC5                HEADER_TCFA:      
 0AC5   AE 0A                  DW   link   
 0AC7                LINK:     .SET   HEADER_tcfa   
@@ -4653,7 +4653,7 @@
 0ADD   84 0F                  DW   exit   
 0ADF   C3 A8 07               JP   enter   
 0AE2                             ; count extract string length from pascal string  ( ptr -- ptr+1 len )
-0AE2                          ;*Macro unroll: defword "count",5,0,count
+0AE2                          ;*Macro unroll: mCODE "count",5,0,count
 0AE2                HEADER_COUNT:      
 0AE2   C5 0A                  DW   link   
 0AE4                LINK:     .SET   HEADER_count   
@@ -4667,7 +4667,7 @@
 0AF7   84 0F                  DW   exit   
 0AF9   C3 A8 07               JP   enter   
 0AFC                             ; allocate n bytes of memory                                   ( n -- ) allocate n bytes of memory
-0AFC                          ;*Macro unroll: defword "allot",5,0,allot               ;
+0AFC                          ;*Macro unroll: mCODE "allot",5,0,allot               ;
 0AFC                HEADER_ALLOT:      ; 
 0AFC   E2 0A                  DW   link   
 0AFE                LINK:     .SET   HEADER_allot   
@@ -4680,7 +4680,7 @@
 0B09   84 0F                  DW   exit   
 0B0B   C3 A8 07               JP   enter   
 0B0E                             ; abs   n -- u                          absolute value
-0B0E                          ;*Macro unroll: defword "abs",3,0,ABS                   ; case sensitive for ABS label for some reason
+0B0E                          ;*Macro unroll: mCODE "abs",3,0,ABS                   ; case sensitive for ABS label for some reason
 0B0E                HEADER_ABS:      ; case sensitive for ABS label for some reason
 0B0E   FC 0A                  DW   link   
 0B10                LINK:     .SET   HEADER_ABS   
@@ -4727,7 +4727,7 @@
 0B1F   84 0F                  DW   exit   
 0B21   C3 A8 07               JP   enter   
 0B24                             ; negate  n1 -- n2                      negate n1
-0B24                          ;*Macro unroll: defword "negate",6,0,negate
+0B24                          ;*Macro unroll: mCODE "negate",6,0,negate
 0B24                HEADER_NEGATE:      
 0B24   0E 0B                  DW   link   
 0B26                LINK:     .SET   HEADER_negate   
@@ -4740,7 +4740,7 @@
 0B32                          ;*Macro unroll:  EXIT
 0B32   84 0F                  DW   exit   
 0B34   C3 A8 07               JP   enter   
-0B37                          ;*Macro unroll: defword "bl",2,0,bl
+0B37                          ;*Macro unroll: mCODE "bl",2,0,bl
 0B37                HEADER_BL:      
 0B37   24 0B                  DW   link   
 0B39                LINK:     .SET   HEADER_bl   
@@ -4752,7 +4752,7 @@
 0B41                          ;*Macro unroll:  EXIT
 0B41   84 0F                  DW   exit   
 0B43   C3 A8 07               JP   enter   
-0B46                          ;*Macro unroll: defword "interpret",6,0,interpret
+0B46                          ;*Macro unroll: mCODE "interpret",6,0,interpret
 0B46                HEADER_INTERPRET:      
 0B46   37 0B                  DW   link   
 0B48                LINK:     .SET   HEADER_interpret   
@@ -4836,7 +4836,7 @@
 0B78                          ;*Macro unroll:  EXIT
 0B78   84 0F                  DW   exit   
 0B7A   C3 A8 07               JP   enter   
-0B7D                          ;*Macro unroll: defword "'",1,0,tick                    ; quotes next word
+0B7D                          ;*Macro unroll: mCODE "'",1,0,tick                    ; quotes next word
 0B7D                HEADER_TICK:      ; quotes next word
 0B7D   46 0B                  DW   link   
 0B7F                LINK:     .SET   HEADER_tick   
@@ -4846,7 +4846,7 @@
 0B81   3C 0B B5 0A 36 02 2B 05 DW   bl,word,find,zEqual   
 0B89   8C 06 EA 0A 4F 06 4F 06 97 04 77 06 DW   rFrom,count,over,over,plus,toR   
 0B95   84 0F                  DW   EXIT   
-0B97                          ;*Macro unroll: defword "*",1,0,star                    ; u1 u2 -- ud
+0B97                          ;*Macro unroll: mCODE "*",1,0,star                    ; u1 u2 -- ud
 0B97                HEADER_STAR:      ; u1 u2 -- ud
 0B97   7D 0B                  DW   link   
 0B99                LINK:     .SET   HEADER_star   
@@ -4896,7 +4896,7 @@
 0BB6                          ;*Macro unroll:  EXIT
 0BB6   84 0F                  DW   exit   
 0BB8   C3 A8 07               JP   enter   
-0BBB                          ;*Macro unroll: defword "/mod",4,0,slashmod             ; dvend dvisr -- rem quot
+0BBB                          ;*Macro unroll: mCODE "/mod",4,0,slashmod             ; dvend dvisr -- rem quot
 0BBB                HEADER_SLASHMOD:      ; dvend dvisr -- rem quot
 0BBB   97 0B                  DW   link   
 0BBD                LINK:     .SET   HEADER_slashmod   
@@ -4986,7 +4986,7 @@
 0BF1                          ;*Macro unroll:  EXIT
 0BF1   84 0F                  DW   exit   
 0BF3   C3 A8 07               JP   enter   
-0BF6                          ;*Macro unroll: defword "/",1,0,slash                   ; dvend dvisr -- quot
+0BF6                          ;*Macro unroll: mCODE "/",1,0,slash                   ; dvend dvisr -- quot
 0BF6                HEADER_SLASH:      ; dvend dvisr -- quot
 0BF6   BB 0B                  DW   link   
 0BF8                LINK:     .SET   HEADER_slash   
@@ -4999,7 +4999,7 @@
 0C01                          ;*Macro unroll:  EXIT
 0C01   84 0F                  DW   exit   
 0C03   C3 A8 07               JP   enter   
-0C06                          ;*Macro unroll: defword "mod",3,0,mod                   ; dvend dvisr -- remainder
+0C06                          ;*Macro unroll: mCODE "mod",3,0,mod                   ; dvend dvisr -- remainder
 0C06                HEADER_MOD:      ; dvend dvisr -- remainder
 0C06   F6 0B                  DW   link   
 0C08                LINK:     .SET   HEADER_mod   
@@ -5017,7 +5017,7 @@
 0C16                             ; flow control
 0C16                             ; 
 0C16                             ; 
-0C16                          ;*Macro unroll: defword "if",2,msk_immed,if
+0C16                          ;*Macro unroll: mCODE "if",2,msk_immed,if
 0C16                HEADER_IF:      
 0C16   06 0C                  DW   link   
 0C18                LINK:     .SET   HEADER_if   
@@ -5031,7 +5031,7 @@
 0C2C                          ;*Macro unroll:  EXIT
 0C2C   84 0F                  DW   exit   
 0C2E   C3 A8 07               JP   enter   
-0C31                          ;*Macro unroll: defword "else",4,msk_immed,else
+0C31                          ;*Macro unroll: mCODE "else",4,msk_immed,else
 0C31                HEADER_ELSE:      
 0C31   16 0C                  DW   link   
 0C33                LINK:     .SET   HEADER_else   
@@ -5047,7 +5047,7 @@
 0C4D                          ;*Macro unroll:  EXIT
 0C4D   84 0F                  DW   exit   
 0C4F   C3 A8 07               JP   enter   
-0C52                          ;*Macro unroll: defword "endif",5,msk_immed,endif
+0C52                          ;*Macro unroll: mCODE "endif",5,msk_immed,endif
 0C52                HEADER_ENDIF:      
 0C52   31 0C                  DW   link   
 0C54                LINK:     .SET   HEADER_endif   
@@ -5069,7 +5069,7 @@
 0C73   84 0F                  DW   exit   
 0C75   C3 A8 07               JP   enter   
 0C78                             ; begin condition while ... repeat
-0C78                          ;*Macro unroll: defword "begin",5,msk_immed,begin
+0C78                          ;*Macro unroll: mCODE "begin",5,msk_immed,begin
 0C78                HEADER_BEGIN:      
 0C78   52 0C                  DW   link   
 0C7A                LINK:     .SET   HEADER_begin   
@@ -5082,7 +5082,7 @@
 0C87                          ;*Macro unroll:  EXIT
 0C87   84 0F                  DW   exit   
 0C89   C3 A8 07               JP   enter   
-0C8C                          ;*Macro unroll: defword "while",5,msk_immed,while
+0C8C                          ;*Macro unroll: mCODE "while",5,msk_immed,while
 0C8C                HEADER_WHILE:      
 0C8C   78 0C                  DW   link   
 0C8E                LINK:     .SET   HEADER_while   
@@ -5096,7 +5096,7 @@
 0CA5                          ;*Macro unroll:  EXIT
 0CA5   84 0F                  DW   exit   
 0CA7   C3 A8 07               JP   enter   
-0CAA                          ;*Macro unroll: defword "repeat",6,msk_immed,repeat
+0CAA                          ;*Macro unroll: mCODE "repeat",6,msk_immed,repeat
 0CAA                HEADER_REPEAT:      
 0CAA   8C 0C                  DW   link   
 0CAC                LINK:     .SET   HEADER_repeat   
@@ -5116,7 +5116,7 @@
 0CD6   C3 A8 07               JP   enter   
 0CD9                             ; using 00bbMDBzc0luTWkhLCQyMg== because it's surprisingly difficult
 0CD9                             ; to define the name s" using asm80
-0CD9                          ;*Macro unroll: defword {"s",$22},2,msk_immed,squote
+0CD9                          ;*Macro unroll: mCODE {"s",$22},2,msk_immed,squote
 0CD9                HEADER_SQUOTE:      
 0CD9   AA 0C                  DW   link   
 0CDB                LINK:     .SET   HEADER_squote   
@@ -5124,7 +5124,7 @@
 0CDC   73 22                  DB   "s",$22   
 0CDE                SQUOTE:      
 0CDE   18 04                  JR   qt   
-0CE0                          ;*Macro unroll: defword $22,1,msk_immed,qt
+0CE0                          ;*Macro unroll: mCODE $22,1,msk_immed,qt
 0CE0                HEADER_QT:      
 0CE0   D9 0C                  DW   link   
 0CE2                LINK:     .SET   HEADER_qt   
@@ -5233,7 +5233,7 @@
 0D38                             ; non-standard words
 0D38                             ; 
 0D38                             ; 
-0D38                          ;*Macro unroll: defword "{",1,msk_immed,lbrace
+0D38                          ;*Macro unroll: mCODE "{",1,msk_immed,lbrace
 0D38                HEADER_LBRACE:      
 0D38   E0 0C                  DW   link   
 0D3A                LINK:     .SET   HEADER_lbrace   
@@ -5282,7 +5282,7 @@
 0D5B                          ;*Macro unroll:  EXIT                             ; return from the function.
 0D5B   84 0F                  DW   exit   ; return from the function.
 0D5D   C3 A8 07               JP   enter   
-0D60                          ;*Macro unroll: defword "}",1,msk_immed,rbrace
+0D60                          ;*Macro unroll: mCODE "}",1,msk_immed,rbrace
 0D60                HEADER_RBRACE:      
 0D60   38 0D                  DW   link   
 0D62                LINK:     .SET   HEADER_rbrace   
@@ -5330,7 +5330,7 @@
 0D7F                          ;*Macro unroll:  EXIT                             ; return from the function.
 0D7F   84 0F                  DW   exit   ; return from the function.
 0D81   C3 A8 07               JP   enter   
-0D84                          ;*Macro unroll: defword "}exec",5,msk_immed,rbraceExec
+0D84                          ;*Macro unroll: mCODE "}exec",5,msk_immed,rbraceExec
 0D84                HEADER_RBRACEEXEC:      
 0D84   60 0D                  DW   link   
 0D86                LINK:     .SET   HEADER_rbraceExec   
@@ -5385,7 +5385,7 @@
 0DAE                             ; dictionary words
 0DAE                             ; 
 0DAE                             ; 
-0DAE                          ;*Macro unroll: defword ":",1,0,colon
+0DAE                          ;*Macro unroll: mCODE ":",1,0,colon
 0DAE                HEADER_COLON:      
 0DAE   84 0D                  DW   link   
 0DB0                LINK:     .SET   HEADER_colon   
@@ -5403,7 +5403,7 @@
 0DD1                          ;*Macro unroll:  EXIT                                ; return from the function.
 0DD1   84 0F                  DW   exit   ; return from the function.
 0DD3   C3 A8 07               JP   enter   
-0DD6                          ;*Macro unroll: defword ";",1,msk_immed,semicolon
+0DD6                          ;*Macro unroll: mCODE ";",1,msk_immed,semicolon
 0DD6                HEADER_SEMICOLON:      
 0DD6   AE 0D                  DW   link   
 0DD8                LINK:     .SET   HEADER_semicolon   
@@ -5417,7 +5417,7 @@
 0DE9                          ;*Macro unroll:  EXIT                                ; return from the function.
 0DE9   84 0F                  DW   exit   ; return from the function.
 0DEB   C3 A8 07               JP   enter   
-0DEE                          ;*Macro unroll: defword ":noname",7,0,colonNoName
+0DEE                          ;*Macro unroll: mCODE ":noname",7,0,colonNoName
 0DEE                HEADER_COLONNONAME:      
 0DEE   D6 0D                  DW   link   
 0DF0                LINK:     .SET   HEADER_colonNoName   
@@ -5431,7 +5431,7 @@
 0E05                          ;*Macro unroll:  EXIT                                ; return from the function.
 0E05   84 0F                  DW   exit   ; return from the function.
 0E07   C3 A8 07               JP   enter   
-0E0A                          ;*Macro unroll: defword "variable",8,0,variable         ; ( n -- ) get name from input
+0E0A                          ;*Macro unroll: mCODE "variable",8,0,variable         ; ( n -- ) get name from input
 0E0A                HEADER_VARIABLE:      ; ( n -- ) get name from input
 0E0A   EE 0D                  DW   link   
 0E0C                LINK:     .SET   HEADER_variable   
@@ -5446,7 +5446,7 @@
 0E26                          ;*Macro unroll:  EXIT
 0E26   84 0F                  DW   exit   
 0E28   C3 A8 07               JP   enter   
-0E2B                          ;*Macro unroll: defword "buffer:",7,0,bufferColon       ; ( n -- ) get name from input
+0E2B                          ;*Macro unroll: mCODE "buffer:",7,0,bufferColon       ; ( n -- ) get name from input
 0E2B                HEADER_BUFFERCOLON:      ; ( n -- ) get name from input
 0E2B   0A 0E                  DW   link   
 0E2D                LINK:     .SET   HEADER_bufferColon   
@@ -5460,7 +5460,7 @@
 0E40                          ;*Macro unroll:  EXIT
 0E40   84 0F                  DW   exit   
 0E42   C3 A8 07               JP   enter   
-0E45                          ;*Macro unroll: defword "create",6,0,create             ; --
+0E45                          ;*Macro unroll: mCODE "create",6,0,create             ; --
 0E45                HEADER_CREATE:      ; --
 0E45   2B 0E                  DW   link   
 0E47                LINK:     .SET   HEADER_create   
@@ -5484,7 +5484,7 @@
 0E7B                          ;*Macro unroll:  EXIT
 0E7B   84 0F                  DW   exit   
 0E7D   C3 A8 07               JP   enter   
-0E80                          ;*Macro unroll: defword "does>", 5, msk_immed, does         ; --
+0E80                          ;*Macro unroll: mCODE "does>", 5, msk_immed, does         ; --
 0E80                HEADER_DOES:      ; --
 0E80   45 0E                  DW   link   
 0E82                LINK:     .SET   HEADER_does   
@@ -5502,7 +5502,7 @@
 0EA9                          ;*Macro unroll:  EXIT
 0EA9   84 0F                  DW   exit   
 0EAB   C3 A8 07               JP   enter   
-0EAE                          ;*Macro unroll: defword "constant",8,0,constant         ; --
+0EAE                          ;*Macro unroll: mCODE "constant",8,0,constant         ; --
 0EAE                HEADER_CONSTANT:      ; --
 0EAE   80 0E                  DW   link   
 0EB0                LINK:     .SET   HEADER_constant   
@@ -5522,7 +5522,7 @@
 0ECA                             ; Firth extended (non-standard) words
 0ECA                             ; 
 0ECA                             ; 
-0ECA                          ;*Macro unroll: defword "S[",2,0,beginFrame             ; begin a stack frame
+0ECA                          ;*Macro unroll: mCODE "S[",2,0,beginFrame             ; begin a stack frame
 0ECA                HEADER_BEGINFRAME:      ; begin a stack frame
 0ECA   AE 0E                  DW   link   
 0ECC                LINK:     .SET   HEADER_beginFrame   
@@ -5538,7 +5538,7 @@
 0EDE   84 0F                  DW   exit   ; TOS = framePtr0
 0EE0   C3 A8 07               JP   enter   
 0EE3                             ; ]S                                    ; framePtr0 result --
-0EE3                          ;*Macro unroll: defword "]S",2,0,endFrame               ; end a stack frame
+0EE3                          ;*Macro unroll: mCODE "]S",2,0,endFrame               ; end a stack frame
 0EE3                HEADER_ENDFRAME:      ; end a stack frame
 0EE3   CA 0E                  DW   link   
 0EE5                LINK:     .SET   HEADER_endFrame   
@@ -5555,7 +5555,7 @@
 0EFB                          ;*Macro unroll:  EXIT
 0EFB   84 0F                  DW   exit   
 0EFD   C3 A8 07               JP   enter   
-0F00                          ;*Macro unroll: defword "param",5,0,param               ; n -- addr return addr of param n, -ve args, +ve locals
+0F00                          ;*Macro unroll: mCODE "param",5,0,param               ; n -- addr return addr of param n, -ve args, +ve locals
 0F00                HEADER_PARAM:      ; n -- addr return addr of param n, -ve args, +ve locals
 0F00   E3 0E                  DW   link   
 0F02                LINK:     .SET   HEADER_param   
@@ -5568,7 +5568,7 @@
 0F13                          ;*Macro unroll:  EXIT
 0F13   84 0F                  DW   exit   
 0F15   C3 A8 07               JP   enter   
-0F18                          ;*Macro unroll: defword "p1",2,0,p1                     ;  -- p1addr
+0F18                          ;*Macro unroll: mCODE "p1",2,0,p1                     ;  -- p1addr
 0F18                HEADER_P1:      ;  -- p1addr
 0F18   00 0F                  DW   link   
 0F1A                LINK:     .SET   HEADER_p1   
@@ -5580,7 +5580,7 @@
 0F26                          ;*Macro unroll:  EXIT
 0F26   84 0F                  DW   exit   
 0F28   C3 A8 07               JP   enter   
-0F2B                          ;*Macro unroll: defword "p2",2,0,p2                     ;  -- p2addr
+0F2B                          ;*Macro unroll: mCODE "p2",2,0,p2                     ;  -- p2addr
 0F2B                HEADER_P2:      ;  -- p2addr
 0F2B   18 0F                  DW   link   
 0F2D                LINK:     .SET   HEADER_p2   
@@ -5592,7 +5592,7 @@
 0F39                          ;*Macro unroll:  EXIT
 0F39   84 0F                  DW   exit   
 0F3B   C3 A8 07               JP   enter   
-0F3E                          ;*Macro unroll: defword "p3",2,0,p3                     ;  -- p3addr
+0F3E                          ;*Macro unroll: mCODE "p3",2,0,p3                     ;  -- p3addr
 0F3E                HEADER_P3:      ;  -- p3addr
 0F3E   2B 0F                  DW   link   
 0F40                LINK:     .SET   HEADER_p3   
@@ -5604,7 +5604,7 @@
 0F4C                          ;*Macro unroll:  EXIT
 0F4C   84 0F                  DW   exit   
 0F4E   C3 A8 07               JP   enter   
-0F51                          ;*Macro unroll: defword "v1",2,0,v1                     ;  -- v1addr
+0F51                          ;*Macro unroll: mCODE "v1",2,0,v1                     ;  -- v1addr
 0F51                HEADER_V1:      ;  -- v1addr
 0F51   3E 0F                  DW   link   
 0F53                LINK:     .SET   HEADER_v1   
@@ -5616,7 +5616,7 @@
 0F5D                          ;*Macro unroll:  EXIT
 0F5D   84 0F                  DW   exit   
 0F5F   C3 A8 07               JP   enter   
-0F62                          ;*Macro unroll: defword "v2",2,0,v2                     ;  -- v2addr
+0F62                          ;*Macro unroll: mCODE "v2",2,0,v2                     ;  -- v2addr
 0F62                HEADER_V2:      ;  -- v2addr
 0F62   51 0F                  DW   link   
 0F64                LINK:     .SET   HEADER_v2   
@@ -5628,7 +5628,7 @@
 0F6E                          ;*Macro unroll:  EXIT
 0F6E   84 0F                  DW   exit   
 0F70   C3 A8 07               JP   enter   
-0F73                          ;*Macro unroll: defword "v3",2,0,v3                     ;  -- v3addr
+0F73                          ;*Macro unroll: mCODE "v3",2,0,v3                     ;  -- v3addr
 0F73                HEADER_V3:      ;  -- v3addr
 0F73   62 0F                  DW   link   
 0F75                LINK:     .SET   HEADER_v3   
@@ -5640,7 +5640,7 @@
 0F7F                          ;*Macro unroll:  EXIT
 0F7F   84 0F                  DW   exit   
 0F81   C3 A8 07               JP   enter   
-0F84                             ; defword "#base",5,0,hashbase            ; n --      ; switch to basel for one word
+0F84                             ; mCODE "#base",5,0,hashbase            ; n --      ; switch to basel for one word
 0F84                             ;     rst $08
 0F84                             ;     dw base,fetch                       ; 16 base0
 0F84                             ;     dw swap, base, store                ; base0
@@ -5663,16 +5663,16 @@
 0F84                             ;     cEndif
 0F84                             ;     dw base, store                      ; restore base0
 0F84                             ;     EXIT
-0F84                             ; defword "#h",2,0,hashh                  ; switch to hex for one word
-0F84                             ;     rst $08                             ; enter forth
+0F84                             ; mCODE "#h",2,0,hashh                  ; switch to hex for one word
+0F84                             ;     ENTER
 0F84                             ;     dw lit,16,hashbase
 0F84                             ;     EXIT
-0F84                             ; defword "#d",2,0,hashd                  ; switch to decimal for one word
-0F84                             ;     rst $08                             ; enter forth
+0F84                             ; mCODE "#d",2,0,hashd                  ; switch to decimal for one word
+0F84                             ;     ENTER
 0F84                             ;     dw lit,10,hashbase
 0F84                             ;     EXIT
-0F84                             ; defword "define:",7,0,defineColon
-0F84                             ;     rst $08                             ; enter forth
+0F84                             ; mCODE "define:",7,0,defineColon
+0F84                             ;     ENTER
 0F84                             ;     dw create                           ; create the dictionary entry / header
 0F84                             ;     dw here,fetch                       ; back up 3 bytes to start of data area
 0F84                             ;     dw lit, 3, minus
@@ -5680,21 +5680,21 @@
 0F84                             ;     dw lit, jp_opcode, ccomma          ; write z80 jp opcode to word
 0F84                             ;     dw comma                            ; compile address TOS
 0F84                             ;     EXIT                             ; return from the function.
-0F84                             ; defword "stack",6,0,stackColon          ; ( n -- addr ) allocates memory and puts pointer at 0
-0F84                             ;     rst $08                             ; enter forth
+0F84                             ; mCODE "stack",6,0,stackColon          ; ( n -- addr ) allocates memory and puts pointer at 0
+0F84                             ;     ENTER
 0F84                             ;     dw twoPlus, allot                   ; allocate n + 2 bytes, push addr
 0F84                             ;     dw dup                              ; addr -- addr addr
 0F84                             ;     dw dup, twoPlus, swap, store        ; addr addr -- addr
 0F84                             ;     EXIT
-0F84                             ; defword "stackPush",5,0,stackPush       ; value stack --
-0F84                             ;     rst $08                             ; enter forth
+0F84                             ; mCODE "stackPush",5,0,stackPush       ; value stack --
+0F84                             ;     ENTER
 0F84                             ;     dw dup, nrot                        ; value stack - stack value stack
 0F84                             ;     dw fetch, dup, nrot                 ; stack value ptr -- stack ptr value ptr
 0F84                             ;     dw store                            ; stack ptr value ptr -- stack ptr
 0F84                             ;     dw twoplus, swap, store             ; stack ptr --
 0F84                             ;     EXIT
-0F84                             ; defword "stackPop",5,0,stackPop         ; stack -- value
-0F84                             ;     rst $08                             ; enter forth
+0F84                             ; mCODE "stackPop",5,0,stackPop         ; stack -- value
+0F84                             ;     ENTER
 0F84                             ;     dw dup                              ; stack -- stack stack
 0F84                             ;     dw fetch, dup                       ; stack stack -- stack ptr ptr
 0F84                             ;     dw fetch, nrot                      ; stack ptr ptr -- value stack ptr
@@ -5713,13 +5713,13 @@
 0F84                             ;     cEndif
 0F84                             ;     EXIT
 0F84                             ; litComma:                               ; pushes ptr to string and length on stack
-0F84                             ;     rst $08                             ; enter forth
+0F84                             ;     ENTER
 0F84                             ;     dw rfrom, dup
 0F84                             ;     dw lit, 2, plus, tor
 0F84                             ;     dw fetch, comma
 0F84                             ;     EXIT
 0F84                             ; litCComma:                              ; pushes ptr to string and length on stack
-0F84                             ;     rst $08                             ; enter forth
+0F84                             ;     ENTER
 0F84                             ;     dw rfrom, dup
 0F84                             ;     dw lit, 2, plus, tor
 0F84                             ;     dw fetch, cComma
@@ -6010,7 +6010,7 @@
 1074   C3 A8 07               JP   enter   
 1077                             ; words must preserve: BC, DE, SP, IX
 1077                             ; words may destroy: HL, IY, AF, AF", BC", DE" HL"
-1077                          ;*Macro unroll: defword "words", 5, 0, WORDS
+1077                          ;*Macro unroll: mCODE "words", 5, 0, WORDS
 1077                HEADER_WORDS:      
 1077   73 0F                  DW   link   
 1079                LINK:     .SET   HEADER_WORDS   
@@ -6022,7 +6022,7 @@
 1083   C1                     POP   BC   
 1084                          ;*Macro unroll:  NEXT
 1084   C3 A8 07               JP   enter   
-1087                          ;*Macro unroll: defword "print",5,0,PRINT
+1087                          ;*Macro unroll: mCODE "print",5,0,PRINT
 1087                HEADER_PRINT:      
 1087   77 10                  DW   link   
 1089                LINK:     .SET   HEADER_PRINT   
@@ -6040,7 +6040,7 @@
 109B   CD C4 01               CALL   printPStr   
 109E                          ;*Macro unroll:  NEXT
 109E   C3 A8 07               JP   enter   
-10A1                          ;*Macro unroll: defword "1-",2,0,oneMinus
+10A1                          ;*Macro unroll: mCODE "1-",2,0,oneMinus
 10A1                HEADER_ONEMINUS:      
 10A1   87 10                  DW   link   
 10A3                LINK:     .SET   HEADER_oneMinus   
@@ -6050,7 +6050,7 @@
 10A6   0B                     DEC   BC   
 10A7                          ;*Macro unroll:  NEXT
 10A7   C3 A8 07               JP   enter   
-10AA                          ;*Macro unroll: defword "2-",2,0,twoMinus
+10AA                          ;*Macro unroll: mCODE "2-",2,0,twoMinus
 10AA                HEADER_TWOMINUS:      
 10AA   A1 10                  DW   link   
 10AC                LINK:     .SET   HEADER_twoMinus   
@@ -6062,7 +6062,7 @@
 10B1                          ;*Macro unroll:  NEXT
 10B1   C3 A8 07               JP   enter   
 10B4                             ; 1*      n1/u1 -- n2/u2            do nothing
-10B4                          ;*Macro unroll: defword "noop",4,0,noop
+10B4                          ;*Macro unroll: mCODE "noop",4,0,noop
 10B4                HEADER_NOOP:      
 10B4   AA 10                  DW   link   
 10B6                LINK:     .SET   HEADER_noop   
@@ -6072,7 +6072,7 @@
 10BB                          ;*Macro unroll:  NEXT
 10BB   C3 A8 07               JP   enter   
 10BE                             ;z RSP!  a-addr --                  set return stack pointer
-10BE                          ;*Macro unroll: defword "rsp!",4,0,RSPSTORE
+10BE                          ;*Macro unroll: mCODE "rsp!",4,0,RSPSTORE
 10BE                HEADER_RSPSTORE:      
 10BE   B4 10                  DW   link   
 10C0                LINK:     .SET   HEADER_RSPSTORE   
@@ -6091,7 +6091,7 @@
 10CF   DD 4E 00               LD   C,(IX+0)   
 10D2                          ;*Macro unroll:  NEXT
 10D2   C3 A8 07               JP   enter   
-10D5                          ;*Macro unroll: defword "sp@",3,0,SPFETCH
+10D5                          ;*Macro unroll: mCODE "sp@",3,0,SPFETCH
 10D5                HEADER_SPFETCH:      
 10D5   BE 10                  DW   link   
 10D7                LINK:     .SET   HEADER_SPFETCH   
@@ -6110,7 +6110,7 @@
 10E9   4D                     LD   C,L   
 10EA                          ;*Macro unroll:  NEXT
 10EA   C3 A8 07               JP   enter   
-10ED                          ;*Macro unroll: defword "sp!",3,0,SPSTORE
+10ED                          ;*Macro unroll: mCODE "sp!",3,0,SPSTORE
 10ED                HEADER_SPSTORE:      
 10ED   D5 10                  DW   link   
 10EF                LINK:     .SET   HEADER_SPSTORE   
@@ -6135,7 +6135,7 @@
 1105                             ; 
 1105                             ; 
 1105                             ; CELL+    c-addr1 -- c-addr2   add cell size to addr
-1105                          ;*Macro unroll: defword "cell+",5,0,CELLPLUS
+1105                          ;*Macro unroll: mCODE "cell+",5,0,CELLPLUS
 1105                HEADER_CELLPLUS:      
 1105   ED 10                  DW   link   
 1107                LINK:     .SET   HEADER_CELLPLUS   
@@ -6144,7 +6144,7 @@
 110D                CELLPLUS:      
 110D   C3 D3 02               JP   twoplus   
 1110                             ; CHAR+    c-addr1 -- c-addr2   add char size to addr
-1110                          ;*Macro unroll: defword "char+",5,0,CHARPLUS
+1110                          ;*Macro unroll: mCODE "char+",5,0,CHARPLUS
 1110                HEADER_CHARPLUS:      
 1110   05 11                  DW   link   
 1112                LINK:     .SET   HEADER_CHARPLUS   
@@ -6153,7 +6153,7 @@
 1118                CHARPLUS:      
 1118   C3 CA 02               JP   oneplus   
 111B                             ; CELLS   ( n1 -- n2 ) n2 is the size in address units of n1 cells.
-111B                          ;*Macro unroll: defword "chars",5,0,CHARS
+111B                          ;*Macro unroll: mCODE "chars",5,0,CHARS
 111B                HEADER_CHARS:      
 111B   10 11                  DW   link   
 111D                LINK:     .SET   HEADER_CHARS   
@@ -6168,7 +6168,7 @@
 1126                             ; 
 1126                             ; */MOD star-slash-mod
 1126                             ; 2/      x1 -- x2                  arithmetic right shift
-1126                          ;*Macro unroll: defword "2/",2,0,TWOSLASH
+1126                          ;*Macro unroll: mCODE "2/",2,0,TWOSLASH
 1126                HEADER_TWOSLASH:      
 1126   1B 11                  DW   link   
 1128                LINK:     .SET   HEADER_TWOSLASH   
@@ -6180,7 +6180,7 @@
 112F                          ;*Macro unroll:  NEXT
 112F   C3 A8 07               JP   enter   
 1132                             ; LSHIFT  x1 u -- x2       logical L shift u places
-1132                          ;*Macro unroll: defword "lshift",6,0,lShift
+1132                          ;*Macro unroll: mCODE "lshift",6,0,lShift
 1132                HEADER_LSHIFT:      
 1132   26 11                  DW   link   
 1134                LINK:     .SET   HEADER_lShift   
@@ -6241,7 +6241,7 @@
 1152   44                     LD   B,H   
 1153                          ;*Macro unroll:  NEXT
 1153   C3 A8 07               JP   enter   
-1156                          ;*Macro unroll: defword "<<",2,0,ltlt
+1156                          ;*Macro unroll: mCODE "<<",2,0,ltlt
 1156                HEADER_LTLT:      
 1156   32 11                  DW   link   
 1158                LINK:     .SET   HEADER_ltlt   
@@ -6250,7 +6250,7 @@
 115B                LTLT:        
 115B   18 DE                  JR   lShift   
 115D                             ;RSHIFT  x1 u -- x2    logical R shift u places
-115D                          ;*Macro unroll: defword "rshift",6,0,RSHIFT
+115D                          ;*Macro unroll: mCODE "rshift",6,0,RSHIFT
 115D                HEADER_RSHIFT:      
 115D   56 11                  DW   link   
 115F                LINK:     .SET   HEADER_RSHIFT   
@@ -6312,7 +6312,7 @@
 1180   44                     LD   B,H   
 1181                          ;*Macro unroll:  NEXT
 1181   C3 A8 07               JP   enter   
-1184                          ;*Macro unroll: defword ">>",2,0,gtgt
+1184                          ;*Macro unroll: mCODE ">>",2,0,gtgt
 1184                HEADER_GTGT:      
 1184   5D 11                  DW   link   
 1186                LINK:     .SET   HEADER_gtgt   
@@ -6326,7 +6326,7 @@
 118B                             ; definitions
 118B                             ; 
 118B                             ; 
-118B                          ;*Macro unroll: defword "immediate",9,MSK_IMMED,IMMEDIATE
+118B                          ;*Macro unroll: mCODE "immediate",9,MSK_IMMED,IMMEDIATE
 118B                HEADER_IMMEDIATE:      
 118B   84 11                  DW   link   
 118D                LINK:     .SET   HEADER_IMMEDIATE   
@@ -6347,7 +6347,7 @@
 11A3                             ; device
 11A3                             ; 
 11A3                             ; 
-11A3                          ;*Macro unroll: defword "accept",6,0,ACCEPT              ; ( addr max -- len )
+11A3                          ;*Macro unroll: mCODE "accept",6,0,ACCEPT              ; ( addr max -- len )
 11A3                HEADER_ACCEPT:      ; ( addr max -- len )
 11A3   8B 11                  DW   link   
 11A5                LINK:     .SET   HEADER_ACCEPT   
@@ -6370,7 +6370,7 @@
 11C2   CD FF 00               CALL   getline   
 11C5                          ;*Macro unroll:  NEXT
 11C5   C3 A8 07               JP   enter   
-11C8                          ;*Macro unroll: defword "key",3,0,KEY                ; ( -- c )
+11C8                          ;*Macro unroll: mCODE "key",3,0,KEY                ; ( -- c )
 11C8                HEADER_KEY:      ; ( -- c )
 11C8   A3 11                  DW   link   
 11CA                LINK:     .SET   HEADER_KEY   
@@ -6382,7 +6382,7 @@
 11D3   4F                     LD   c,a   
 11D4                          ;*Macro unroll:  NEXT
 11D4   C3 A8 07               JP   enter   
-11D7                          ;*Macro unroll: defword "emit",4,0,EMIT              ; print the character on the stack
+11D7                          ;*Macro unroll: mCODE "emit",4,0,EMIT              ; print the character on the stack
 11D7                HEADER_EMIT:      ; print the character on the stack
 11D7   C8 11                  DW   link   
 11D9                LINK:     .SET   HEADER_EMIT   
@@ -6398,7 +6398,7 @@
 11E9   DD 4E 00               LD   C,(IX+0)   
 11EC                          ;*Macro unroll:  NEXT
 11EC   C3 A8 07               JP   enter   
-11EF                          ;*Macro unroll: defword "key?",4,0,QKEY              ; ( -- c )
+11EF                          ;*Macro unroll: mCODE "key?",4,0,QKEY              ; ( -- c )
 11EF                HEADER_QKEY:      ; ( -- c )
 11EF   D7 11                  DW   link   
 11F1                LINK:     .SET   HEADER_QKEY   
@@ -6453,7 +6453,7 @@
 120F                STRUC_12:   .SET   0   
 120F                          ;*Macro unroll:  NEXT
 120F   C3 A8 07               JP   enter   
-1212                          ;*Macro unroll: defword "pack",4,0,pack             ; ( adr1 len adr2 -- adr2 )
+1212                          ;*Macro unroll: mCODE "pack",4,0,pack             ; ( adr1 len adr2 -- adr2 )
 1212                HEADER_PACK:      ; ( adr1 len adr2 -- adr2 )
 1212   EF 11                  DW   link   
 1214                LINK:     .SET   HEADER_pack   
@@ -6533,7 +6533,7 @@
 1239                             ; 
 1239                             ; forth word defintions
 1239                             ; 
-1239                          ;*Macro unroll: defword "decimal",7,0,decimal           ; pushes ptr to string and length on stack
+1239                          ;*Macro unroll: mCODE "decimal",7,0,decimal           ; pushes ptr to string and length on stack
 1239                HEADER_DECIMAL:      ; pushes ptr to string and length on stack
 1239   12 12                  DW   link   
 123B                LINK:     .SET   HEADER_decimal   
@@ -6545,7 +6545,7 @@
 124C                          ;*Macro unroll:  EXIT
 124C   84 0F                  DW   exit   
 124E   C3 A8 07               JP   enter   
-1251                          ;*Macro unroll: defword "hex",3,0,hex                   ; pushes ptr to string and length on stack
+1251                          ;*Macro unroll: mCODE "hex",3,0,hex                   ; pushes ptr to string and length on stack
 1251                HEADER_HEX:      ; pushes ptr to string and length on stack
 1251   39 12                  DW   link   
 1253                LINK:     .SET   HEADER_hex   
@@ -6558,7 +6558,7 @@
 1260   84 0F                  DW   exit   
 1262   C3 A8 07               JP   enter   
 1265                             ; min   n1 n2 -- u                      minimum
-1265                          ;*Macro unroll: defword "min",3,0,min
+1265                          ;*Macro unroll: mCODE "min",3,0,min
 1265                HEADER_MIN:      
 1265   51 12                  DW   link   
 1267                LINK:     .SET   HEADER_min   
@@ -6614,7 +6614,7 @@
 1280   84 0F                  DW   exit   
 1282   C3 A8 07               JP   enter   
 1285                             ; max   n1 n2 -- u                      maximum
-1285                          ;*Macro unroll: defword "max",3,0,max
+1285                          ;*Macro unroll: mCODE "max",3,0,max
 1285                HEADER_MAX:      
 1285   65 12                  DW   link   
 1287                LINK:     .SET   HEADER_max   
@@ -6670,7 +6670,7 @@
 12A0   84 0F                  DW   exit   
 12A2   C3 A8 07               JP   enter   
 12A5                             ; .s print stack (non-destructively)
-12A5                          ;*Macro unroll: defword ".s",2,0,dots                   ; ( -- )
+12A5                          ;*Macro unroll: mCODE ".s",2,0,dots                   ; ( -- )
 12A5                HEADER_DOTS:      ; ( -- )
 12A5   85 12                  DW   link   
 12A7                LINK:     .SET   HEADER_dots   
@@ -6761,7 +6761,7 @@
 12F7   84 0F                  DW   exit   
 12F9   C3 A8 07               JP   enter   
 12FC                             ; ." print string"
-12FC                          ;*Macro unroll: defword {".",$22},2,msk_immed,dotquote
+12FC                          ;*Macro unroll: mCODE {".",$22},2,msk_immed,dotquote
 12FC                HEADER_DOTQUOTE:      
 12FC   A5 12                  DW   link   
 12FE                LINK:     .SET   HEADER_dotquote   
@@ -6816,7 +6816,7 @@
 131A                          ;*Macro unroll:  EXIT
 131A   84 0F                  DW   exit   
 131C   C3 A8 07               JP   enter   
-131F                             ; defword "postpone",8,msk_immed,postpone ; --
+131F                             ; mCODE "postpone",8,msk_immed,postpone ; --
 131F                             ;     rst $08
 131F                             ; 	dw bl, word, count            ; pstr -- ptr len
 131F                             ;     dw dup, zEqual
@@ -6868,8 +6868,8 @@
 131F                             ; constant words
 131F                             ; 
 131F                             ; 
-131F                          ;*Macro unroll: defconst "version",7,0,version,1
-131F                          ;*Macro unroll: defword "version",7,0,version
+131F                          ;*Macro unroll: mCONST "version",7,0,version,1
+131F                          ;*Macro unroll: mCODE "version",7,0,version
 131F                HEADER_VERSION:      
 131F   FC 12                  DW   link   
 1321                LINK:     .SET   HEADER_version   
@@ -6884,8 +6884,8 @@
 1333   01 01 00               LD   BC,1   
 1336                          ;*Macro unroll:  NEXT
 1336   C3 A8 07               JP   enter   
-1339                          ;*Macro unroll: defconst "r0",2,0,rz, ret_stack
-1339                          ;*Macro unroll: defword "r0",2,0,rz
+1339                          ;*Macro unroll: mCONST "r0",2,0,rz, ret_stack
+1339                          ;*Macro unroll: mCODE "r0",2,0,rz
 1339                HEADER_RZ:      
 1339   1F 13                  DW   link   
 133B                LINK:     .SET   HEADER_rz   
@@ -6900,8 +6900,8 @@
 1348   01 00 00               LD   BC,ret_stack   
 134B                          ;*Macro unroll:  NEXT
 134B   C3 A8 07               JP   enter   
-134E                          ;*Macro unroll: defconst "msk_immed",9,0,__msk_immed,msk_immed
-134E                          ;*Macro unroll: defword "msk_immed",9,0,__msk_immed
+134E                          ;*Macro unroll: mCONST "msk_immed",9,0,__msk_immed,msk_immed
+134E                          ;*Macro unroll: mCODE "msk_immed",9,0,__msk_immed
 134E                HEADER___MSK_IMMED:      
 134E   39 13                  DW   link   
 1350                LINK:     .SET   HEADER___msk_immed   
@@ -6916,8 +6916,8 @@
 1364   01 80 00               LD   BC,msk_immed   
 1367                          ;*Macro unroll:  NEXT
 1367   C3 A8 07               JP   enter   
-136A                          ;*Macro unroll: defconst "msk_hidden",10,0,__msk_hidden,msk_hidden
-136A                          ;*Macro unroll: defword "msk_hidden",10,0,__msk_hidden
+136A                          ;*Macro unroll: mCONST "msk_hidden",10,0,__msk_hidden,msk_hidden
+136A                          ;*Macro unroll: mCODE "msk_hidden",10,0,__msk_hidden
 136A                HEADER___MSK_HIDDEN:      
 136A   4E 13                  DW   link   
 136C                LINK:     .SET   HEADER___msk_hidden   
@@ -6932,8 +6932,8 @@
 1381   01 40 00               LD   BC,msk_hidden   
 1384                          ;*Macro unroll:  NEXT
 1384   C3 A8 07               JP   enter   
-1387                          ;*Macro unroll: defconst "msk_length",10,0,__msk_length,msk_length
-1387                          ;*Macro unroll: defword "msk_length",10,0,__msk_length
+1387                          ;*Macro unroll: mCONST "msk_length",10,0,__msk_length,msk_length
+1387                          ;*Macro unroll: mCODE "msk_length",10,0,__msk_length
 1387                HEADER___MSK_LENGTH:      
 1387   6A 13                  DW   link   
 1389                LINK:     .SET   HEADER___msk_length   
@@ -6953,8 +6953,8 @@
 13A4                             ; 
 13A4                             ; "latest" must be the last word defined
 13A4                             ; 
-13A4                          ;*Macro unroll: defvar "framePtr", 8, 0, framePtr, var_framePtr
-13A4                          ;*Macro unroll: defword "framePtr",8,0,framePtr
+13A4                          ;*Macro unroll: mVAR "framePtr", 8, 0, framePtr, var_framePtr
+13A4                          ;*Macro unroll: mCODE "framePtr",8,0,framePtr
 13A4                HEADER_FRAMEPTR:      
 13A4   87 13                  DW   link   
 13A6                LINK:     .SET   HEADER_framePtr   
@@ -6969,8 +6969,8 @@
 13B9   01 8E 2F               LD   BC,var_framePtr   
 13BC                          ;*Macro unroll:  NEXT
 13BC   C3 A8 07               JP   enter   
-13BF                          ;*Macro unroll: defvar "pad", 3, 0, pad, var_pad
-13BF                          ;*Macro unroll: defword "pad",3,0,pad
+13BF                          ;*Macro unroll: mVAR "pad", 3, 0, pad, var_pad
+13BF                          ;*Macro unroll: mCODE "pad",3,0,pad
 13BF                HEADER_PAD:      
 13BF   A4 13                  DW   link   
 13C1                LINK:     .SET   HEADER_pad   
@@ -6985,8 +6985,8 @@
 13CF   01 90 2F               LD   BC,var_pad   
 13D2                          ;*Macro unroll:  NEXT
 13D2   C3 A8 07               JP   enter   
-13D5                          ;*Macro unroll: defvar "here", 4, 0, here, var_here
-13D5                          ;*Macro unroll: defword "here",4,0,here
+13D5                          ;*Macro unroll: mVAR "here", 4, 0, here, var_here
+13D5                          ;*Macro unroll: mCODE "here",4,0,here
 13D5                HEADER_HERE:      
 13D5   BF 13                  DW   link   
 13D7                LINK:     .SET   HEADER_here   
@@ -7001,8 +7001,8 @@
 13E6   01 10 30               LD   BC,var_here   
 13E9                          ;*Macro unroll:  NEXT
 13E9   C3 A8 07               JP   enter   
-13EC                          ;*Macro unroll: defvar "intp_stop", 9, 0, intp_stop, var_intp_stop
-13EC                          ;*Macro unroll: defword "intp_stop",9,0,intp_stop
+13EC                          ;*Macro unroll: mVAR "intp_stop", 9, 0, intp_stop, var_intp_stop
+13EC                          ;*Macro unroll: mCODE "intp_stop",9,0,intp_stop
 13EC                HEADER_INTP_STOP:      
 13EC   D5 13                  DW   link   
 13EE                LINK:     .SET   HEADER_intp_stop   
@@ -7017,8 +7017,8 @@
 1402   01 12 30               LD   BC,var_intp_stop   
 1405                          ;*Macro unroll:  NEXT
 1405   C3 A8 07               JP   enter   
-1408                          ;*Macro unroll: defvar "state",5,0,state, var_state
-1408                          ;*Macro unroll: defword "state",5,0,state
+1408                          ;*Macro unroll: mVAR "state",5,0,state, var_state
+1408                          ;*Macro unroll: mCODE "state",5,0,state
 1408                HEADER_STATE:      
 1408   EC 13                  DW   link   
 140A                LINK:     .SET   HEADER_state   
@@ -7033,8 +7033,8 @@
 141A   01 14 30               LD   BC,var_state   
 141D                          ;*Macro unroll:  NEXT
 141D   C3 A8 07               JP   enter   
-1420                          ;*Macro unroll: defvar "nesting",7,0,nesting, var_nesting
-1420                          ;*Macro unroll: defword "nesting",7,0,nesting
+1420                          ;*Macro unroll: mVAR "nesting",7,0,nesting, var_nesting
+1420                          ;*Macro unroll: mCODE "nesting",7,0,nesting
 1420                HEADER_NESTING:      
 1420   08 14                  DW   link   
 1422                LINK:     .SET   HEADER_nesting   
@@ -7049,8 +7049,8 @@
 1434   01 16 30               LD   BC,var_nesting   
 1437                          ;*Macro unroll:  NEXT
 1437   C3 A8 07               JP   enter   
-143A                          ;*Macro unroll: defvar "sp0",3,0,sp0, var_sp0
-143A                          ;*Macro unroll: defword "sp0",3,0,sp0
+143A                          ;*Macro unroll: mVAR "sp0",3,0,sp0, var_sp0
+143A                          ;*Macro unroll: mCODE "sp0",3,0,sp0
 143A                HEADER_SP0:      
 143A   20 14                  DW   link   
 143C                LINK:     .SET   HEADER_sp0   
@@ -7065,8 +7065,8 @@
 144A   01 18 30               LD   BC,var_sp0   
 144D                          ;*Macro unroll:  NEXT
 144D   C3 A8 07               JP   enter   
-1450                          ;*Macro unroll: defvar "base",4,0,base, var_base
-1450                          ;*Macro unroll: defword "base",4,0,base
+1450                          ;*Macro unroll: mVAR "base",4,0,base, var_base
+1450                          ;*Macro unroll: mCODE "base",4,0,base
 1450                HEADER_BASE:      
 1450   3A 14                  DW   link   
 1452                LINK:     .SET   HEADER_base   
@@ -7081,8 +7081,8 @@
 1461   01 1A 30               LD   BC,var_base   
 1464                          ;*Macro unroll:  NEXT
 1464   C3 A8 07               JP   enter   
-1467                          ;*Macro unroll: defvar "latestStr",6,0,latestStr, var_latest_str
-1467                          ;*Macro unroll: defword "latestStr",6,0,latestStr
+1467                          ;*Macro unroll: mVAR "latestStr",6,0,latestStr, var_latest_str
+1467                          ;*Macro unroll: mCODE "latestStr",6,0,latestStr
 1467                HEADER_LATESTSTR:      
 1467   50 14                  DW   link   
 1469                LINK:     .SET   HEADER_latestStr   
@@ -7097,8 +7097,8 @@
 147D   01 1C 30               LD   BC,var_latest_str   
 1480                          ;*Macro unroll:  NEXT
 1480   C3 A8 07               JP   enter   
-1483                          ;*Macro unroll: defvar "latest",6,0,latest, var_latest
-1483                          ;*Macro unroll: defword "latest",6,0,latest
+1483                          ;*Macro unroll: mVAR "latest",6,0,latest, var_latest
+1483                          ;*Macro unroll: mCODE "latest",6,0,latest
 1483                HEADER_LATEST:      
 1483   67 14                  DW   link   
 1485                LINK:     .SET   HEADER_latest   

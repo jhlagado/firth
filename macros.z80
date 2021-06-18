@@ -12,6 +12,10 @@
     jp enter1
 .endm
 
+.macro ENTER
+    rst $08                             ; enter forth
+.endm
+
 .macro EXIT
     dw exit
     jp enter
@@ -26,7 +30,7 @@
 ; Store the chain of links.
 link: .set 0
 
-.macro defword, name, namelen, flags, label
+.macro mCODE, name, namelen, flags, label
 
 HEADER_label:
     DW link		            ; link
@@ -38,15 +42,15 @@ link: .set HEADER_label
 label:
 .endm
 
-.macro defvar, name, namelen, flags, label, var_label
-defword name,namelen,flags,label
+.macro mVAR, name, namelen, flags, label, var_label
+mCODE name,namelen,flags,label
     ppush0 B,C
     ld BC, var_label
     NEXT
 .endm
 
-.macro defconst, name, namelen, flags, label, value
-defword name,namelen,flags,label
+.macro mCONST, name, namelen, flags, label, value
+mCODE name,namelen,flags,label
     ppush0 B,C
     ld BC, value
     NEXT
