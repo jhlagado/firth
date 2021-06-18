@@ -14,30 +14,6 @@ mCODE "hex",3,0,hex                   ; pushes ptr to string and length on stack
     dw lit,16,base,store
     EXIT
 
-; min   n1 n2 -- u                      minimum
-mCODE "min",3,0,min
-    rst $08
-    dw over, over
-    dw lessThan
-    cif
-        dw drop
-    cElse
-        dw swap, drop
-    cendif
-    EXIT
-
-; max   n1 n2 -- u                      maximum
-mCODE "max",3,0,max
-    rst $08
-    dw over, over
-    dw lessThan
-    cif
-        dw swap, drop
-    cElse
-        dw drop
-    cendif
-    EXIT
-
 ; .s print stack (non-destructively)
 mCODE ".s",2,0,dots                   ; ( -- )
     ENTER

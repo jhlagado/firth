@@ -1,0 +1,55 @@
+mCODE "rot",3,0,ROT       ; x1 x2 x3 -- x2 x3 x1
+                            ; x3 in BC
+    ppop0 D,E               ; x2 in DE
+    ppop0 H,L               ; x1 in HL
+    ppush0 D,E              ; x2 on stack
+    ppush H,L               ; PUSH x1 - x2 x3 x1
+                            ; x1 in BC
+    NEXT
+
+mCODE "-rot",4,0,NROT     ; x1 x2 x3 -- x3 x1 x2
+                            ; x3 in BC
+    ppop0 D,E               ; x2 in DE
+    ppop0 H,L               ; x1 in HL
+    ppush H,L               ; PUSH x1 - x3 x1
+    ppush D,E               ; PUSH x2 - x3 x1 x2
+                            ; x2 in BC
+    NEXT
+
+mCODE "dup",3,0,DUP        ; x -- x x
+    ppush0 B,C
+    NEXT
+
+; SWAP     x1 x2 -- x2 x1    swap top two items
+mCODE "swap",4,0,SWAP      ; x1 x2 -- x2 x1
+    ppop0 D,E
+    ppush D,E
+    NEXT
+
+mCODE "drop",4,0,DROP      ; x --
+    ppop0 B,C		    ; drop top of stack
+    NEXT
+
+; OVER    x1 x2 -- x1 x2 x1
+mCODE "over",4,0,OVER
+    ppop0 H,L
+    ppush0 H,L
+    ppush H,L
+    NEXT
+
+; >R    ( x -- ) ( R: -- x )  Move  x from TOS to the return stack.
+mCODE ">r",2,0,TOR
+    pop HL
+    push BC
+    push HL
+    ppop0 B,C
+    NEXT
+
+; R>    ( -- x ) ( R: x -- )  Move x from the return stack to TOS
+mCODE "r>",2,0,RFROM
+    ppush0 B,C
+    pop HL
+    pop BC
+    push HL
+    NEXT
+

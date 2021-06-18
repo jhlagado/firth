@@ -48,17 +48,6 @@ mCODE "hidden",6,0,HIDDEN
     ld (HL), A
     NEXT
 
-; 1+      n1/u1 -- n2/u2            add 1 to TOS
-mCODE "1+",2,0,onePlus
-    inc BC
-    NEXT
-
-; 2+      n1/u1 -- n2/u2            add 2 to TOS
-mCODE "2+",2,0,twoPlus
-    inc BC
-    inc BC
-    NEXT
-
 ; ?branch   x --              branch if TOS zero
 mCODE "0branch",7,0,ZBRANCH
     checkZeroWord B,C               ; test old TOS
@@ -84,93 +73,6 @@ mCODE "lit",3,0,LIT
 	readWord HL, B,C                ; read next word and push on TOS, inc HL by 2
     NEXT1
 
-; 0<     n -- flag                  true if TOS negative
-mCODE "0<",2,0,ZEROLESS
-    sla b                           ; sign bit -> cy flag
-    sbc a,a         
-    and 1                           ; <0 = -1, >0 = 0
-    ld b,0
-    ld c,a
-    NEXT
-
-; INVERT x1 -- x2               ; bitwise complement
-mCODE "invert",6,0,INVERT
-    ld A,B
-    cpl
-    ld B,A
-    ld A,C
-    cpl
-    ld C,A
-    NEXT
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-;; logic
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-; TRUE
-mCODE "true",4,0,TRUE
-    ppush0 B,C
-    ld BC,1
-    NEXT
-
-; FALSE
-mCODE "false",5,0,FALSE
-    ppush0 B,C
-    ld BC,0
-    NEXT
-
-; =      x1 x2 -- flag         test x1=x2
-mCODE "=",1,0,equal
-    ppop0 H,L
-    or A
-    sbc HL,BC       ; x1-x2 in HL, SZVC valid
-    _if nz
-        ld BC, 1       ;   if -ve, result true
-    _endif
-    inc BC
-    NEXT
-
-; <      n1 n2 -- flag          test n1<n2
-mCODE "<",1,0,LESSTHAN	        ; less than
-    ppop0 H,L
-    or A
-    sbc HL,BC       ; n1-n2 in HL, SZVC valid
-    _if pe
-        _if m
-            ld bc, 0
-        _else
-            ld bc, 1       ;   if -ve, result true
-        _endif
-    _else
-        _if p
-            ld bc, 0
-        _else
-            ld bc, 1       ;   if -ve, result true
-        _endif
-    _endif
-    NEXT
-
-; >      n1 n2 -- flag          test n1 > n2
-mCODE ">",1,0,GREATERTHAN	        ; less than
-    ppop0 H,L                  ; swap operands
-    ppush H,L
-    jr LESSTHAN
-
-; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; ;;
-; ;; memory access
-; ;;
-; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-; !        x a-addr --   store cell in memory
-mCODE "!",1,0,STORE
-    ppop H,L
-    writeWord HL, B,C
-    ppop0 B,C          ; POP new TOS
-    NEXT
-
 mCODE ",",1,0,COMMA
 	ld HL, (VAR_HERE)	; HERE
 	writeWord HL, B,C
@@ -178,21 +80,13 @@ mCODE ",",1,0,COMMA
 	ppop0 B,C		        ; cleanup TOS
     NEXT
 
-mCODE "@",1,0,FETCH
-    loadWord H,L, B,C ; HL = TOS
-    readWord HL, B,C
-    NEXT
 
-; CELLS   ( n1 -- n2 ) n2 is the size in address units of n1 cells.
-mCODE "cells",5,0,CELLS
-    jp twostar
+; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; ;;
+; ;; memory access
+; ;;
+; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-; C!      char c-addr --    store char in memory
-mCODE "c!",2,0,CSTORE
-    ppop H,L
-    ld (HL),C
-    ppop0 B,C          ; POP new TOS
-    NEXT
 
 mCODE "c,",1,0,CCOMMA
     ppush0 H,L
@@ -204,63 +98,7 @@ mCODE "c,",1,0,CCOMMA
 	ppop0 B,C		        ; cleanup TOS
     NEXT
 
-; C@     c-addr -- char   fetch char from memory
-mCODE "c@",2,0,CFETCH
-    ld A,(BC)
-    ld C,A
-    ld B,0
-    NEXT
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-;; arithmetic
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-; +       n1/u1 n2/u2 -- n3/u3     add n1+n2
-mCODE "+",1,0,PLUS
-    ppop0 H,L
-    add HL,BC
-    loadWord B,C, H,L
-    NEXT
-
-; 2*      n1/u1 -- n2/u2            arithmetic left shift
-mCODE "2*",2,0,TWOSTAR
-    sla C
-    rl B
-    NEXT
-
-mCODE "-",1,0,MINUS
-    ppop0 H,L
-    or A
-    sbc HL,BC
-    loadWord B,C, H,L
-    NEXT
-
-; U*   u1 u2 -- ud   unsigned mutliply
-mCODE "u*",2,0,USTAR              ; u1 u2 -- ud
-                                    ; u2 in BC
-    ppop0 D,E                       ; u1 in DE
-	call unsignedMultiply
-    ppush0 D,E                      ; udlo result
-                                    ; udhi result
-    NEXT
-
-; U/MOD   u1 u2 -- u1 u2    unsigned 16 / 16 -> r q
-mCODE "u/mod",5,0,USLASHMOD
-    ppop D,E                ; DE = divisor
-                            ; BC = dividend
-    call divideWordByWord
-
-    ppush0 H,L           ; PUSH remainder,
-    NEXT
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-;; logic
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 mCODE "[",1,MSK_IMMED,LBRAC
 	ld HL, 0
@@ -272,54 +110,6 @@ mCODE "]",1,0,RBRAC
 	ld (VAR_STATE), HL	; Set STATE to 1.
     NEXT
 
-; 0= zero-equal
-mCODE "0=",2,0,zEqual
-    checkZeroWord B,C            ; returns 0 if not equal, 1 if equal
-    _if nz
-        ld BC, -1
-    _endif
-    inc BC
-    NEXT
-
-mCODE "0<>",3,0,zNotEqual
-    checkZeroWord B,C            ; returns 0 if not equal, 1 if equal
-    _if nz
-        ld BC, 1
-    _endif
-    NEXT
-
-; and    x1 x2 -- x3            logical and
-mCODE "and",3,0,and	        ; bitwise and
-    ppop0 H,L
-    ld A,b
-    and H
-    ld B,A
-    ld A,C
-    and L
-    ld C,A
-    NEXT
-
-; OR    x1 x2 -- x3             logical OR
-mCODE "or",2,0,OR	            ; bitwise OR
-    ppop0 H,L
-    ld A,B
-    or H
-    ld B,A
-    ld A,C
-    or L
-    ld C,A
-    NEXT
-    
-; xor    x1 x2 -- x3            logical xor
-mCODE "xor",3,0,xor	        ; bitwise xor
-    ppop0 H,L
-    ld A,B
-    xor H
-    ld B,A
-    ld A,C
-    xor L
-    ld C,A
-    NEXT
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -327,93 +117,12 @@ mCODE "xor",3,0,xor	        ; bitwise xor
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-mCODE "rot",3,0,ROT       ; x1 x2 x3 -- x2 x3 x1
-                            ; x3 in BC
-    ppop0 D,E               ; x2 in DE
-    ppop0 H,L               ; x1 in HL
-    ppush0 D,E              ; x2 on stack
-    ppush H,L               ; PUSH x1 - x2 x3 x1
-                            ; x1 in BC
-    NEXT
-
-mCODE "-rot",4,0,NROT     ; x1 x2 x3 -- x3 x1 x2
-                            ; x3 in BC
-    ppop0 D,E               ; x2 in DE
-    ppop0 H,L               ; x1 in HL
-    ppush H,L               ; PUSH x1 - x3 x1
-    ppush D,E               ; PUSH x2 - x3 x1 x2
-                            ; x2 in BC
-    NEXT
-
-mCODE "dup",3,0,DUP        ; x -- x x
-    ppush0 B,C
-    NEXT
-
-; SWAP     x1 x2 -- x2 x1    swap top two items
-mCODE "swap",4,0,SWAP      ; x1 x2 -- x2 x1
-    ppop0 D,E
-    ppush D,E
-    NEXT
-
-mCODE "drop",4,0,DROP      ; x --
-    ppop0 B,C		    ; drop top of stack
-    NEXT
-
-; OVER    x1 x2 -- x1 x2 x1
-mCODE "over",4,0,OVER
-    ppop0 H,L
-    ppush0 H,L
-    ppush H,L
-    NEXT
-
-; >R    ( x -- ) ( R: -- x )  Move  x from TOS to the return stack.
-mCODE ">r",2,0,TOR
-    pop HL
-    push BC
-    push HL
-    ppop0 B,C
-    NEXT
-
-; R>    ( -- x ) ( R: x -- )  Move x from the return stack to TOS
-mCODE "r>",2,0,RFROM
-    ppush0 B,C
-    pop HL
-    pop BC
-    push HL
-    NEXT
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;; output
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-mCODE ".",1,0,DOT                 ; print top of stack in BASE
-    push HL
-    push DE
-    push BC
-    loadWord H,L, B,C
-    ld A,(VAR_BASE)
-    ld C,A
-    ld DE, wordBuf
-    call formatNum
-    call printStr
-    call printSpace
-    pop BC
-    pop DE
-    pop HL
-    ppop0 B,C
-    NEXT
-
-mCODE "type",4,0,TYPE             ; ( str len -- )
-    ppop0 D,E                       ; DE = str BC = length
-    call printStr
-    ppop0 B,C                       ; clear TOS
-    NEXT
-
-mCODE "cr",2,0,cr                 ; ( -- )
-    call printcr
-    NEXT
 
     
     ; dw dup, 0<                      ; ptr data data 

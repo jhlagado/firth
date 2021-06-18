@@ -1,0 +1,45 @@
+; !        x a-addr --   store cell in memory
+mCODE "!",1,0,STORE
+    ppop H,L
+    writeWord HL, B,C
+    ppop0 B,C          ; POP new TOS
+    NEXT
+
+mCODE "@",1,0,FETCH
+    loadWord H,L, B,C ; HL = TOS
+    readWord HL, B,C
+    NEXT
+
+; C!      char c-addr --    store char in memory
+mCODE "c!",2,0,CSTORE
+    ppop H,L
+    ld (HL),C
+    ppop0 B,C          ; POP new TOS
+    NEXT
+
+; C@     c-addr -- char   fetch char from memory
+mCODE "c@",2,0,CFETCH
+    ld A,(BC)
+    ld C,A
+    ld B,0
+    NEXT
+
+;z RSP!  a-addr --                  set return stack pointer
+mCODE "rsp!",4,0,RSPSTORE
+    SET_RET_SP B,C
+	ppop0 B,C                      ; POP TOS
+    NEXT
+
+mCODE "sp@",3,0,SPFETCH
+    push IX
+    pop HL
+    ppush H,L
+    NEXT
+
+mCODE "sp!",3,0,SPSTORE
+    ppop H,L
+    push HL
+    pop IX
+    NEXT
+
+

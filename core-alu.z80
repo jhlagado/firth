@@ -1,0 +1,318 @@
+; 1+      n1/u1 -- n2/u2            add 1 to TOS
+mCODE "1+",2,0,onePlus
+    inc BC
+    NEXT
+
+; 2+      n1/u1 -- n2/u2            add 2 to TOS
+mCODE "2+",2,0,twoPlus
+    inc BC
+    inc BC
+    NEXT
+
+; 0<     n -- flag                  true if TOS negative
+mCODE "0<",2,0,ZEROLESS
+    sla b                           ; sign bit -> cy flag
+    sbc a,a         
+    and 1                           ; <0 = -1, >0 = 0
+    ld b,0
+    ld c,a
+    NEXT
+
+; INVERT x1 -- x2               ; bitwise complement
+mCODE "invert",6,0,INVERT
+    ld A,B
+    cpl
+    ld B,A
+    ld A,C
+    cpl
+    ld C,A
+    NEXT
+
+; TRUE
+mCODE "true",4,0,TRUE
+    ppush0 B,C
+    ld BC,1
+    NEXT
+
+; FALSE
+mCODE "false",5,0,FALSE
+    ppush0 B,C
+    ld BC,0
+    NEXT
+
+; =      x1 x2 -- flag         test x1=x2
+mCODE "=",1,0,equal
+    ppop0 H,L
+    or A
+    sbc HL,BC       ; x1-x2 in HL, SZVC valid
+    _if nz
+        ld BC, 1       ;   if -ve, result true
+    _endif
+    inc BC
+    NEXT
+
+; <      n1 n2 -- flag          test n1<n2
+mCODE "<",1,0,LESSTHAN	        ; less than
+    ppop0 H,L
+    or A
+    sbc HL,BC       ; n1-n2 in HL, SZVC valid
+    _if pe
+        _if m
+            ld bc, 0
+        _else
+            ld bc, 1       ;   if -ve, result true
+        _endif
+    _else
+        _if p
+            ld bc, 0
+        _else
+            ld bc, 1       ;   if -ve, result true
+        _endif
+    _endif
+    NEXT
+
+; >      n1 n2 -- flag          test n1 > n2
+mCODE ">",1,0,GREATERTHAN	        ; less than
+    ppop0 H,L                  ; swap operands
+    ppush H,L
+    jr LESSTHAN
+
+; +       n1/u1 n2/u2 -- n3/u3     add n1+n2
+mCODE "+",1,0,PLUS
+    ppop0 H,L
+    add HL,BC
+    loadWord B,C, H,L
+    NEXT
+
+; 2*      n1/u1 -- n2/u2            arithmetic left shift
+mCODE "2*",2,0,TWOSTAR
+    sla C
+    rl B
+    NEXT
+
+mCODE "-",1,0,MINUS
+    ppop0 H,L
+    or A
+    sbc HL,BC
+    loadWord B,C, H,L
+    NEXT
+
+; U*   u1 u2 -- ud   unsigned mutliply
+mCODE "u*",2,0,USTAR              ; u1 u2 -- ud
+                                    ; u2 in BC
+    ppop0 D,E                       ; u1 in DE
+	call unsignedMultiply
+    ppush0 D,E                      ; udlo result
+                                    ; udhi result
+    NEXT
+
+; U/MOD   u1 u2 -- u1 u2    unsigned 16 / 16 -> r q
+mCODE "u/mod",5,0,USLASHMOD
+    ppop D,E                ; DE = divisor
+                            ; BC = dividend
+    call divideWordByWord
+
+    ppush0 H,L           ; PUSH remainder,
+    NEXT
+
+; 0= zero-equal
+mCODE "0=",2,0,zEqual
+    checkZeroWord B,C            ; returns 0 if not equal, 1 if equal
+    _if nz
+        ld BC, -1
+    _endif
+    inc BC
+    NEXT
+
+mCODE "0<>",3,0,zNotEqual
+    checkZeroWord B,C            ; returns 0 if not equal, 1 if equal
+    _if nz
+        ld BC, 1
+    _endif
+    NEXT
+
+; and    x1 x2 -- x3            logical and
+mCODE "and",3,0,and	        ; bitwise and
+    ppop0 H,L
+    ld A,b
+    and H
+    ld B,A
+    ld A,C
+    and L
+    ld C,A
+    NEXT
+
+; OR    x1 x2 -- x3             logical OR
+mCODE "or",2,0,OR	            ; bitwise OR
+    ppop0 H,L
+    ld A,B
+    or H
+    ld B,A
+    ld A,C
+    or L
+    ld C,A
+    NEXT
+    
+; xor    x1 x2 -- x3            logical xor
+mCODE "xor",3,0,xor	        ; bitwise xor
+    ppop0 H,L
+    ld A,B
+    xor H
+    ld B,A
+    ld A,C
+    xor L
+    ld C,A
+    NEXT
+
+; CELLS   ( n1 -- n2 ) n2 is the size in address units of n1 cells.
+mCODE "cells",5,0,CELLS
+    jp twostar
+
+; abs   n -- u                          absolute value
+mCODE "abs",3,0,ABS                   ; case sensitive for ABS label for some reason
+    ENTER
+    dw dup                              ; copy arg
+    dw zeroless
+    cif
+        dw negate                       ; if signs differ then negate answer
+    cendif
+    EXIT
+
+; negate  n1 -- n2                      negate n1
+mCODE "negate",6,0,negate
+    ENTER
+    dw invert
+    dw oneplus
+    EXIT
+
+    mCODE "*",1,0,star                    ; u1 u2 -- ud
+    ENTER
+    dw over, over                       ; dupe both args
+    dw ABS, swap, ABS                   ; remove sign from both args
+    dw ustar, drop                      ; unsigned multiply, drop hi-word
+    dw nrot                             ; move to bottom
+    dw xor                              ; zero if signs are the same
+    dw zeroless                         ; if high bit set
+    cif
+        dw negate                       ; if signs differ then negate answer
+    cendif
+    EXIT
+
+mCODE "/mod",4,0,slashmod             ; dvend dvisr -- rem quot
+    ENTER
+    dw over, over                       ;       u1 u2 -- u1 u2 u1 u2  dupe both args
+    dw xor                              ; u1 u2 u1 u2 -- u1 u2 b1     xor hi bits
+    dw zeroless                         ; true if high bit still set
+    dw nrot                             ;    u1 u2 b1 -- b1 u1 u2     move to bottom
+
+    dw over                             ;    b1 u1 u2 -- b1 u1 u2 u1  dupe dividend
+    dw zeroless                         ; b1 u1 u2 u1 -- b1 u1 u2 b2  zero if signs are the same
+    dw nrot                             ; b1 u1 u2 b2 -- b1 b2 u1 u2  move to bottom
+
+    dw ABS, swap, ABS, swap             ; remove sign from both args
+    dw uslashmod                        ; b1 b2 u1 u2 -- b1 b2 r q    unsigned divide (remainder, quotient)
+    dw swap                             ; b1 b2 u1 u2 -- b1 b2 q r
+    dw rot                              ; b1 b2 q r -- b1 q r b2      bring to top
+    cif
+        dw negate                       ;   b1 q r b2 -- b1 q -r      if -ve then negate answer
+    cendif
+    dw nrot                             ;     b1 q -r -- -r b1 q     bring to top
+    dw swap                             ;     -r b1 q -- -r q b1      bring to top
+    cif
+        dw negate                       ;     -r q b1 -- -r -q       if signs differ then negate answer
+    cendif
+    EXIT
+
+mCODE "/",1,0,slash                   ; dvend dvisr -- quot
+    ENTER
+    dw slashmod
+    dw swap, drop                       ; drop remainder
+    EXIT
+
+mCODE "mod",3,0,mod                   ; dvend dvisr -- remainder
+    ENTER
+    dw slashmod
+    dw drop                             ; drop quotient
+    EXIT
+
+    mCODE "1-",2,0,oneMinus
+    dec BC
+    NEXT
+
+mCODE "2-",2,0,twoMinus
+    dec BC
+    dec BC
+    NEXT
+
+; CELL+    c-addr1 -- c-addr2   add cell size to addr
+mCODE "cell+",5,0,CELLPLUS
+    jp twoplus
+
+; CHAR+    c-addr1 -- c-addr2   add char size to addr
+mCODE "char+",5,0,CHARPLUS
+    jp oneplus
+
+; */MOD star-slash-mod
+
+; 2/      x1 -- x2                  arithmetic right shift
+mCODE "2/",2,0,TWOSLASH
+    sra B
+    rr C
+    NEXT
+
+; LSHIFT  x1 u -- x2       logical L shift u places
+mCODE "lshift",6,0,lShift
+    ppop0 H,L              ;   NB: hi 8 bits ignored!
+    ld B,C              ; b = loop counter
+    inc B               ; test for counter=0 case
+    jr LSHIFT2
+    _do
+        add HL,HL        ; left shift HL, n times
+LSHIFT2:
+    _djnz
+    loadWord B,C, H,L     ; result is new TOS
+    NEXT
+
+mCODE "<<",2,0,ltlt
+    jr lShift
+
+;RSHIFT  x1 u -- x2    logical R shift u places
+mCODE "rshift",6,0,RSHIFT
+    ppop0 H,L         ;   NB: hi 8 bits ignored!
+    ld B,C              ; b = loop counter
+    inc B               ; test for counter=0 case
+    jr RSHIFT2
+    _do
+        srl H           ; right shift HL, n times
+        rr L
+RSHIFT2:
+    _djnz
+    loadWord B,C, H,L     ; result is new TOS
+    NEXT
+
+mCODE ">>",2,0,gtgt
+    jr rShift
+
+; min   n1 n2 -- u                      minimum
+mCODE "min",3,0,min
+    rst $08
+    dw over, over
+    dw lessThan
+    cif
+        dw drop
+    cElse
+        dw swap, drop
+    cendif
+    EXIT
+
+; max   n1 n2 -- u                      maximum
+mCODE "max",3,0,max
+    rst $08
+    dw over, over
+    dw lessThan
+    cif
+        dw swap, drop
+    cElse
+        dw drop
+    cendif
+    EXIT

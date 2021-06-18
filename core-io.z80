@@ -1,0 +1,54 @@
+mCODE ".",1,0,DOT                 ; print top of stack in BASE
+    push HL
+    push DE
+    push BC
+    loadWord H,L, B,C
+    ld A,(VAR_BASE)
+    ld C,A
+    ld DE, wordBuf
+    call formatNum
+    call printStr
+    call printSpace
+    pop BC
+    pop DE
+    pop HL
+    ppop0 B,C
+    NEXT
+
+mCODE "type",4,0,TYPE             ; ( str len -- )
+    ppop0 D,E                       ; DE = str BC = length
+    call printStr
+    ppop0 B,C                       ; clear TOS
+    NEXT
+
+mCODE "cr",2,0,cr                 ; ( -- )
+    call printcr
+    NEXT
+
+    mCODE "accept",6,0,ACCEPT              ; ( addr max -- len )
+    ppop D,E                    ; max - up to 255
+	ppop0 H,L                          ; addr
+    call getline
+    NEXT
+
+mCODE "key",3,0,KEY                ; ( -- c )
+	call getKey
+    ld b, 0
+    ld c, a
+    NEXT
+
+mCODE "emit",4,0,EMIT              ; print the character on the stack
+	ld A, C                     ; (c -- )
+	call putc
+    ppop0 B,C                      ; clear stack
+    NEXT
+
+mCODE "key?",4,0,QKEY              ; ( -- c )
+	ppush0 B,C		                ; save TOS
+	call inputReady
+    ld BC, 1                    ; TOS = true
+    _if z
+        ld BC, 0                    ; TOS = false
+    _endif
+    NEXT
+
