@@ -1,0 +1,14 @@
+TXT_INTRO:      .pstr "Firth - a Z80 Forth by John Hardy\r\n\r\n"
+TXT_STACK_UNDERFLOW:
+                .pstr "Error: Stack underflow\r\n"
+DONE:           .pstr "\r\nDone! \r\n"
+FAILED:         .pstr "Failed: \r\n"
+
+nestingErr:     .pstr "Error: Definitions cannot be nested"
+
+TXT_NEWLINE:    .pstr "\r\n"
+TXT_PROMPT:     .pstr "\r\n> "
+StackPrompt:    .pstr "=> "
+
+TXT_MONITOR_INTRO:  .pstr "TEC-1 Monitor 3.0 by John Hardy\r\n\r\n"
+        

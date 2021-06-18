@@ -1,14 +1,6 @@
 ; utilities
 ; low-level machine code routines
 
-TXT_INTRO:      .pstr "Firth - a Z80 Forth by John Hardy\r\n\r\n"
-TXT_STACK_UNDERFLOW:
-                .pstr "Error: Stack underflow\r\n"
-DONE:           .pstr "\r\nDone! \r\n"
-FAILED:         .pstr "Failed: \r\n"
-
-nestingErr:     .pstr "Error: Definitions cannot be nested"
-
 initForth:
     ld IX, data_stack                       ; initialise the param stack.
     ld IY, enter

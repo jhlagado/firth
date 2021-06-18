@@ -27,8 +27,6 @@ RST66:
 
 .include "serial.z80"
 
-.include "mon-utilities.z80"
-
 .include "core-primitives.z80"
 .include "core-utilities.z80"
 .include "core-words.z80"
@@ -46,6 +44,7 @@ RST66:
 .include "core-io.z80"
 .include "core-memory.z80"
 .include "core-stacks.z80"
+.include "core-messages.z80"
 
 .include "definitions.z80"                  ; must be included last
 
