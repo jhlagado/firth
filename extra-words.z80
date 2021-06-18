@@ -4,69 +4,7 @@
 ;; forth word defintions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-mCODE "decimal",7,0,decimal           ; pushes ptr to string and length on stack
-    ENTER
-    dw lit,10,base,store
-    EXIT
-
-mCODE "hex",3,0,hex                   ; pushes ptr to string and length on stack
-    ENTER
-    dw lit,16,base,store
-    EXIT
-
-mCODE "postpone",8,msk_immed,postpone ; --
-    rst $08
-	dw bl, word, count            ; pstr -- ptr len
-    dw dup, zEqual
-    cIf
-        dw drop, drop                   ; ptr len --
-    cElse
-        dw postponeToken                ; interpret the next word
-    cEndif
-    EXIT
-
-postponeToken:                          ; --
-    rst $08
-    dw over, over, find                 ; ptr len -- ptr len addr
-    dw dup, zNotEqual
-    cIf
-        dw postponeWord
-    cElse
-        dw postponeLiteral
-    cEndif
-    EXIT
-
-postponeWord:                               ; ( headptr -- )
-    rst $08                                 ; enter forth
-    dw swap, drop, swap, drop               ; ptr len addr -- addr
-    dw dup, lit, 2, plus, cfetch            ; ( headptr -- headptr flags ) add 2 to headptr
-    dw lit, msk_immed, and                  ; ( headptr flags -- headptr immedflag )
-    dw zEqual
-    cIf
-        dw lit, lit, comma
-        dw tcfa, comma
-        dw lit, comma, comma
-    cElse
-        dw tcfa, comma
-    cEndIf
-    EXIT
-
-postponeLiteral:                            ; ( ptr len -- )
-    rst $08                                 ; enter forth
-    dw drop                                 ; ptr len addr - ptr len
-    dw number, zEqual                       ; parse to number
-    cif
-        dw lit, lit                     ; (val -- val "lit" )
-        dw comma, comma                 ; compile "lit" val
-    cElse
-        dw drop                             ; ( ptr len zero -- ptr len ), not found
-        dw litstr                           ; err != 0, parse error
-        .pstr "Error: parsing"
-        dw type
-    cEndIf
-    EXIT
-
-    mCODE "{",1,msk_immed,lbrace
+mCODE "{",1,msk_immed,lbrace
     ENTER
     dw state, fetch, zEqual
     dw nesting, fetch, zEqual
@@ -86,19 +24,6 @@ mCODE "}",1,msk_immed,rbrace
     dw and
     cIf
         dw lit, exit, comma                 ; append exit (so the word will return).
-    cEndIf
-    EXIT                             ; return from the function.
-
-mCODE "}exec",5,msk_immed,rbraceExec
-    ENTER
-    dw rbrace
-    dw state, fetch, zEqual
-    dw nesting, fetch, zEqual
-    dw and
-    cIf
-        dw dup
-        dw here, store
-        dw execute
     cEndIf
     EXIT                             ; return from the function.
 

@@ -27,8 +27,6 @@ RST66:
 
 .include "serial.z80"
 
-.include "core-words.z80"
-
 .include "compiler-words.z80"
 .include "headless-words.z80"
 

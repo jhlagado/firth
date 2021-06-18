@@ -1,8 +1,23 @@
-mCODE "lit",3,0,LIT
-	ppush0 B,C                      ; pushTOS
-	pop HL                          ; pop address of next Forth word in HL
-	readWord HL, B,C                ; read next word and push on TOS, inc HL by 2
-    NEXT1
+mCODE "quit",4,0,quit
+    ENTER
+    dw sp0, fetch, spStore
+    dw interpret
+    EXIT
+
+mCODE "word",5,0,WORD                 ; delim -- c-addr
+    ENTER
+    dw lit, 64                          ; limit
+    dw here, fetch
+    dw xword                            ; writes to HERE!
+    EXIT
+
+mCODE ">cfa",4,0,tcfa
+    ENTER
+    dw lit, 2, plus
+    dw count
+    dw lit, msk_length, and
+    dw plus
+    EXIT
 
 mCODE "execute",7,0,EXECUTE
     ppop H,L                        ; POP TOS into HL
@@ -74,10 +89,10 @@ lookup:
         ld E,A
     _enddo
 
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; utility routines used by xword
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+mCODE "xword",6,0,xword               ; delim limit addr -- c-addr
+    call xwordSkip
+    call xwordRead
+    NEXT
 
 xwordSkip:                              ; delim addr -- delim addr char
     ppop H,L

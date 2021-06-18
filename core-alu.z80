@@ -1,3 +1,9 @@
+mCODE "lit",3,0,LIT
+	ppush0 B,C                      ; pushTOS
+	pop HL                          ; pop address of next Forth word in HL
+	readWord HL, B,C                ; read next word and push on TOS, inc HL by 2
+    NEXT1
+
 ; 1+      n1/u1 -- n2/u2            add 1 to TOS
 mCODE "1+",2,0,onePlus
     inc BC

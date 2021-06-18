@@ -177,3 +177,13 @@ mCODE "number",6,0,NUMBER         ; ( ptr len -- num err )
     ppush0 D,E
     NEXT
 
+mCODE "decimal",7,0,decimal           ; pushes ptr to string and length on stack
+    ENTER
+    dw lit,10,base,store
+    EXIT
+
+mCODE "hex",3,0,hex                   ; pushes ptr to string and length on stack
+    ENTER
+    dw lit,16,base,store
+    EXIT
+

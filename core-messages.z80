@@ -7,9 +7,3 @@ TXT_PROMPT:     .pstr "\r\n> "
 DONE:           .pstr "\r\nDone! \r\n"
 FAILED:         .pstr "Failed: \r\n"
         
-; TXT_STACK_UNDERFLOW:
-;                 .pstr "Error: Stack underflow\r\n"
-
-; nestingErr:     .pstr "Error: Definitions cannot be nested"
-; StackPrompt:    .pstr "=> "
-       

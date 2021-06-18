@@ -12,11 +12,6 @@ mCODE "immediate",9,MSK_IMMED,IMMEDIATE
     ld (HL),a
     NEXT
 
-    mCODE "xword",6,0,xword               ; delim limit addr -- c-addr
-    call xwordSkip
-    call xwordRead
-    NEXT
-
 mCODE "find",4,0,FIND
     ppop0 H,L
 
@@ -44,6 +39,58 @@ mCODE "]",1,0,RBRAC
 	ld HL, 1
 	ld (VAR_STATE), HL	; Set STATE to 1.
     NEXT
+
+mCODE "postpone",8,msk_immed,postpone ; --
+    rst $08
+	dw bl, word, count            ; pstr -- ptr len
+    dw dup, zEqual
+    cIf
+        dw drop, drop                   ; ptr len --
+    cElse
+        dw postponeToken                ; interpret the next word
+    cEndif
+    EXIT
+
+postponeToken:                          ; --
+    rst $08
+    dw over, over, find                 ; ptr len -- ptr len addr
+    dw dup, zNotEqual
+    cIf
+        dw postponeWord
+    cElse
+        dw postponeLiteral
+    cEndif
+    EXIT
+
+postponeWord:                               ; ( headptr -- )
+    rst $08                                 ; enter forth
+    dw swap, drop, swap, drop               ; ptr len addr -- addr
+    dw dup, lit, 2, plus, cfetch            ; ( headptr -- headptr flags ) add 2 to headptr
+    dw lit, msk_immed, and                  ; ( headptr flags -- headptr immedflag )
+    dw zEqual
+    cIf
+        dw lit, lit, comma
+        dw tcfa, comma
+        dw lit, comma, comma
+    cElse
+        dw tcfa, comma
+    cEndIf
+    EXIT
+
+postponeLiteral:                            ; ( ptr len -- )
+    rst $08                                 ; enter forth
+    dw drop                                 ; ptr len addr - ptr len
+    dw number, zEqual                       ; parse to number
+    cif
+        dw lit, lit                     ; (val -- val "lit" )
+        dw comma, comma                 ; compile "lit" val
+    cElse
+        dw drop                             ; ( ptr len zero -- ptr len ), not found
+        dw litstr                           ; err != 0, parse error
+        .pstr "Error: parsing"
+        dw type
+    cEndIf
+    EXIT
 
 
 
