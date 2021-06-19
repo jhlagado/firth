@@ -147,6 +147,33 @@ UMP2:
 UMP1:		
     NEXT
 
+;   UM/MOD      ( udl udh u -- ur uq )
+;               Unsigned divide of a double by a single. Return mod and quotient.
+CODE  'UM/MOD',6,0,UMMOD
+    ENTER
+    DW      DDUP,ULESS
+    DW      QBRAN1,UMM4
+    DW      NEGAT,LIT,15,TOR
+UMM1:           
+    DW      TOR,DUPP,UPLUS
+    DW      TOR,TOR,DUPP,UPLUS
+    DW      RFROM,PLUS,DUPP
+    DW      RFROM,RAT,SWAP,TOR
+    DW      UPLUS,RFROM,ORR
+    DW      QBRAN1,UMM2
+    DW      TOR,DROP,LIT,1,PLUS,RFROM
+    DW      BRAN1,UMM3
+UMM2:           
+    DW      DROP
+UMM3:           
+    DW      RFROM
+    DW      DONXT,UMM1
+    DW      DROP,SWAP,EXIT
+UMM4:           
+    DW      DROP,DDROP
+    DW      LIT,-1,DUPP,EXIT      ;overflow, return max
+
+
 ; U/MOD   u1 u2 -- u1 u2    unsigned 16 / 16 -> r q
 CODE "u/mod",5,0,USLASHMOD
     ppop D,E                ; DE = divisor

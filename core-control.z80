@@ -90,3 +90,36 @@ CODE "branch1",6,0,BRAN1         ; relative branching
     EX DE,HL
     NEXT1
 
+;   next        ( -- )
+;               Run time code for the single index loop.
+;               : next ( -- ) \ hilevel model
+;                 r> r> dup if 1 - >r @ >r exit then drop cell+ >r ;
+CODE   'next',4,0,DONXT
+    PUSH IX
+    POP HL                              ; load rp into HL
+    LD  A, (HL)                         ; a = low byte of r@
+    OR  A        
+    JR  NZ, DECLOW                      ; low > 0 goto dec low
+    INC HL                              
+    LD  A, (HL)                         ; a = high byte of r@
+    OR  A        
+    JR  NZ, DECHILO                     ; high > 0 goto dec hi dec lo
+    INC HL                              
+    PUSH HL                             
+    POP IX                              ; pop r@
+    INC DE                              ; IP = skip following word 
+    INC DE       
+    NEXT                               ; continue
+DECHILO:
+    DEC (HL)                            ; dec high byte of r@
+    DEC HL       
+DECLOW:
+    DEC (HL)                            ; dec low byte of r@
+    LD  L, E                            ; DE points to location of loop address
+    LD  H, D                                
+    LD  E, (HL)                         ; DE points to loop address    
+    INC HL       
+    LD  D, (HL)  
+    NEXT                               ; continue to loop address
+
+

@@ -77,4 +77,11 @@ CODE "c,",1,0,CCOMMA
 	ppop0 B,C		        ; cleanup TOS
     NEXT
 
+;   R@          ( -- w )
+;               Copy top of return stack to the data stack.
+CODE	'R@',2,0,RAT
+	PUSH	BC
+	LD	C,(IX+0)
+	LD	B,(IX+1)
+	NEXT
 
