@@ -1,7 +1,7 @@
 mCODE "if",2,msk_immed,if
     ENTER
     dw lbrace
-    dw lit, zbranch, comma              ; compile 0branch
+    dw lit, zbranch, comma              ; compile ?branch
     dw here, fetch, dup, comma          ; compile here and also push on stack
     EXIT
 
@@ -54,16 +54,16 @@ mCODE "repeat",6,msk_immed,repeat
     EXIT
 
 ; ?branch   x --              branch if TOS zero
-mCODE "0branch",7,0,ZBRANCH
+mCODE "?branch",7,0,QBRAN
     checkZeroWord B,C               ; test old TOS
     ppop0 B,C                       ; POP new TOS
-    jr z,BRANCH                     ; if old TOS=0, branch
+    jr z,BRAN                     ; if old TOS=0, branch
     pop HL
     inc HL                          ; else skip inline value
     inc HL
     NEXT1
 
-mCODE "branch",6,0,BRANCH         ; relative branching
+mCODE "branch",6,0,BRAN         ; relative branching
     pop HL                          ; add the offset to the instruction pointer
     ld E,(HL)
     inc HL

@@ -70,6 +70,7 @@ Fast-forward to the modern era, I started to think about augmenting the TEC-1 ci
 
 This is where Firth comes from. "Firth" is named after the [Firth of Forth](https://en.wikipedia.org/wiki/Firth_of_Forth) an estuary on the river Forth in Scotland -- for no other reason than it's a cool-sounding name although it could be because this is also my "first Forth".
 -->
+
 ## Firth
 
 ### License
@@ -691,7 +692,7 @@ TODO: finish input words
 >r
 0<
 0=
-0branch
+?branch
 1+
 2*
 2/
