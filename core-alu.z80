@@ -104,27 +104,35 @@ mCODE "<",1,0,LESS	        ; less than
 LESS1:		
     DW	SUBB, ZLESS, EXIT
 
-; ; <      n1 n2 -- flag          test n1<n2
-; mCODE "<",1,0,LESS	        ; less than
-;     ppop0 H,L
-;     or A
-;     sbc HL,BC       ; n1-n2 in HL, SZVC valid
-;     _if pe
-;         _if m
-;             ld bc, 0
-;         _else
-;             ld bc, 1       ;   if -ve, result true
-;         _endif
-;     _else
-;         _if p
-;             ld bc, 0
-;         _else
-;             ld bc, 1       ;   if -ve, result true
-;         _endif
-;     _endif
-;     NEXT
+; >      n1 n2 -- flag          test n1 > n2
+mCODE ">",1,0,GREATERTHAN	        ; less than
+    ppop0 H,L                  ; swap operands
+    ppush H,L
+    jr LESS
 
+; max   n1 n2 -- u                      maximum
+mCODE "max",3,0,MAX
+    ENTER
+	DW	DDUP, LESS, QBRAN1, MAX1
+    DW	SWAP
+MAX1:		
+    DW	DROP,EXIT
 
+; min   n1 n2 -- u                      minimum
+mCODE "min",3,0,MIN
+    ENTER
+    DW      DDUP,SWAP,LESS
+    DW      QBRAN1,MIN1
+    DW      SWAP
+MIN1:           
+    DW      DROP,EXIT
+
+;   WITHIN      ( u ul uh -- t )
+;               Return true if u is within the range of ul and uh.
+mCODE 'WITHIN',6,0,WITHI
+	ENTER
+	DW	OVER,SUBB,TOR			;ul <= u < uh
+	DW	SUBB,RFROM,ULESS,EXIT
 
 ;   UM+         ( w w -- w cy )
 ;               Add two numbers, return the sum and carry flag.
@@ -139,49 +147,6 @@ UMP2:
 UMP1:		
     NEXT
 
-
-; >      n1 n2 -- flag          test n1 > n2
-mCODE ">",1,0,GREATERTHAN	        ; less than
-    ppop0 H,L                  ; swap operands
-    ppush H,L
-    jr LESS
-
-; 0= zero-equal
-mCODE "0=",2,0,zEqual
-    checkZeroWord B,C            ; returns 0 if not equal, 1 if equal
-    _if nz
-        ld BC, -1
-    _endif
-    inc BC
-    NEXT
-
-mCODE "0<>",3,0,zNotEqual
-    checkZeroWord B,C            ; returns 0 if not equal, 1 if equal
-    _if nz
-        ld BC, 1
-    _endif
-    NEXT
-
-; OR    x1 x2 -- x3             logical OR
-mCODE "or",2,0,OR	            ; bitwise OR
-    ppop0 H,L
-    ld A,B
-    or H
-    ld B,A
-    ld A,C
-    or L
-    ld C,A
-    NEXT
-    
-; U*   u1 u2 -- ud   unsigned mutliply
-mCODE "u*",2,0,USTAR              ; u1 u2 -- ud
-                                    ; u2 in BC
-    ppop0 D,E                       ; u1 in DE
-	call unsignedMultiply
-    ppush0 D,E                      ; udlo result
-                                    ; udhi result
-    NEXT
-
 ; U/MOD   u1 u2 -- u1 u2    unsigned 16 / 16 -> r q
 mCODE "u/mod",5,0,USLASHMOD
     ppop D,E                ; DE = divisor
@@ -190,23 +155,6 @@ mCODE "u/mod",5,0,USLASHMOD
 
     ppush0 H,L           ; PUSH remainder,
     NEXT
-
-; CELLS   ( n1 -- n2 ) n2 is the size in address units of n1 cells.
-mCODE "cells",5,0,CELLS
-    jp twostar
-    
-mCODE "*",1,0,star                    ; u1 u2 -- ud
-    ENTER
-    dw over, over                       ; dupe both args
-    dw ABS, swap, ABS                   ; remove sign from both args
-    dw ustar, drop                      ; unsigned multiply, drop hi-word
-    dw nrot                             ; move to bottom
-    dw XORR                              ; zero if signs are the same
-    dw ZLESS                         ; if high bit set
-    cif
-        dw NEGAT                       ; if signs differ then negate answer
-    cendif
-    EXIT
 
 mCODE "/mod",4,0,slashmod             ; dvend dvisr -- rem quot
     ENTER
@@ -233,77 +181,36 @@ mCODE "/mod",4,0,slashmod             ; dvend dvisr -- rem quot
     cendif
     EXIT
 
-mCODE "/",1,0,slash                   ; dvend dvisr -- quot
-    ENTER
-    dw slashmod
-    dw swap, drop                       ; drop remainder
-    EXIT
-
 mCODE "mod",3,0,mod                   ; dvend dvisr -- remainder
     ENTER
-    dw slashmod
-    dw drop                             ; drop quotient
-    EXIT
+    dw slashmod,DROP,EXIT                             ; drop quotient
+    
+mCODE "/",1,0,slash                   ; dvend dvisr -- quot
+    ENTER
+    dw slashmod,swap, drop, EXIT        ; drop remainder
 
-    mCODE "1-",2,0,oneMinus
-    dec BC
+
+; U*   u1 u2 -- ud   unsigned mutliply
+mCODE "u*",2,0,USTAR              ; u1 u2 -- ud
+                                    ; u2 in BC
+    ppop0 D,E                       ; u1 in DE
+	call unsignedMultiply
+    ppush0 D,E                      ; udlo result
+                                    ; udhi result
     NEXT
 
-mCODE "2-",2,0,twoMinus
-    dec BC
-    dec BC
-    NEXT
-
-; CELL+    c-addr1 -- c-addr2   add cell size to addr
-mCODE "cell+",5,0,CELLP
-    jp twoplus
-
-; min   n1 n2 -- u                      minimum
-mCODE "min",3,0,min
-    rst $08
-    dw over, over
-    dw LESS
+mCODE "*",1,0,star                    ; u1 u2 -- ud
+    ENTER
+    dw over, over                       ; dupe both args
+    dw ABS, swap, ABS                   ; remove sign from both args
+    dw ustar, drop                      ; unsigned multiply, drop hi-word
+    dw nrot                             ; move to bottom
+    dw XORR                              ; zero if signs are the same
+    dw ZLESS                         ; if high bit set
     cif
-        dw drop
-    cElse
-        dw swap, drop
+        dw NEGAT                       ; if signs differ then negate answer
     cendif
     EXIT
-
-; max   n1 n2 -- u                      maximum
-mCODE "max",3,0,max
-    rst $08
-    dw over, over
-    dw LESS
-    cif
-        dw swap, drop
-    cElse
-        dw drop
-    cendif
-    EXIT
-
-; 1+      n1/u1 -- n2/u2            add 1 to TOS
-mCODE "1+",2,0,ONEP
-    inc BC
-    NEXT
-
-; 2+      n1/u1 -- n2/u2            add 2 to TOS
-mCODE "2+",2,0,twoPlus
-    inc BC
-    inc BC
-    NEXT
-
-; 2*      n1/u1 -- n2/u2            arithmetic left shift
-mCODE "2*",2,0,TWOSTAR
-    sla C
-    rl B
-    NEXT
-
-; 2/      x1 -- x2                  arithmetic right shift
-mCODE "2/",2,0,TWOSLASH
-    sra B
-    rr C
-    NEXT
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; negate ***
@@ -411,4 +318,65 @@ unsignedMultiply:
     _until z
     _enddo
     ret
+
+; CELL+    c-addr1 -- c-addr2   add cell size to addr
+mCODE "cell+",5,0,CELLP
+    jp TWOP
+
+mCODE "cell-",5,0,CELLM
+    jp TWOM
+
+; CELLS   ( n1 -- n2 ) n2 is the size in address units of n1 cells.
+mCODE "cells",5,0,CELLS
+    jp TWOST
+
+; 0= zero-equal
+mCODE "0=",2,0,ZEQUAL
+    checkZeroWord B,C            ; returns 0 if not equal, 1 if equal
+    _if nz
+        ld BC, -1
+    _endif
+    inc BC
+    NEXT
+
+mCODE "0<>",3,0,ZNEQU
+    checkZeroWord B,C            ; returns 0 if not equal, 1 if equal
+    _if nz
+        ld BC, 1
+    _endif
+    NEXT
+
+; 1+      n -- n                    add 1 to TOS
+mCODE "1+",2,0,ONEP
+    inc BC
+    NEXT
+
+; 1-      n -- n            sub 1 to TOS
+mCODE "1-",2,0,ONEM
+    dec BC
+    NEXT
+
+; 2+      n1/u1 -- n2/u2            add 2 to TOS
+mCODE "2+",2,0,TWOP
+    inc BC
+    inc BC
+    NEXT
+
+mCODE "2-",2,0,TWOM
+    dec BC
+    dec BC
+    NEXT
+
+; 2*      n1/u1 -- n2/u2            arithmetic left shift
+mCODE "2*",2,0,TWOST
+    sla C
+    rl B
+    NEXT
+
+; 2/      x1 -- x2                  arithmetic right shift
+mCODE "2/",2,0,TWOSLASH
+    sra B
+    rr C
+    NEXT
+
 

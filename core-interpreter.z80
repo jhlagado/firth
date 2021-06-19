@@ -171,7 +171,7 @@ xwordRead:                              ; delim addr char -- c-addr
     interpToken:                                ; ptr len --
     rst $08
     dw over, over, find                     ; ptr len -- ptr len addr
-    dw DUPP, zNotEqual
+    dw DUPP, ZNEQU
     cIf
         dw interpWord
     cElse
@@ -189,7 +189,7 @@ interpWord:                                 ; ptr len addr --
         dw tcfa                             ; ( headptr -- xt )
         dw state, fetch
         dw nesting, fetch
-        dw or
+        dw ORR
         cif
             dw comma                        ; compile xt
         cElse
@@ -207,7 +207,7 @@ interpLiteral:                              ; ptr len addr --
     cif
         dw state, fetch
         dw nesting, fetch
-        dw or
+        dw ORR
         cIf
             dw lit, lit                     ; (val -- val "lit" )
             dw comma, comma                 ; compile "lit" val

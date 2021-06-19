@@ -145,7 +145,7 @@ mCODE "postpone",8,msk_immed,postpone ; --
 postponeToken:                          ; --
     rst $08
     dw over, over, find                 ; ptr len -- ptr len addr
-    dw DUPP, zNotEqual
+    dw DUPP, ZNEQU
     cIf
         dw postponeWord
     cElse
