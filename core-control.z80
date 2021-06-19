@@ -7,7 +7,7 @@ mCODE "if",2,msk_immed,if
 
 mCODE "else",4,msk_immed,else
     ENTER
-    dw lit, branch, comma               ; definite branch to just over the false-part
+    dw lit, BRAN, comma               ; definite branch to just over the false-part
     dw here, fetch                      ; save here on stack
     dw lit, 0, comma                    ; compile a dummy offset
     dw swap                             ; now back-fill the original (if) offset
@@ -44,7 +44,7 @@ mCODE "while",5,msk_immed,while
 
 mCODE "repeat",6,msk_immed,repeat
     ENTER
-    dw lit, branch, comma               ; compile branch
+    dw lit, BRAN, comma               ; compile branch
     dw swap                             ; tos = here1
     dw here, fetch, minus, comma        ; compile offset (here1 - here3)
     dw dup
