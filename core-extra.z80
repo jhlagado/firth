@@ -1,4 +1,4 @@
-mCODE "{",1,msk_immed,lbrace
+CODE "{",1,msk_immed,lbrace
     ENTER
     dw state, fetch, ZEQUAL
     dw nesting, fetch, ZEQUAL
@@ -10,7 +10,7 @@ mCODE "{",1,msk_immed,lbrace
     dw nestPlus                         ; increase nesting
     EXIT                             ; return from the function.
 
-mCODE "}",1,msk_immed,rbrace
+CODE "}",1,msk_immed,rbrace
     ENTER
     dw nestMinus                        ; reduce nesting
     dw state, fetch, ZEQUAL
@@ -21,7 +21,7 @@ mCODE "}",1,msk_immed,rbrace
     cEndIf
     EXIT                             ; return from the function.
 
-mCODE "}exec",5,msk_immed,rbraceExec
+CODE "}exec",5,msk_immed,rbraceExec
     ENTER
     dw rbrace
     dw state, fetch, ZEQUAL

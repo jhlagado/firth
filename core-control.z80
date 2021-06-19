@@ -1,11 +1,11 @@
-mCODE "if",2,msk_immed,if
+CODE "if",2,msk_immed,if
     ENTER
     dw lbrace
     dw lit, QBRAN, comma              ; compile ?branch
     dw here, fetch, DUPP, comma          ; compile here and also push on stack
     EXIT
 
-mCODE "else",4,msk_immed,else
+CODE "else",4,msk_immed,else
     ENTER
     dw lit, BRAN, comma               ; definite branch to just over the false-part
     dw here, fetch                      ; save here on stack
@@ -14,7 +14,7 @@ mCODE "else",4,msk_immed,else
     dw xendif                           ; must call xendif not endif
     EXIT
 
-mCODE "endif",5,msk_immed,endif
+CODE "endif",5,msk_immed,endif
     ENTER
     dw xendif                           ; must call xendif not endif
     dw rbraceExec
@@ -29,20 +29,20 @@ xendif:                                 ; must call xendif not endif
 
 ; begin condition while ... repeat
 
-mCODE "begin",5,msk_immed,begin
+CODE "begin",5,msk_immed,begin
     ENTER
     dw lbrace
     dw here, fetch                      ; save here on stack (here1)
     EXIT
 
-mCODE "while",5,msk_immed,while
+CODE "while",5,msk_immed,while
     ENTER
     dw lit, QBRAN, comma              ; compile branch on zero
     dw here, fetch                      ; save here in stack (here2)
     dw lit, 0, comma                    ; compile dummy offset
     EXIT
 
-mCODE "repeat",6,msk_immed,repeat
+CODE "repeat",6,msk_immed,repeat
     ENTER
     dw lit, BRAN, comma               ; compile branch
     dw swap                             ; tos = here1
@@ -54,7 +54,7 @@ mCODE "repeat",6,msk_immed,repeat
     EXIT
 
 ; ?branch   x --              branch if TOS zero
-mCODE "?branch",7,0,QBRAN
+CODE "?branch",7,0,QBRAN
     checkZeroWord B,C               ; test old TOS
     ppop0 B,C                       ; POP new TOS
     jr z,BRAN                     ; if old TOS=0, branch
@@ -63,7 +63,7 @@ mCODE "?branch",7,0,QBRAN
     inc HL
     NEXT1
 
-mCODE "branch",6,0,BRAN         ; relative branching
+CODE "branch",6,0,BRAN         ; relative branching
     pop HL                          ; add the offset to the instruction pointer
     ld E,(HL)
     inc HL
@@ -73,7 +73,7 @@ mCODE "branch",6,0,BRAN         ; relative branching
     NEXT1
 
 ; ?branch   x --              branch if TOS zero
-mCODE "?branch1",7,0,QBRAN1
+CODE "?branch1",7,0,QBRAN1
     checkZeroWord B,C               ; test old TOS
     ppop0 B,C                       ; POP new TOS
     jr z,BRAN1                     ; if old TOS=0, branch
@@ -82,7 +82,7 @@ mCODE "?branch1",7,0,QBRAN1
     inc HL
     NEXT1
 
-mCODE "branch1",6,0,BRAN1         ; relative branching
+CODE "branch1",6,0,BRAN1         ; relative branching
     pop HL                          ; add the offset to the instruction pointer
     ld E,(HL)
     inc HL

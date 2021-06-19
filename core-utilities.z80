@@ -1,5 +1,5 @@
 ; .s print stack (non-destructively)
-mCODE ".s",2,0,dots                   ; ( -- )
+CODE ".s",2,0,dots                   ; ( -- )
     ENTER
     dw spfetch                          ; psp
     dw sp0, fetch                       ; psp0
@@ -19,7 +19,7 @@ mCODE ".s",2,0,dots                   ; ( -- )
     cendif
     EXIT
 
-mCODE "words", 5, 0, WORDS
+CODE "words", 5, 0, WORDS
     push BC
     call listWords
     pop BC

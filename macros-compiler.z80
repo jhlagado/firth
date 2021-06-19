@@ -1,7 +1,7 @@
 ; Store the chain of links.
 link: .set 0
 
-.macro mCODE, name, namelen, flags, label
+.macro CODE, name, namelen, flags, label
 
 HEADER_label:
     DW link		            ; link
@@ -14,14 +14,14 @@ label:
 .endm
 
 .macro mVAR, name, namelen, flags, label, var_label
-mCODE name,namelen,flags,label
+CODE name,namelen,flags,label
     ppush0 B,C
     ld BC, var_label
     NEXT
 .endm
 
 .macro mCONST, name, namelen, flags, label, value
-mCODE name,namelen,flags,label
+CODE name,namelen,flags,label
     ppush0 B,C
     ld BC, value
     NEXT

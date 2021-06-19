@@ -1,32 +1,32 @@
-mCODE "type",4,0,TYPE             ; ( str len -- )
+CODE "type",4,0,TYPE             ; ( str len -- )
     ppop0 D,E                       ; DE = str BC = length
     call printStr
     ppop0 B,C                       ; clear TOS
     NEXT
 
-mCODE "cr",2,0,cr                 ; ( -- )
+CODE "cr",2,0,cr                 ; ( -- )
     call printcr
     NEXT
 
-    mCODE "accept",6,0,ACCEPT              ; ( addr max -- len )
+    CODE "accept",6,0,ACCEPT              ; ( addr max -- len )
     ppop D,E                    ; max - up to 255
 	ppop0 H,L                          ; addr
     call getline
     NEXT
 
-mCODE "key",3,0,KEY                ; ( -- c )
+CODE "key",3,0,KEY                ; ( -- c )
 	call getKey
     ld b, 0
     ld c, a
     NEXT
 
-mCODE "emit",4,0,EMIT              ; print the character on the stack
+CODE "emit",4,0,EMIT              ; print the character on the stack
 	ld A, C                     ; (c -- )
 	call putc
     ppop0 B,C                      ; clear stack
     NEXT
 
-mCODE "key?",4,0,QKEY              ; ( -- c )
+CODE "key?",4,0,QKEY              ; ( -- c )
 	ppush0 B,C		                ; save TOS
 	call inputReady
     ld BC, 1                    ; TOS = true
@@ -35,18 +35,18 @@ mCODE "key?",4,0,QKEY              ; ( -- c )
     _endif
     NEXT
 
-mCODE "bl",2,0,bl
+CODE "bl",2,0,bl
     ENTER
     dw lit, $20                         ; compile branch on zero
     EXIT
 
-mCODE "print",5,0,PRINT
+CODE "print",5,0,PRINT
     ppop D,E
     call printPStr
     NEXT
 
 ; ." print string"
-mCODE {".",$22},2,msk_immed,dotquote
+CODE {".",$22},2,msk_immed,dotquote
     ENTER
     dw qt
     dw state, fetch, zequal

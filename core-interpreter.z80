@@ -1,17 +1,17 @@
-mCODE "quit",4,0,quit
+CODE "quit",4,0,quit
     ENTER
     dw sp0, fetch, spStore
     dw interpret
     EXIT
 
-mCODE "word",5,0,WORD                 ; delim -- c-addr
+CODE "word",5,0,WORD                 ; delim -- c-addr
     ENTER
     dw lit, 64                          ; limit
     dw here, fetch
     dw xword                            ; writes to HERE!
     EXIT
 
-mCODE ">cfa",4,0,tcfa
+CODE ">cfa",4,0,tcfa
     ENTER
     dw lit, 2, plus
     dw count
@@ -19,11 +19,11 @@ mCODE ">cfa",4,0,tcfa
     dw plus
     EXIT
 
-mCODE "execute",7,0,EXECUTE
+CODE "execute",7,0,EXECUTE
     ppop H,L                        ; POP TOS into HL
     jp (hl)                         ; go do Forth word
 
-mCODE "interpret",6,0,interpret
+CODE "interpret",6,0,interpret
     rst $08
     cDo
     	dw bl, word, count        ; pstr -- ptr len
@@ -89,7 +89,7 @@ lookup:
         ld E,A
     _enddo
 
-mCODE "xword",6,0,xword               ; delim limit addr -- c-addr
+CODE "xword",6,0,xword               ; delim limit addr -- c-addr
     call xwordSkip
     call xwordRead
     NEXT

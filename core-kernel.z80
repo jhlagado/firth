@@ -51,6 +51,6 @@ exit:
 exit_forth:
     ret
 
-mCODE "noop",4,0,noop
+CODE "noop",4,0,noop
     NEXT
 

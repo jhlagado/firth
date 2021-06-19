@@ -1,4 +1,4 @@
-mCODE ".",1,0,DOT                 ; print top of stack in BASE
+CODE ".",1,0,DOT                 ; print top of stack in BASE
     push HL
     push DE
     push BC
@@ -169,7 +169,7 @@ toNumberExit:
     pop IY
     ret                 ; de = number, BC = err
 
-mCODE "number",6,0,NUMBER         ; ( ptr len -- num err )
+CODE "number",6,0,NUMBER         ; ( ptr len -- num err )
     ppop0 H,L
 	call toNumber                   ; params: HL = string address, BC = string length
 			                        ; Returns the parsed number in DE,
@@ -177,12 +177,12 @@ mCODE "number",6,0,NUMBER         ; ( ptr len -- num err )
     ppush0 D,E
     NEXT
 
-mCODE "decimal",7,0,decimal           ; pushes ptr to string and length on stack
+CODE "decimal",7,0,decimal           ; pushes ptr to string and length on stack
     ENTER
     dw lit,10,base,store
     EXIT
 
-mCODE "hex",3,0,hex                   ; pushes ptr to string and length on stack
+CODE "hex",3,0,hex                   ; pushes ptr to string and length on stack
     ENTER
     dw lit,16,base,store
     EXIT
