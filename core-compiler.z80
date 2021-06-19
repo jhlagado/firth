@@ -73,9 +73,10 @@ mCODE "constant",8,0,constant         ; --
     EXIT
 
 mCODE "'",1,0,tick                    ; quotes next word
+    ENTER
     dw bl,word,find,zEqual
     dw rFrom,count,over,over,plus,toR
-    dw EXIT
+    EXIT
 
 mCODE "immediate",9,MSK_IMMED,IMMEDIATE
     ld HL, (VAR_LATEST)                 ; get head of latest word

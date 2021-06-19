@@ -1,0 +1,62 @@
+.macro SET_RET_SP
+    loadWord H,L, B,C
+    LD SP, HL
+.endm
+
+.macro SAVE_REGS, regHI, regLO    ; Swap register bank and transfer TOS to regTOS
+    ppush0 B,C             ; only use if word doesn't execute other words
+    exx
+    ppop0 regHI, regLO
+.endm
+
+.macro RESTORE_REGS, regHI, regLO ; Swap register bank and transfer regTOS to TOS
+    ppush0 regHI, regLO         ; only use if word doesn't execute other words
+    exx
+    ppop0 B,C
+.endm
+
+.macro loadWord, destHI, destLO, srcHI, srcLO    ; transfer from src reg pair to dest reg pair
+    ld destLO, srcLO
+    ld destHI, srcHI
+.endm
+
+; works with HL, IX+d, IY+d
+.macro readWord, ptr, regHI, regLO
+    ld regLO, (ptr)
+    inc ptr
+    ld regHI, (ptr)
+    inc ptr
+.endm
+
+; works with HL, IX+d, IY+d
+.macro writeWord, ptr, regHI, regLO
+    writeByte ptr, regLO
+    writeByte ptr, regHI
+.endm
+
+; works with HL, IX+d, IY+d
+.macro writeByte, ptr, reg
+    ld (ptr), reg
+    inc ptr
+.endm
+
+; result: sets Z if zero
+; destroys: A
+.macro checkZeroWord, regHI, regLO          ; check if reg pair is zero
+    ld A, regLO
+    or regHI
+.endm
+
+.macro PRINT_STR, addr
+    ppush0 D,E
+    ld DE, addr
+    call printPStr
+    ppop0 D,E
+.endm
+
+.macro CMP16, val
+    ld DE, val
+    or A
+    sbc HL, DE
+    checkZeroWord H,L
+.endm

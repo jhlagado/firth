@@ -582,8 +582,6 @@ In the stack column of the table below, items on the left of the `--` represent 
 | c@    | addr -- c      | fetch char from addr          |
 | c!    | c addr --      | store char at addr            |
 | c,    | x --           | write char to heap memory     |
-| char+ | addr1 -- addr2 | add size of char (1) to addr  |
-| chars | n1 -- n2       | size of n1 chars (n1)         |
 
 #### Device
 

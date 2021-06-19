@@ -2,12 +2,15 @@
 
 TESTMODE equ 0
 
-.include "constants.z80"
-.include "macros.z80"
-.include "struct-macros.z80"
-.include "dloop-macros.z80"
-.include "compiler-macros.z80"
-
+    .include "constants.z80"
+    .include "macros-compiler.z80"
+    .include "macros-control.z80"
+    .include "macros-control2.z80"
+    .include "macros-dloop.z80"
+    .include "macros-kernel.z80"
+    .include "macros-stack.z80"
+    .include "macros-util.z80"
+    
 .org START_ROM
 RST00:                                      ; Reset
     di                                      ; Disable interrupts
@@ -25,23 +28,21 @@ RST38:                                      ; rst 38 - INTERRUPT VECTOR [ for IM
 RST66:
     ret                                     ; do nothing
 
-.include "serial.z80"
-
-.include "core-alu.z80"
-.include "core-compiler.z80"
-.include "core-control.z80"
-.include "core-format.z80"
-.include "core-interpreter.z80"
-.include "core-io.z80"
-.include "core-kernel.z80"
-.include "core-memory.z80"
-.include "core-messages.z80"
-.include "core-stacks.z80"
-.include "core-strings.z80"
-.include "core-utilities.z80"
-.include "extra-words.z80"
-
-.include "definitions.z80"                  ; must be included last
+    .include "core-serial.z80"
+    .include "core-alu.z80"
+    .include "core-compiler.z80"
+    .include "core-control.z80"
+    .include "core-format.z80"
+    .include "core-interpreter.z80"
+    .include "core-io.z80"
+    .include "core-kernel.z80"
+    .include "core-memory.z80"
+    .include "core-messages.z80"
+    .include "core-stacks.z80"
+    .include "core-strings.z80"
+    .include "core-utilities.z80"
+    .include "extra-words.z80"
+    .include "definitions.z80"                  ; must be included last
 
 start:
     ld SP, RET_STACK                        ; Initialise the return stack.
@@ -62,30 +63,17 @@ org START_RAM
 
 TESTS_START:
 
-    .include "test-macros.z80"
-.endif
-
-.if TESTMODE = 1
+    .include "macros-test.z80"
     .include "tests.z80"
     .include "test-base.z80"
     .include "test-number.z80"
     .include "test-experimental.z80"
-.endif
 
-.if TESTMODE = 2
-    rst $08
-    dw lit, 1
-    dw add100
-    dw exit_forth
-    EXPECT 101, "100 + 1"
-.endif
-
-.if TESTMODE
     PRINT_STR DONE
     halt
 
 .endif
 
-.include "variables.z80"
+    .include "variables.z80"
 
 START_USER:                                 ; user allocated data starts here

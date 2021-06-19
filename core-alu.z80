@@ -4,26 +4,6 @@ mCODE "lit",3,0,LIT
 	readWord HL, B,C                ; read next word and push on TOS, inc HL by 2
     NEXT1
 
-; 1+      n1/u1 -- n2/u2            add 1 to TOS
-mCODE "1+",2,0,onePlus
-    inc BC
-    NEXT
-
-; 2+      n1/u1 -- n2/u2            add 2 to TOS
-mCODE "2+",2,0,twoPlus
-    inc BC
-    inc BC
-    NEXT
-
-; 0<     n -- flag                  true if TOS negative
-mCODE "0<",2,0,ZEROLESS
-    sla b                           ; sign bit -> cy flag
-    sbc a,a         
-    and 1                           ; <0 = -1, >0 = 0
-    ld b,0
-    ld c,a
-    NEXT
-
 ; INVERT x1 -- x2               ; bitwise complement
 mCODE "invert",6,0,INVERT
     ld A,B
@@ -44,6 +24,15 @@ mCODE "true",4,0,TRUE
 mCODE "false",5,0,FALSE
     ppush0 B,C
     ld BC,0
+    NEXT
+
+; 0<     n -- flag                  true if TOS negative
+mCODE "0<",2,0,ZEROLESS
+    sla b                           ; sign bit -> cy flag
+    sbc a,a         
+    and 1                           ; <0 = -1, >0 = 0
+    ld b,0
+    ld c,a
     NEXT
 
 ; =      x1 x2 -- flag         test x1=x2
@@ -82,44 +71,6 @@ mCODE ">",1,0,GREATERTHAN	        ; less than
     ppop0 H,L                  ; swap operands
     ppush H,L
     jr LESSTHAN
-
-; +       n1/u1 n2/u2 -- n3/u3     add n1+n2
-mCODE "+",1,0,PLUS
-    ppop0 H,L
-    add HL,BC
-    loadWord B,C, H,L
-    NEXT
-
-; 2*      n1/u1 -- n2/u2            arithmetic left shift
-mCODE "2*",2,0,TWOSTAR
-    sla C
-    rl B
-    NEXT
-
-mCODE "-",1,0,MINUS
-    ppop0 H,L
-    or A
-    sbc HL,BC
-    loadWord B,C, H,L
-    NEXT
-
-; U*   u1 u2 -- ud   unsigned mutliply
-mCODE "u*",2,0,USTAR              ; u1 u2 -- ud
-                                    ; u2 in BC
-    ppop0 D,E                       ; u1 in DE
-	call unsignedMultiply
-    ppush0 D,E                      ; udlo result
-                                    ; udhi result
-    NEXT
-
-; U/MOD   u1 u2 -- u1 u2    unsigned 16 / 16 -> r q
-mCODE "u/mod",5,0,USLASHMOD
-    ppop D,E                ; DE = divisor
-                            ; BC = dividend
-    call divideWordByWord
-
-    ppush0 H,L           ; PUSH remainder,
-    NEXT
 
 ; 0= zero-equal
 mCODE "0=",2,0,zEqual
@@ -170,6 +121,38 @@ mCODE "xor",3,0,xor	        ; bitwise xor
     ld C,A
     NEXT
 
+; +       n1/u1 n2/u2 -- n3/u3     add n1+n2
+mCODE "+",1,0,PLUS
+    ppop0 H,L
+    add HL,BC
+    loadWord B,C, H,L
+    NEXT
+
+mCODE "-",1,0,MINUS
+    ppop0 H,L
+    or A
+    sbc HL,BC
+    loadWord B,C, H,L
+    NEXT
+
+; U*   u1 u2 -- ud   unsigned mutliply
+mCODE "u*",2,0,USTAR              ; u1 u2 -- ud
+                                    ; u2 in BC
+    ppop0 D,E                       ; u1 in DE
+	call unsignedMultiply
+    ppush0 D,E                      ; udlo result
+                                    ; udhi result
+    NEXT
+
+; U/MOD   u1 u2 -- u1 u2    unsigned 16 / 16 -> r q
+mCODE "u/mod",5,0,USLASHMOD
+    ppop D,E                ; DE = divisor
+                            ; BC = dividend
+    call divideWordByWord
+
+    ppush0 H,L           ; PUSH remainder,
+    NEXT
+
 ; CELLS   ( n1 -- n2 ) n2 is the size in address units of n1 cells.
 mCODE "cells",5,0,CELLS
     jp twostar
@@ -191,7 +174,7 @@ mCODE "negate",6,0,negate
     dw oneplus
     EXIT
 
-    mCODE "*",1,0,star                    ; u1 u2 -- ud
+mCODE "*",1,0,star                    ; u1 u2 -- ud
     ENTER
     dw over, over                       ; dupe both args
     dw ABS, swap, ABS                   ; remove sign from both args
@@ -251,53 +234,8 @@ mCODE "2-",2,0,twoMinus
     NEXT
 
 ; CELL+    c-addr1 -- c-addr2   add cell size to addr
-mCODE "cell+",5,0,CELLPLUS
+mCODE "cell+",5,0,CELLP
     jp twoplus
-
-; CHAR+    c-addr1 -- c-addr2   add char size to addr
-mCODE "char+",5,0,CHARPLUS
-    jp oneplus
-
-; */MOD star-slash-mod
-
-; 2/      x1 -- x2                  arithmetic right shift
-mCODE "2/",2,0,TWOSLASH
-    sra B
-    rr C
-    NEXT
-
-; LSHIFT  x1 u -- x2       logical L shift u places
-mCODE "lshift",6,0,lShift
-    ppop0 H,L              ;   NB: hi 8 bits ignored!
-    ld B,C              ; b = loop counter
-    inc B               ; test for counter=0 case
-    jr LSHIFT2
-    _do
-        add HL,HL        ; left shift HL, n times
-LSHIFT2:
-    _djnz
-    loadWord B,C, H,L     ; result is new TOS
-    NEXT
-
-mCODE "<<",2,0,ltlt
-    jr lShift
-
-;RSHIFT  x1 u -- x2    logical R shift u places
-mCODE "rshift",6,0,RSHIFT
-    ppop0 H,L         ;   NB: hi 8 bits ignored!
-    ld B,C              ; b = loop counter
-    inc B               ; test for counter=0 case
-    jr RSHIFT2
-    _do
-        srl H           ; right shift HL, n times
-        rr L
-RSHIFT2:
-    _djnz
-    loadWord B,C, H,L     ; result is new TOS
-    NEXT
-
-mCODE ">>",2,0,gtgt
-    jr rShift
 
 ; min   n1 n2 -- u                      minimum
 mCODE "min",3,0,min
@@ -322,6 +260,29 @@ mCODE "max",3,0,max
         dw drop
     cendif
     EXIT
+
+; 1+      n1/u1 -- n2/u2            add 1 to TOS
+mCODE "1+",2,0,onePlus
+    inc BC
+    NEXT
+
+; 2+      n1/u1 -- n2/u2            add 2 to TOS
+mCODE "2+",2,0,twoPlus
+    inc BC
+    inc BC
+    NEXT
+
+; 2*      n1/u1 -- n2/u2            arithmetic left shift
+mCODE "2*",2,0,TWOSTAR
+    sla C
+    rl B
+    NEXT
+
+; 2/      x1 -- x2                  arithmetic right shift
+mCODE "2/",2,0,TWOSLASH
+    sra B
+    rr C
+    NEXT
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; negate ***
@@ -430,6 +391,3 @@ unsignedMultiply:
     _enddo
     ret
 
-; CELLS   ( n1 -- n2 ) n2 is the size in address units of n1 cells.
-mCODE "chars",5,0,CHARS
-    jp noop

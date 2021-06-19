@@ -1,0 +1,23 @@
+.macro NEXT
+    jp enter
+.endm
+
+.macro NEXT1
+    jp enter1
+.endm
+
+.macro ENTER
+    rst $08                             ; enter forth
+.endm
+
+.macro EXIT
+    dw exit
+    jp enter
+.endm
+
+.macro INTERPRET
+    rst $08
+    dw interpret
+    dw exit_forth
+.endm
+
