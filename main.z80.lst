@@ -5026,7 +5026,7 @@
 0C1B                IF:          
 0C1B   CF                     RST   $08   ; enter forth
 0C1C   3C 0D                  DW   lbrace   
-0C1E   0E 03 E2 02 0B 04      DW   lit,zbranch,comma   ; compile ?branch
+0C1E   0E 03 E2 02 0B 04      DW   lit,QBRAN,comma   ; compile ?branch
 0C24   DC 13 26 04 07 06 0B 04 DW   here,fetch,dup,comma   ; compile here and also push on stack
 0C2C                          ;*Macro unroll:  EXIT
 0C2C   84 0F                  DW   exit   
@@ -5090,7 +5090,7 @@
 0C8F   77 68 69 6C 65         DB   "while"   
 0C94                WHILE:       
 0C94   CF                     RST   $08   ; enter forth
-0C95   0E 03 E2 02 0B 04      DW   lit,zbranch,comma   ; compile branch on zero
+0C95   0E 03 E2 02 0B 04      DW   lit,QBRAN,comma   ; compile branch on zero
 0C9B   DC 13 26 04            DW   here,fetch   ; save here in stack (here2)
 0C9F   0E 03 00 00 0B 04      DW   lit,0,comma   ; compile dummy offset
 0CA5                          ;*Macro unroll:  EXIT

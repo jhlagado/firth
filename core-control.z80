@@ -1,7 +1,7 @@
 mCODE "if",2,msk_immed,if
     ENTER
     dw lbrace
-    dw lit, zbranch, comma              ; compile ?branch
+    dw lit, QBRAN, comma              ; compile ?branch
     dw here, fetch, dup, comma          ; compile here and also push on stack
     EXIT
 
@@ -37,7 +37,7 @@ mCODE "begin",5,msk_immed,begin
 
 mCODE "while",5,msk_immed,while
     ENTER
-    dw lit, zbranch, comma              ; compile branch on zero
+    dw lit, QBRAN, comma              ; compile branch on zero
     dw here, fetch                      ; save here in stack (here2)
     dw lit, 0, comma                    ; compile dummy offset
     EXIT
