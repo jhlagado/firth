@@ -1,38 +1,103 @@
-mCODE "lit",3,0,LIT
-	ppush0 B,C                      ; pushTOS
-	pop HL                          ; pop address of next Forth word in HL
-	readWord HL, B,C                ; read next word and push on TOS, inc HL by 2
-    NEXT1
+;   0<          ( n -- t )
+;               Return true if n is negative.
+mCODE '0<',2,0,ZLESS
+	SLA B	; sign bit -> cy flag
+	SBC	A,A	; propagate cy through A
+	LD	B,A	; put 0000 or FFFF in TOS
+	LD	C,A
+	NEXT
 
-; INVERT x1 -- x2               ; bitwise complement
-mCODE "invert",6,0,INVERT
+; and    x1 x2 -- x3            logical and
+mCODE "and",3,0,ANDD	        ; bitwise and
+    PPOP0 H,L
+    LD A,B
+    AND H
+    LD B,A
+    LD A,C
+    AND L
+    LD C,A
+    NEXT
+
+; OR    x1 x2 -- x3             logical OR
+mCODE "or",2,0,ORR	            ; bitwise OR
+    ppop0 H,L
     ld A,B
-    cpl
+    or H
     ld B,A
     ld A,C
-    cpl
+    or L
     ld C,A
     NEXT
 
-; TRUE
-mCODE "true",4,0,TRUE
-    ppush0 B,C
-    ld BC,1
+; xor    x1 x2 -- x3            logical xor
+mCODE "xor",3,0,XORR	        ; bitwise xor
+    ppop0 H,L
+    ld A,B
+    xor H
+    ld B,A
+    ld A,C
+    xor L
+    ld C,A
     NEXT
 
-; FALSE
-mCODE "false",5,0,FALSE
-    ppush0 B,C
-    ld BC,0
+; +       n1/u1 n2/u2 -- n3/u3     add n1+n2
+mCODE "+",1,0,PLUS
+    ppop0 H,L
+    add HL,BC
+    loadWord B,C, H,L
     NEXT
 
-; 0<     n -- flag                  true if TOS negative
-mCODE "0<",2,0,ZEROLESS
-    sla b                           ; sign bit -> cy flag
-    sbc a,a         
-    and 1                           ; <0 = -1, >0 = 0
-    ld b,0
-    ld c,a
+; INVERT x1 -- x2               ; bitwise complement
+mCODE "not",6,0,INVER
+    ENTER
+    DW  LIT, -1, XORR, EXIT
+
+; negate  n1 -- n2                      negate n1
+mCODE "negate",6,0,NEGAT
+    ENTER
+    dw INVER,ONEP,EXIT
+
+; negate  n1 -- n2                      negate n1
+mCODE "dnegate",7,0,DNEGA
+    ENTER
+	DW	INVER, TOR, INVER
+	DW	LIT, 1, UPLUS
+	DW	RFROM, PLUS, EXIT
+
+mCODE "-",1,0,SUBB
+    ENTER
+	DW	NEGAT,Plus,EXIT
+
+; abs   n -- u                          absolute value
+mCODE "abs",3,0,ABS                   ; case sensitive for ABS label for some reason
+    ENTER
+    DW	DUPP, ZLESS, QBRAN1, ABS1
+    DW	NEGAT
+ABS1:		
+    DW	EXIT
+
+; mCODE "abs",3,0,ABS                   ; case sensitive for ABS label for some reason
+;     ENTER
+;     dw DUPP,ZLESS
+;     cif
+;         dw NEGAT                       ; if signs differ then negate answer
+;     cendif
+;     EXIT
+
+
+
+
+;   UM+         ( w w -- w cy )
+;               Add two numbers, return the sum and carry flag.
+mCODE "UM+",6,0,UPLUS
+    ppop0 H,L
+	ADD	HL,BC	        ;11t
+    ppush0 H,L
+	LD	BC,0	        ;10t
+	JR	NC,UMP1         ;12/7t
+UMP2:		
+    INC	BC	            ; 6t
+UMP1:		
     NEXT
 
 ; =      x1 x2 -- flag         test x1=x2
@@ -88,17 +153,6 @@ mCODE "0<>",3,0,zNotEqual
     _endif
     NEXT
 
-; and    x1 x2 -- x3            logical and
-mCODE "and",3,0,and	        ; bitwise and
-    ppop0 H,L
-    ld A,b
-    and H
-    ld B,A
-    ld A,C
-    and L
-    ld C,A
-    NEXT
-
 ; OR    x1 x2 -- x3             logical OR
 mCODE "or",2,0,OR	            ; bitwise OR
     ppop0 H,L
@@ -110,31 +164,6 @@ mCODE "or",2,0,OR	            ; bitwise OR
     ld C,A
     NEXT
     
-; xor    x1 x2 -- x3            logical xor
-mCODE "xor",3,0,xor	        ; bitwise xor
-    ppop0 H,L
-    ld A,B
-    xor H
-    ld B,A
-    ld A,C
-    xor L
-    ld C,A
-    NEXT
-
-; +       n1/u1 n2/u2 -- n3/u3     add n1+n2
-mCODE "+",1,0,PLUS
-    ppop0 H,L
-    add HL,BC
-    loadWord B,C, H,L
-    NEXT
-
-mCODE "-",1,0,MINUS
-    ppop0 H,L
-    or A
-    sbc HL,BC
-    loadWord B,C, H,L
-    NEXT
-
 ; U*   u1 u2 -- ud   unsigned mutliply
 mCODE "u*",2,0,USTAR              ; u1 u2 -- ud
                                     ; u2 in BC
@@ -156,46 +185,29 @@ mCODE "u/mod",5,0,USLASHMOD
 ; CELLS   ( n1 -- n2 ) n2 is the size in address units of n1 cells.
 mCODE "cells",5,0,CELLS
     jp twostar
-
-; abs   n -- u                          absolute value
-mCODE "abs",3,0,ABS                   ; case sensitive for ABS label for some reason
-    ENTER
-    dw dup                              ; copy arg
-    dw zeroless
-    cif
-        dw negate                       ; if signs differ then negate answer
-    cendif
-    EXIT
-
-; negate  n1 -- n2                      negate n1
-mCODE "negate",6,0,negate
-    ENTER
-    dw invert
-    dw oneplus
-    EXIT
-
+    
 mCODE "*",1,0,star                    ; u1 u2 -- ud
     ENTER
     dw over, over                       ; dupe both args
     dw ABS, swap, ABS                   ; remove sign from both args
     dw ustar, drop                      ; unsigned multiply, drop hi-word
     dw nrot                             ; move to bottom
-    dw xor                              ; zero if signs are the same
-    dw zeroless                         ; if high bit set
+    dw XORR                              ; zero if signs are the same
+    dw ZLESS                         ; if high bit set
     cif
-        dw negate                       ; if signs differ then negate answer
+        dw NEGAT                       ; if signs differ then negate answer
     cendif
     EXIT
 
 mCODE "/mod",4,0,slashmod             ; dvend dvisr -- rem quot
     ENTER
     dw over, over                       ;       u1 u2 -- u1 u2 u1 u2  dupe both args
-    dw xor                              ; u1 u2 u1 u2 -- u1 u2 b1     xor hi bits
-    dw zeroless                         ; true if high bit still set
+    dw XORR                              ; u1 u2 u1 u2 -- u1 u2 b1     xor hi bits
+    dw ZLESS                         ; true if high bit still set
     dw nrot                             ;    u1 u2 b1 -- b1 u1 u2     move to bottom
 
     dw over                             ;    b1 u1 u2 -- b1 u1 u2 u1  dupe dividend
-    dw zeroless                         ; b1 u1 u2 u1 -- b1 u1 u2 b2  zero if signs are the same
+    dw ZLESS                         ; b1 u1 u2 u1 -- b1 u1 u2 b2  zero if signs are the same
     dw nrot                             ; b1 u1 u2 b2 -- b1 b2 u1 u2  move to bottom
 
     dw ABS, swap, ABS, swap             ; remove sign from both args
@@ -203,12 +215,12 @@ mCODE "/mod",4,0,slashmod             ; dvend dvisr -- rem quot
     dw swap                             ; b1 b2 u1 u2 -- b1 b2 q r
     dw rot                              ; b1 b2 q r -- b1 q r b2      bring to top
     cif
-        dw negate                       ;   b1 q r b2 -- b1 q -r      if -ve then negate answer
+        dw NEGAT                       ;   b1 q r b2 -- b1 q -r      if -ve then negate answer
     cendif
     dw nrot                             ;     b1 q -r -- -r b1 q     bring to top
     dw swap                             ;     -r b1 q -- -r q b1      bring to top
     cif
-        dw negate                       ;     -r q b1 -- -r -q       if signs differ then negate answer
+        dw NEGAT                       ;     -r q b1 -- -r -q       if signs differ then negate answer
     cendif
     EXIT
 
@@ -262,7 +274,7 @@ mCODE "max",3,0,max
     EXIT
 
 ; 1+      n1/u1 -- n2/u2            add 1 to TOS
-mCODE "1+",2,0,onePlus
+mCODE "1+",2,0,ONEP
     inc BC
     NEXT
 

@@ -3,6 +3,8 @@ mCONST "r0",2,0,rz, ret_stack
 mCONST "msk_immed",9,0,__msk_immed,msk_immed
 mCONST "msk_hidden",10,0,__msk_hidden,msk_hidden
 mCONST "msk_length",10,0,__msk_length,msk_length
+mCONST "TRUE",4,0,TRUE,-1
+mCONST "FALSE",5,0,FALSE,0
 
 mVAR "pad", 3, 0, pad, var_pad
 mVAR "here", 4, 0, here, var_here

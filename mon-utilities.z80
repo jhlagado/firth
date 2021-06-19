@@ -1,0 +1,5 @@
+TXT_NEWLINE:    .pstr "\r\n"
+TXT_PROMPT:     .pstr "\r\n> "
+StackPrompt:    .pstr "=> "
+
+TXT_MONITOR_INTRO:  .pstr "TEC-1 Monitor 3.0 by John Hardy\r\n\r\n"

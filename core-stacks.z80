@@ -1,3 +1,9 @@
+mCODE "lit",3,0,LIT
+	ppush0 B,C                      ; pushTOS
+	pop HL                          ; pop address of next Forth word in HL
+	readWord HL, B,C                ; read next word and push on TOS, inc HL by 2
+    NEXT1
+
 mCODE "rot",3,0,ROT       ; x1 x2 x3 -- x2 x3 x1
                             ; x3 in BC
     ppop0 D,E               ; x2 in DE
@@ -16,7 +22,7 @@ mCODE "-rot",4,0,NROT     ; x1 x2 x3 -- x3 x1 x2
                             ; x2 in BC
     NEXT
 
-mCODE "dup",3,0,DUP        ; x -- x x
+mCODE "dup",3,0,DUPP        ; x -- x x
     ppush0 B,C
     NEXT
 

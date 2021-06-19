@@ -3,16 +3,16 @@ mCODE ".s",2,0,dots                   ; ( -- )
     ENTER
     dw spfetch                          ; psp
     dw sp0, fetch                       ; psp0
-    dw minus
+    dw SUBB
     dw lit, 0, greaterThan
     cif
         dw sp0, fetch, lit, 2, plus
         cdo
-            dw dup
-            dw spfetch, lit, 2, minus
-            dw swap, minus, zequal
+            dw DUPP
+            dw spfetch, lit, 2, SUBB
+            dw swap, SUBB, zequal
         cuntil
-            dw dup, fetch, dot
+            dw DUPP, fetch, dot
             dw lit, 2, plus
         cenddo
         dw drop

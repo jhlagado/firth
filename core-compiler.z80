@@ -2,7 +2,7 @@ mCODE ":",1,0,colon
     ENTER
     dw create                           ; create the dictionary entry / header
     dw here,fetch                       ; back up 3 bytes to start of data area
-    dw lit, 3, minus
+    dw lit, 3, SUBB
     dw here, store
     dw lit, rst08_opcode, ccomma        ; write z80 jp opcode to word
     dw latest, fetch, hidden            ; make the word hidden (see below for definition).
@@ -44,7 +44,7 @@ mCODE "create",6,0,create             ; --
     dw latest, fetch, comma             ; write link to previous word to "here"
     dw latest, store                    ; update latest to old "here"
     dw bl, word                   ; read word token
-    dw cfetch, oneplus, allot           ;
+    dw cfetch, ONEP, allot           ;
     dw lit, jp_opcode, cComma           ; compile default behavious
     dw lit, xcreate, comma              ; i.e. push addr of data area
     EXIT                                ; exit from forth
@@ -60,7 +60,7 @@ mCODE "does>", 5, msk_immed, does         ; --
     dw here, fetch
     dw lit, call_opcode
     dw over, cstore
-    dw oneplus, store
+    dw ONEP, store
     dw lit, 3, allot
     EXIT
 
@@ -128,13 +128,13 @@ xdoes:                                  ; --
     dw latest, fetch, tcfa
     dw lit, call_opcode
     dw over, cstore
-    dw oneplus, store
+    dw ONEP, store
     EXIT
 
 mCODE "postpone",8,msk_immed,postpone ; --
     rst $08
 	dw bl, word, count            ; pstr -- ptr len
-    dw dup, zEqual
+    dw DUPP, zEqual
     cIf
         dw drop, drop                   ; ptr len --
     cElse
@@ -145,7 +145,7 @@ mCODE "postpone",8,msk_immed,postpone ; --
 postponeToken:                          ; --
     rst $08
     dw over, over, find                 ; ptr len -- ptr len addr
-    dw dup, zNotEqual
+    dw DUPP, zNotEqual
     cIf
         dw postponeWord
     cElse
@@ -156,8 +156,8 @@ postponeToken:                          ; --
 postponeWord:                               ; ( headptr -- )
     rst $08                                 ; enter forth
     dw swap, drop, swap, drop               ; ptr len addr -- addr
-    dw dup, lit, 2, plus, cfetch            ; ( headptr -- headptr flags ) add 2 to headptr
-    dw lit, msk_immed, and                  ; ( headptr flags -- headptr immedflag )
+    dw DUPP, lit, 2, plus, cfetch            ; ( headptr -- headptr flags ) add 2 to headptr
+    dw lit, msk_immed, ANDD                  ; ( headptr flags -- headptr immedflag )
     dw zEqual
     cIf
         dw lit, lit, comma

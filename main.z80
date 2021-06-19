@@ -1,6 +1,6 @@
 .engine mycomputer
 
-    TESTMODE equ 0
+    TESTMODE equ 1
     
         .include "constants.z80"
         .include "macros-compiler.z80"

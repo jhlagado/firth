@@ -1,0 +1,38 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; test-macros
+;;
+;; macros to facilitate tests
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+.macro TEST_SET_TEXT, s1
+    ld HL, (lineBufStart)
+    ld (lineBufTop),HL
+    ld (currkey),HL
+    ld HL, tst_text%%M
+    ld (char_pointer), HL
+
+    _skip
+tst_text%%M:
+        db s1,"\r\n",-1,"\r\n"
+    _endskip
+.endm
+
+.macro EXPECT, expect, failtxt
+    call printNum
+    loadWord H,L, B,C
+    ld L, C
+    ppop0 B,C
+    CMP16 expect
+    jp z, tf_done%%M            ; asm80 macro nesting issue
+                                ; prevents using _if macro here
+    ld DE, FAILED
+    call printPStr
+    ld DE, te_fail%%M
+    call printPStr
+    halt
+    _skip
+te_fail%%M:
+        .pstr failtxt
+    _endskip
+tf_done%%M:
+.endm

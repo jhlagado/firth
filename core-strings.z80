@@ -8,7 +8,7 @@ litStr:                                     ; pushes ptr to string and length on
 ; count extract string length from pascal string  ( ptr -- ptr+1 len )
 mCODE "count",5,0,count
     ENTER
-    dw dup, lit, 1, plus                ; ( ptr -- ptr ptr+1)
+    dw DUPP, lit, 1, plus                ; ( ptr -- ptr ptr+1)
     dw swap, cfetch                     ; ( ptr ptr+1 -- ptr+1 len)
     EXIT
 
@@ -36,7 +36,7 @@ mCODE $22,1,msk_immed,qt
     cElse
         dw lit, litstr, comma
         dw lit, $22, word
-        dw cfetch, oneplus
+        dw cfetch, ONEP
         dw allot
     cEndif
     EXIT

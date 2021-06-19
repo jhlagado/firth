@@ -15,7 +15,7 @@ mCODE ">cfa",4,0,tcfa
     ENTER
     dw lit, 2, plus
     dw count
-    dw lit, msk_length, and
+    dw lit, msk_length, ANDD
     dw plus
     EXIT
 
@@ -27,7 +27,7 @@ mCODE "interpret",6,0,interpret
     rst $08
     cDo
     	dw bl, word, count        ; pstr -- ptr len
-        dw dup, zEqual
+        dw DUPP, zEqual
         cIf
             dw drop, drop                           ; ptr len --
             EXIT
@@ -171,7 +171,7 @@ xwordRead:                              ; delim addr char -- c-addr
     interpToken:                                ; ptr len --
     rst $08
     dw over, over, find                     ; ptr len -- ptr len addr
-    dw dup, zNotEqual
+    dw DUPP, zNotEqual
     cIf
         dw interpWord
     cElse
@@ -182,8 +182,8 @@ xwordRead:                              ; delim addr char -- c-addr
 interpWord:                                 ; ptr len addr --
     rst $08                                 ; enter forth
     dw swap, drop, swap, drop               ; ptr len addr -- addr
-    dw dup, lit, 2, plus, cfetch            ; ( headptr -- headptr flags ) add 2 to headptr
-    dw lit, msk_immed, and                  ; ( headptr flags -- headptr immedflag )
+    dw DUPP, lit, 2, plus, cfetch            ; ( headptr -- headptr flags ) add 2 to headptr
+    dw lit, msk_immed, ANDD                  ; ( headptr flags -- headptr immedflag )
     dw zEqual
     cif
         dw tcfa                             ; ( headptr -- xt )

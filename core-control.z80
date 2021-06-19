@@ -2,7 +2,7 @@ mCODE "if",2,msk_immed,if
     ENTER
     dw lbrace
     dw lit, QBRAN, comma              ; compile ?branch
-    dw here, fetch, dup, comma          ; compile here and also push on stack
+    dw here, fetch, DUPP, comma          ; compile here and also push on stack
     EXIT
 
 mCODE "else",4,msk_immed,else
@@ -22,8 +22,8 @@ mCODE "endif",5,msk_immed,endif
 
 xendif:                                 ; must call xendif not endif
     ENTER
-    dw dup
-    dw here, fetch, swap, minus         ; calculate the offset from the address saved on the stack
+    dw DUPP
+    dw here, fetch, swap, SUBB         ; calculate the offset from the address saved on the stack
     dw swap, store                      ; store the offset in the back-filled location
     EXIT
 
@@ -46,9 +46,9 @@ mCODE "repeat",6,msk_immed,repeat
     ENTER
     dw lit, BRAN, comma               ; compile branch
     dw swap                             ; tos = here1
-    dw here, fetch, minus, comma        ; compile offset (here1 - here3)
-    dw dup
-    dw here, fetch, swap, minus         ; compile offset (here2 - here3)
+    dw here, fetch, SUBB, comma        ; compile offset (here1 - here3)
+    dw DUPP
+    dw here, fetch, swap, SUBB         ; compile offset (here2 - here3)
     dw swap, store                      ; save offset in here2
     dw rbraceExec
     EXIT
@@ -70,5 +70,23 @@ mCODE "branch",6,0,BRAN         ; relative branching
     ld D,(HL)
     dec HL
     add HL,DE
+    NEXT1
+
+; ?branch   x --              branch if TOS zero
+mCODE "?branch1",7,0,QBRAN1
+    checkZeroWord B,C               ; test old TOS
+    ppop0 B,C                       ; POP new TOS
+    jr z,BRAN1                     ; if old TOS=0, branch
+    pop HL
+    inc HL                          ; else skip inline value
+    inc HL
+    NEXT1
+
+mCODE "branch1",6,0,BRAN1         ; relative branching
+    pop HL                          ; add the offset to the instruction pointer
+    ld E,(HL)
+    inc HL
+    ld D,(HL)
+    EX DE,HL
     NEXT1
 
