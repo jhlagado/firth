@@ -76,14 +76,53 @@ mCODE "abs",3,0,ABS                   ; case sensitive for ABS label for some re
 ABS1:		
     DW	EXIT
 
-; mCODE "abs",3,0,ABS                   ; case sensitive for ABS label for some reason
-;     ENTER
-;     dw DUPP,ZLESS
-;     cif
-;         dw NEGAT                       ; if signs differ then negate answer
-;     cendif
-;     EXIT
+; =      x1 x2 -- flag         test x1=x2
+mCODE "=",1,0,EQUAL
+    ENTER
+    DW      XORR
+    DW      QBRAN1,EQU1
+    DW      LIT,0,EXIT            ;false flag
+EQU1:           
+    DW      LIT,-1,EXIT           ;true flag
 
+;   U<          ( u u -- t )
+;               Unsigned compare of top two items.
+mCODE "U<",2,0,ULESS	        ; less than
+    ENTER
+    DW      DDUP,XORR,ZLESS
+    DW      QBRAN1,ULES1
+    DW      SWAP,DROP,ZLESS,EXIT
+ULES1:          
+    DW      SUBB,ZLESS,EXIT
+
+;   <           ( n1 n2 -- t )
+;               is less than
+mCODE "<",1,0,LESS	        ; less than
+    ENTER
+	DW	DDUP, XORR, ZLESS, QBRAN1, LESS1
+	DW	DROP, ZLESS, EXIT
+LESS1:		
+    DW	SUBB, ZLESS, EXIT
+
+; ; <      n1 n2 -- flag          test n1<n2
+; mCODE "<",1,0,LESS	        ; less than
+;     ppop0 H,L
+;     or A
+;     sbc HL,BC       ; n1-n2 in HL, SZVC valid
+;     _if pe
+;         _if m
+;             ld bc, 0
+;         _else
+;             ld bc, 1       ;   if -ve, result true
+;         _endif
+;     _else
+;         _if p
+;             ld bc, 0
+;         _else
+;             ld bc, 1       ;   if -ve, result true
+;         _endif
+;     _endif
+;     NEXT
 
 
 
@@ -100,42 +139,12 @@ UMP2:
 UMP1:		
     NEXT
 
-; =      x1 x2 -- flag         test x1=x2
-mCODE "=",1,0,equal
-    ppop0 H,L
-    or A
-    sbc HL,BC       ; x1-x2 in HL, SZVC valid
-    _if nz
-        ld BC, 1       ;   if -ve, result true
-    _endif
-    inc BC
-    NEXT
-
-; <      n1 n2 -- flag          test n1<n2
-mCODE "<",1,0,LESSTHAN	        ; less than
-    ppop0 H,L
-    or A
-    sbc HL,BC       ; n1-n2 in HL, SZVC valid
-    _if pe
-        _if m
-            ld bc, 0
-        _else
-            ld bc, 1       ;   if -ve, result true
-        _endif
-    _else
-        _if p
-            ld bc, 0
-        _else
-            ld bc, 1       ;   if -ve, result true
-        _endif
-    _endif
-    NEXT
 
 ; >      n1 n2 -- flag          test n1 > n2
 mCODE ">",1,0,GREATERTHAN	        ; less than
     ppop0 H,L                  ; swap operands
     ppush H,L
-    jr LESSTHAN
+    jr LESS
 
 ; 0= zero-equal
 mCODE "0=",2,0,zEqual
@@ -253,7 +262,7 @@ mCODE "cell+",5,0,CELLP
 mCODE "min",3,0,min
     rst $08
     dw over, over
-    dw lessThan
+    dw LESS
     cif
         dw drop
     cElse
@@ -265,7 +274,7 @@ mCODE "min",3,0,min
 mCODE "max",3,0,max
     rst $08
     dw over, over
-    dw lessThan
+    dw LESS
     cif
         dw swap, drop
     cElse

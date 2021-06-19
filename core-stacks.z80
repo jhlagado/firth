@@ -59,3 +59,15 @@ mCODE "r>",2,0,RFROM
     push HL
     NEXT
 
+;   2DROP       ( w w -- )
+;               Discard two items on stack.
+mCODE	'2DROP',5,0,DDROP
+    ENTER
+    DW	DROP, DROP, EXIT
+
+;   2DUP        ( w1 w2 -- w1 w2 w1 w2 )
+;               Duplicate top two items.
+mCODE	'2DUP',4,0,DDUP
+    ENTER
+    DW	OVER, OVER, EXIT
+
