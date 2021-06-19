@@ -5,7 +5,6 @@ initForth:
     ld BC, 0                                ; tos
 
     ld HL,0
-    ld (var_framePtr), HL
     ld (var_intp_stop), HL
     ld (is_literal), HL
     ld (var_nesting), HL

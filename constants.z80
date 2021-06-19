@@ -1,29 +1,31 @@
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; constants
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+MEM_SIZE        EQU     $10000 ; MEM is 64K
+ROM_SIZE        EQU     $2000 ; ROM is 8K
+RAM_SIZE        EQU     MEM_SIZE - ROM_SIZE ; RAM is 64K - 8K
 
-ROM_SIZE        equ     $2000
-RAM_SIZE        equ     $10000 - ROM_SIZE
-RET_STACK_SIZE  equ     $80 ; return stack
-DATA_STACK_SIZE equ     $80 ; data stack
-PAD_SIZE        equ     $80 ; user scratch pad
+BM              EQU     0 ; bottom of ROM memory
+EM              EQU     BM + MEM_SIZE 
+
+START_ROM       EQU     BM ; inclusive
+END_ROM         EQU     BM + ROM_SIZE ; exclusive
+
+START_RAM       EQU     BM + ROM_SIZE ; inclusive
+END_RAM         EQU     START_RAM + RAM_SIZE ; exclusive
+
+RET_STACK_SIZE  equ     $100 ; return stack
+DATA_STACK_SIZE equ     $100 ; data stack
+PAD_SIZE        equ     $100 ; user scratch pad
 
 SER_BUFSIZE     equ     3FH
 SER_FULLSIZE    equ     30H
 SER_EMPTYSIZE   equ     5
 LINE_BUFSIZE    equ     128
 
-START_ROM       equ     0
-START_RAM       equ     START_ROM + ROM_SIZE
-END_RAM         equ     START_RAM + RAM_SIZE
-RET_STACK       equ     END_RAM                     ; return stack, grows down
-
 IO_DATA         equ     $81
 IO_CTRL         equ     $80
 
 MSK_IMMED       equ     $80
 MSK_HIDDEN      equ     $40
-MSK_LENGTH      equ     $3f                    ; length mask
+MSK_LENGTH      equ     $3f ; length mask
 
 CALL_OPCODE     equ     $CD
 JP_OPCODE       equ     $C3

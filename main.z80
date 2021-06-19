@@ -1,79 +1,83 @@
 .engine mycomputer
 
-TESTMODE equ 0
-
-    .include "constants.z80"
-    .include "macros-compiler.z80"
-    .include "macros-control.z80"
-    .include "macros-control2.z80"
-    .include "macros-dloop.z80"
-    .include "macros-kernel.z80"
-    .include "macros-stack.z80"
-    .include "macros-util.z80"
+    TESTMODE equ 1
     
-.org START_ROM
-RST00:                                      ; Reset
-    di                                      ; Disable interrupts
-    jp start
+        .include "constants.z80"
+        .include "macros-compiler.z80"
+        .include "macros-control.z80"
+        .include "macros-dloop.z80"
+        .include "macros-fcontrol.z80"
+        .include "macros-kernel.z80"
+        .include "macros-stack.z80"
+        .include "macros-util.z80"
+        
+    .org START_ROM
+    RST00:                                      ; Reset
+        di                                      ; Disable interrupts
+        jp start
+    
+    .org $0008
+    RST08:                                      ; Check serial status
+        jp enter
+    
+    .org $0038
+    RST38:                                      ; rst 38 - INTERRUPT VECTOR [ for IM 1 ]
+        jp serialIn
+    
+    .org $0066                                  ; rst 66 - NON-MASKABLE INTERRUPT
+    RST66:
+        ret                                     ; do nothing
 
-.org $0008
-RST08:                                      ; Check serial status
-    jp enter
+    start:
+        ld SP, RET_STACK                        ; Initialise the return stack.
+        call initSerial
+        call initForth
+    
+    .if TESTMODE
+        jp TESTS_START
+    
+    .else
+        PRINT_STR TXT_INTRO
+        jp QUIT
+    .endif
+    
+        .include "core-alu.z80"
+        .include "core-compiler.z80"
+        .include "core-control.z80"
+        .include "core-definitions.z80"                  ; must be included last
+        .include "core-extra.z80"
+        .include "core-format.z80"
+        .include "core-interpreter.z80"
+        .include "core-io.z80"
+        .include "core-kernel.z80"
+        .include "core-memory.z80"
+        .include "core-messages.z80"
+        .include "core-serial.z80"
+        .include "core-stacks.z80"
+        .include "core-strings.z80"
+        .include "core-utilities.z80"
 
-.org $0038
-RST38:                                      ; rst 38 - INTERRUPT VECTOR [ for IM 1 ]
-    jp serialIn
-
-.org $0066                                  ; rst 66 - NON-MASKABLE INTERRUPT
-RST66:
-    ret                                     ; do nothing
-
-    .include "core-serial.z80"
-    .include "core-alu.z80"
-    .include "core-compiler.z80"
-    .include "core-control.z80"
-    .include "core-format.z80"
-    .include "core-interpreter.z80"
-    .include "core-io.z80"
-    .include "core-kernel.z80"
-    .include "core-memory.z80"
-    .include "core-messages.z80"
-    .include "core-stacks.z80"
-    .include "core-strings.z80"
-    .include "core-utilities.z80"
-    .include "extra-words.z80"
-    .include "definitions.z80"                  ; must be included last
-
-start:
-    ld SP, RET_STACK                        ; Initialise the return stack.
-    call initSerial
-    call initForth
-
-.if TESTMODE
-    jp TESTS_START
-
-.else
-    PRINT_STR TXT_INTRO
-    jp QUIT
-.endif
-
-org START_RAM
-
-.if TESTMODE
-
-TESTS_START:
-
-    .include "macros-test.z80"
-    .include "tests.z80"
-    .include "test-base.z80"
-    .include "test-number.z80"
-    .include "test-experimental.z80"
-
-    PRINT_STR DONE
-    halt
-
-.endif
-
-    .include "variables.z80"
-
-START_USER:                                 ; user allocated data starts here
+        ;; "latest" must be the last word defined
+        mVAR "latest",6,0,latest, var_latest
+        
+    org START_RAM
+    
+    .if TESTMODE
+    
+    TESTS_START:
+    
+        .include "macros-test.z80"
+        .include "tests.z80"
+        .include "test-base.z80"
+        .include "test-number.z80"
+        .include "test-experimental.z80"
+    
+        PRINT_STR DONE
+        halt
+    
+    .endif
+    
+        .include "variables.z80"
+    
+    START_USER:                                 ; user allocated data starts here
+    

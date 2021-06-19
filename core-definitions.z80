@@ -1,21 +1,9 @@
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; constant words
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
 mCONST "version",7,0,version,1
 mCONST "r0",2,0,rz, ret_stack
 mCONST "msk_immed",9,0,__msk_immed,msk_immed
 mCONST "msk_hidden",10,0,__msk_hidden,msk_hidden
 mCONST "msk_length",10,0,__msk_length,msk_length
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; variable words
-;;
-;; "latest" must be the last word defined
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-mVAR "framePtr", 8, 0, framePtr, var_framePtr
 mVAR "pad", 3, 0, pad, var_pad
 mVAR "here", 4, 0, here, var_here
 mVAR "intp_stop", 9, 0, intp_stop, var_intp_stop
@@ -24,4 +12,3 @@ mVAR "nesting",7,0,nesting, var_nesting
 mVAR "sp0",3,0,sp0, var_sp0
 mVAR "base",4,0,base, var_base
 mVAR "latestStr",6,0,latestStr, var_latest_str
-mVAR "latest",6,0,latest, var_latest

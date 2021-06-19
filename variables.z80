@@ -1,9 +1,13 @@
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; variables
-;;
-;; storage locations declared in RAM
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+                DS RET_STACK_SIZE   ; return stack size
+RET_STACK:                          ; return stack, grows down
+RPP:                                ; RP0 grows down (into TIBB)
+
+DATA_STACK:     
+                DS DATA_STACK_SIZE  ; TODO: change remove double data stack size
+SPP:                                ; SP0 (should) grow down
+
+                .align $100
 serBuf:         ds SER_BUFSIZE
 serInPtr:       dw 0
 serRdPtr:       dw 0
@@ -14,17 +18,12 @@ currkey:        dw 0
 lineBufTop:     dw 0
 lineBuf:        ds LINE_BUFSIZE
 
-; A static lineBuf TOKEN fills.  Subsequent calls
-; overwrite this lineBuf.  Maximum word length is 32 chars.
-
-exitAddr:       dw 0
 wordBuf:        ds 64
 wordBuf2:       ds 64
-DATA_STACK:     ds DATA_STACK_SIZE
-IS_LITERAL:     dw 0            ; Flag used to record if reading a literal
-
-var_framePtr    dw 0
 VAR_PAD:        ds PAD_SIZE
+
+exitAddr:       dw 0
+IS_LITERAL:     dw 0            ; Flag used to record if reading a literal
 VAR_HERE:       dw 0
 VAR_INTP_STOP:  dw 0
 VAR_STATE:      dw 0
