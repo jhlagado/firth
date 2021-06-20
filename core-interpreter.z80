@@ -23,17 +23,17 @@ CODE "execute",7,0,EXECUTE
     ppop H,L                        ; POP TOS into HL
     jp (hl)                         ; go do Forth word
 
-CODE "interpret",6,0,interpret
-    rst $08
-    cDo
-    	dw bl, word, count        ; pstr -- ptr len
-        dw DUPP, zEqual
-        cIf
-            dw drop, drop                           ; ptr len --
-            EXIT
-        cEndif
-        dw interpToken                       ; interpret the next word
-    cEndDo
+CODE "interpret",6,0,INTERPRET
+    ENTER
+INTERPRET1:
+	dw bl, word, count        ; pstr -- ptr len
+    dw DUPP, zEqual
+    cIf
+        dw drop, drop                           ; ptr len --
+        EXIT
+    cEndif
+    dw interpToken                       ; interpret the next word
+    dw BRAN,INTERPRET1  
     EXIT
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

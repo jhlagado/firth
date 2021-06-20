@@ -5,18 +5,19 @@ CODE ".s",2,0,dots                   ; ( -- )
     dw sp0, AT                       ; psp0
     dw SUBB
     dw lit, 0, greaterThan
-    cif
-        dw sp0, AT, lit, 2, plus
-        cdo
-            dw DUPP
-            dw spAT, lit, 2, SUBB
-            dw swap, SUBB, zequal
-        cuntil
-            dw DUPP, AT, dot
-            dw lit, 2, plus
-        cenddo
-        dw drop
-    cendif
+    dw QBRAN,DOTS3
+    dw sp0, AT, lit, 2, plus
+DOTS1:
+    dw DUPP
+    dw spAT, lit, 2, SUBB
+    dw swap, SUBB, ZNEQU
+    dw QBRAN,DOTS2
+    dw DUPP,AT,dot
+    dw LIT,2,plus
+    dw BRAN,DOTS1
+DOTS2:
+    dw drop
+DOTS3:
     EXIT
 
 CODE "words", 5, 0, WORDS
