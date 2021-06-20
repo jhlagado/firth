@@ -18,30 +18,30 @@
 ;               Compile the next address in colon list to code dictionary.
 CODE 'COMPILE',7,0,COMPI
     ENTER
-    DW RFROM,DUPP,Fetch,COMMA     ;compile address
+    DW RFROM,DUPP,AT,COMMA     ;compile address
     DW CELLP,TOR,EXIT          ;adjust return address
 
 CODE ":",1,0,colon
     ENTER
     dw create                           ; create the dictionary entry / header
-    dw here,fetch                       ; back up 3 bytes to start of data area
+    dw here,AT                       ; back up 3 bytes to start of data area
     dw lit, 3, SUBB
     dw here, store
     dw lit, rst08_opcode, ccomma        ; write z80 jp opcode to word
-    dw latest, fetch, hidden            ; make the word hidden (see below for definition).
+    dw latest, AT, hidden            ; make the word hidden (see below for definition).
     dw rbrac                            ; go into compile mode.
     EXIT                                ; return from the function.
 
 CODE ";",1,msk_immed,semicolon
     ENTER
     dw lit, exit, comma                 ; append exit (so the word will return).
-    dw latest, fetch, hidden            ; toggle hidden flag -- unhide the word (see below for definition).
+    dw latest, AT, hidden            ; toggle hidden flag -- unhide the word (see below for definition).
     dw lbrac                            ; go back to immediate mode.
     EXIT                                ; return from the function.
 
 CODE ":noname",7,0,colonNoName
     ENTER
-    dw here, fetch                      ; TOS = here
+    dw here, AT                      ; TOS = here
     dw lit, rst08_opcode, ccomma        ; write z80 jp opcode to word
     dw rbrac                            ; go into compile mode.
     EXIT                                ; return from the function.
@@ -49,25 +49,25 @@ CODE ":noname",7,0,colonNoName
 CODE "variable",8,0,variable         ; ( n -- ) get name from input
     ENTER
     dw lit, 1, cells
-    dw here, fetch, swap                ; n -- here n
+    dw here, AT, swap                ; n -- here n
     dw allot                            ; allocate n bytes, push addr
     dw constant
     EXIT
 
 CODE "buffer:",7,0,bufferColon       ; ( n -- ) get name from input
     ENTER
-    dw here, fetch, swap                ; n -- here n
+    dw here, AT, swap                ; n -- here n
     dw allot                           ; allocate n bytes, push addr
     dw constant
     EXIT
 
 CODE "create",6,0,create             ; --
     ENTER
-    dw here, fetch                      ; get old "here"
-    dw latest, fetch, comma             ; write link to previous word to "here"
+    dw here, AT                      ; get old "here"
+    dw latest, AT, comma             ; write link to previous word to "here"
     dw latest, store                    ; update latest to old "here"
     dw bl, word                   ; read word token
-    dw cfetch, ONEP, allot           ;
+    dw cAT, ONEP, allot           ;
     dw lit, jp_opcode, cComma           ; compile default behavious
     dw lit, xcreate, comma              ; i.e. push addr of data area
     EXIT                                ; exit from forth
@@ -80,7 +80,7 @@ CODE "does>", 5, msk_immed, does         ; --
     ENTER
     dw lit, xdoes, comma
     dw lit, dodoes
-    dw here, fetch
+    dw here, AT
     dw lit, call_opcode
     dw over, cstore
     dw ONEP, store
@@ -92,7 +92,7 @@ CODE "constant",8,0,constant         ; --
     dw create,comma,xdoes
     rst $08
     dw rfrom                            ; push onto stack
-    dw fetch
+    dw AT
     EXIT
 
 CODE "'",1,0,tick                    ; quotes next word
@@ -148,7 +148,7 @@ dodoes:             ; -- a-addr
 xdoes:                                  ; --
     ENTER
     dw rfrom
-    dw latest, fetch, tcfa
+    dw latest, AT, tcfa
     dw lit, call_opcode
     dw over, cstore
     dw ONEP, store
@@ -179,7 +179,7 @@ postponeToken:                          ; --
 postponeWord:                               ; ( headptr -- )
     rst $08                                 ; enter forth
     dw swap, drop, swap, drop               ; ptr len addr -- addr
-    dw DUPP, lit, 2, plus, cfetch            ; ( headptr -- headptr flags ) add 2 to headptr
+    dw DUPP, lit, 2, plus, cAT            ; ( headptr -- headptr flags ) add 2 to headptr
     dw lit, msk_immed, ANDD                  ; ( headptr flags -- headptr immedflag )
     dw zEqual
     cIf

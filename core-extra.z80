@@ -1,10 +1,10 @@
 CODE "{",1,msk_immed,lbrace
     ENTER
-    dw state, fetch, ZEQUAL
-    dw nesting, fetch, ZEQUAL
+    dw state, AT, ZEQUAL
+    dw nesting, AT, ZEQUAL
     dw ANDD
     cIf
-        dw here, fetch                  ; TOS = here
+        dw here, AT                  ; TOS = here
         dw lit, rst08_opcode, ccomma    ; write z80 jp opcode to word
     cEndIf
     dw nestPlus                         ; increase nesting
@@ -13,8 +13,8 @@ CODE "{",1,msk_immed,lbrace
 CODE "}",1,msk_immed,rbrace
     ENTER
     dw nestMinus                        ; reduce nesting
-    dw state, fetch, ZEQUAL
-    dw nesting, fetch, ZEQUAL
+    dw state, AT, ZEQUAL
+    dw nesting, AT, ZEQUAL
     dw ANDD
     cIf
         dw lit, exit, comma                 ; append exit (so the word will return).
@@ -24,8 +24,8 @@ CODE "}",1,msk_immed,rbrace
 CODE "}exec",5,msk_immed,rbraceExec
     ENTER
     dw rbrace
-    dw state, fetch, ZEQUAL
-    dw nesting, fetch, ZEQUAL
+    dw state, AT, ZEQUAL
+    dw nesting, AT, ZEQUAL
     dw ANDD
     cIf
         dw DUPP

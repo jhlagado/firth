@@ -1819,7 +1819,7 @@
 0448                COMPI:       
 0448                          ;*Macro unroll:  ENTER
 0448   CF                     RST   $08   
-0449   21 13 9C 12 51 0F F6 0F DW   RFROM,DUPP,Fetch,COMMA   ;compile address
+0449   21 13 9C 12 51 0F F6 0F DW   RFROM,DUPP,AT,COMMA   ;compile address
 0451   3A 03 0C 13 1E 0F      DW   CELLP,TOR,EXIT   ;adjust return address
 0457                          ;*Macro unroll: CODE ":",1,0,colon
 0457                HEADER_COLON:      
@@ -1831,11 +1831,11 @@
 045B                          ;*Macro unroll:  ENTER
 045B   CF                     RST   $08   
 045C   F7 04                  DW   create   ; create the dictionary entry / header
-045E   F2 08 51 0F            DW   here,fetch   ; back up 3 bytes to start of data area
+045E   F2 08 51 0F            DW   here,AT   ; back up 3 bytes to start of data area
 0462   1B 12 03 00 1E 01      DW   lit,3,SUBB   
 0468   F2 08 30 0F            DW   here,store   
 046C   1B 12 CF 00 12 10      DW   lit,rst08_opcode,ccomma   ; write z80 jp opcode to word
-0472   C2 14 51 0F CB 05      DW   latest,fetch,hidden   ; make the word hidden (see below for definition).
+0472   C2 14 51 0F CB 05      DW   latest,AT,hidden   ; make the word hidden (see below for definition).
 0478   F1 05                  DW   rbrac   ; go into compile mode.
 047A                          ;*Macro unroll:  EXIT                                ; return from the function.
 047A   1E 0F                  DW   exit   ; return from the function.
@@ -1850,7 +1850,7 @@
 0483                          ;*Macro unroll:  ENTER
 0483   CF                     RST   $08   
 0484   1B 12 1E 0F F6 0F      DW   lit,exit,comma   ; append exit (so the word will return).
-048A   C2 14 51 0F CB 05      DW   latest,fetch,hidden   ; toggle hidden flag -- unhide the word (see below for definition).
+048A   C2 14 51 0F CB 05      DW   latest,AT,hidden   ; toggle hidden flag -- unhide the word (see below for definition).
 0490   E4 05                  DW   lbrac   ; go back to immediate mode.
 0492                          ;*Macro unroll:  EXIT                                ; return from the function.
 0492   1E 0F                  DW   exit   ; return from the function.
@@ -1864,7 +1864,7 @@
 04A1                COLONNONAME:      
 04A1                          ;*Macro unroll:  ENTER
 04A1   CF                     RST   $08   
-04A2   F2 08 51 0F            DW   here,fetch   ; TOS = here
+04A2   F2 08 51 0F            DW   here,AT   ; TOS = here
 04A6   1B 12 CF 00 12 10      DW   lit,rst08_opcode,ccomma   ; write z80 jp opcode to word
 04AC   F1 05                  DW   rbrac   ; go into compile mode.
 04AE                          ;*Macro unroll:  EXIT                                ; return from the function.
@@ -1880,7 +1880,7 @@
 04BE                          ;*Macro unroll:  ENTER
 04BE   CF                     RST   $08   
 04BF   1B 12 01 00 50 03      DW   lit,1,cells   
-04C5   F2 08 51 0F B0 12      DW   here,fetch,swap   ; n -- here n
+04C5   F2 08 51 0F B0 12      DW   here,AT,swap   ; n -- here n
 04CB   D4 0F                  DW   allot   ; allocate n bytes, push addr
 04CD   62 05                  DW   constant   
 04CF                          ;*Macro unroll:  EXIT
@@ -1895,7 +1895,7 @@
 04DE                BUFFERCOLON:      
 04DE                          ;*Macro unroll:  ENTER
 04DE   CF                     RST   $08   
-04DF   F2 08 51 0F B0 12      DW   here,fetch,swap   ; n -- here n
+04DF   F2 08 51 0F B0 12      DW   here,AT,swap   ; n -- here n
 04E5   D4 0F                  DW   allot   ; allocate n bytes, push addr
 04E7   62 05                  DW   constant   
 04E9                          ;*Macro unroll:  EXIT
@@ -1910,11 +1910,11 @@
 04F7                CREATE:      
 04F7                          ;*Macro unroll:  ENTER
 04F7   CF                     RST   $08   
-04F8   F2 08 51 0F            DW   here,fetch   ; get old "here"
-04FC   C2 14 51 0F F6 0F      DW   latest,fetch,comma   ; write link to previous word to "here"
+04F8   F2 08 51 0F            DW   here,AT   ; get old "here"
+04FC   C2 14 51 0F F6 0F      DW   latest,AT,comma   ; write link to previous word to "here"
 0502   C2 14 30 0F            DW   latest,store   ; update latest to old "here"
 0506   8B 0E 99 0B            DW   bl,word   ; read word token
-050A   7E 0F 80 03 D4 0F      DW   cfetch,ONEP,allot   ; 
+050A   7E 0F 80 03 D4 0F      DW   cAT,ONEP,allot   ; 
 0510   1B 12 C3 00 12 10      DW   lit,jp_opcode,cComma   ; compile default behavious
 0516   1B 12 21 05 F6 0F      DW   lit,xcreate,comma   ; i.e. push addr of data area
 051C                          ;*Macro unroll:  EXIT                                ; exit from forth
@@ -1938,7 +1938,7 @@
 0531   CF                     RST   $08   
 0532   1B 12 0A 06 F6 0F      DW   lit,xdoes,comma   
 0538   1B 12 FA 05            DW   lit,dodoes   
-053C   F2 08 51 0F            DW   here,fetch   
+053C   F2 08 51 0F            DW   here,AT   
 0540   1B 12 CD 00            DW   lit,call_opcode   
 0544   E4 12 5F 0F            DW   over,cstore   
 0548   80 03 30 0F            DW   ONEP,store   
@@ -1958,7 +1958,7 @@
 0563   F7 04 F6 0F 0A 06      DW   create,comma,xdoes   
 0569   CF                     RST   $08   
 056A   21 13                  DW   rfrom   ; push onto stack
-056C   51 0F                  DW   fetch   
+056C   51 0F                  DW   AT   
 056E                          ;*Macro unroll:  EXIT
 056E   1E 0F                  DW   exit   
 0570   C3 0D 0F               JP   enter   
@@ -2069,7 +2069,7 @@
 060A                          ;*Macro unroll:  ENTER
 060A   CF                     RST   $08   
 060B   21 13                  DW   rfrom   
-060D   C2 14 51 0F B0 0B      DW   latest,fetch,tcfa   
+060D   C2 14 51 0F B0 0B      DW   latest,AT,tcfa   
 0613   1B 12 CD 00            DW   lit,call_opcode   
 0617   E4 12 5F 0F            DW   over,cstore   
 061B   80 03 30 0F            DW   ONEP,store   
@@ -2183,7 +2183,7 @@
 0669                POSTPONEWORD:      ; ( headptr -- )
 0669   CF                     RST   $08   ; enter forth
 066A   B0 12 D0 12 B0 12 D0 12 DW   swap,drop,swap,drop   ; ptr len addr -- addr
-0672   9C 12 1B 12 02 00 CE 00 7E 0F DW   DUPP,lit,2,plus,cfetch   ; ( headptr -- headptr flags ) add 2 to headptr
+0672   9C 12 1B 12 02 00 CE 00 7E 0F DW   DUPP,lit,2,plus,cAT   ; ( headptr -- headptr flags ) add 2 to headptr
 067C   1B 12 80 00 86 00      DW   lit,msk_immed,ANDD   ; ( headptr flags -- headptr immedflag )
 0682   58 03                  DW   zEqual   
 0684                          ;*Macro unroll:  cIf
@@ -2297,7 +2297,7 @@
 06DB   CF                     RST   $08   
 06DC   9D 09                  DW   lbrace   
 06DE   1B 12 A3 07 F6 0F      DW   lit,QBRAN,comma   ; compile ?branch
-06E4   F2 08 51 0F 9C 12 F6 0F DW   here,fetch,DUPP,comma   ; compile here and also push on stack
+06E4   F2 08 51 0F 9C 12 F6 0F DW   here,AT,DUPP,comma   ; compile here and also push on stack
 06EC                          ;*Macro unroll:  EXIT
 06EC   1E 0F                  DW   exit   
 06EE   C3 0D 0F               JP   enter   
@@ -2311,7 +2311,7 @@
 06F8                          ;*Macro unroll:  ENTER
 06F8   CF                     RST   $08   
 06F9   1B 12 C0 07 F6 0F      DW   lit,BRAN,comma   ; definite branch to just over the false-part
-06FF   F2 08 51 0F            DW   here,fetch   ; save here on stack
+06FF   F2 08 51 0F            DW   here,AT   ; save here on stack
 0703   1B 12 00 00 F6 0F      DW   lit,0,comma   ; compile a dummy offset
 0709   B0 12                  DW   swap   ; now back-fill the original (if) offset
 070B   24 07                  DW   xendif   ; must call xendif not endif
@@ -2336,7 +2336,7 @@
 0724                          ;*Macro unroll:  ENTER
 0724   CF                     RST   $08   
 0725   9C 12                  DW   DUPP   
-0727   F2 08 51 0F B0 12 1E 01 DW   here,fetch,swap,SUBB   ; calculate the offset from the address saved on the stack
+0727   F2 08 51 0F B0 12 1E 01 DW   here,AT,swap,SUBB   ; calculate the offset from the address saved on the stack
 072F   B0 12 30 0F            DW   swap,store   ; store the offset in the back-filled location
 0733                          ;*Macro unroll:  EXIT
 0733   1E 0F                  DW   exit   
@@ -2352,7 +2352,7 @@
 0740                          ;*Macro unroll:  ENTER
 0740   CF                     RST   $08   
 0741   9D 09                  DW   lbrace   
-0743   F2 08 51 0F            DW   here,fetch   ; save here on stack (here1)
+0743   F2 08 51 0F            DW   here,AT   ; save here on stack (here1)
 0747                          ;*Macro unroll:  EXIT
 0747   1E 0F                  DW   exit   
 0749   C3 0D 0F               JP   enter   
@@ -2366,7 +2366,7 @@
 0754                          ;*Macro unroll:  ENTER
 0754   CF                     RST   $08   
 0755   1B 12 A3 07 F6 0F      DW   lit,QBRAN,comma   ; compile branch on zero
-075B   F2 08 51 0F            DW   here,fetch   ; save here in stack (here2)
+075B   F2 08 51 0F            DW   here,AT   ; save here in stack (here2)
 075F   1B 12 00 00 F6 0F      DW   lit,0,comma   ; compile dummy offset
 0765                          ;*Macro unroll:  EXIT
 0765   1E 0F                  DW   exit   
@@ -2382,9 +2382,9 @@
 0773   CF                     RST   $08   
 0774   1B 12 C0 07 F6 0F      DW   lit,BRAN,comma   ; compile branch
 077A   B0 12                  DW   swap   ; tos = here1
-077C   F2 08 51 0F 1E 01 F6 0F DW   here,fetch,SUBB,comma   ; compile offset (here1 - here3)
+077C   F2 08 51 0F 1E 01 F6 0F DW   here,AT,SUBB,comma   ; compile offset (here1 - here3)
 0784   9C 12                  DW   DUPP   
-0786   F2 08 51 0F B0 12 1E 01 DW   here,fetch,swap,SUBB   ; compile offset (here2 - here3)
+0786   F2 08 51 0F B0 12 1E 01 DW   here,AT,swap,SUBB   ; compile offset (here2 - here3)
 078E   B0 12 30 0F            DW   swap,store   ; save offset in here2
 0792   ED 09                  DW   rbraceExec   
 0794                          ;*Macro unroll:  EXIT
@@ -2751,8 +2751,8 @@
 099D                LBRACE:      
 099D                          ;*Macro unroll:  ENTER
 099D   CF                     RST   $08   
-099E   26 09 51 0F 58 03      DW   state,fetch,ZEQUAL   
-09A4   40 09 51 0F 58 03      DW   nesting,fetch,ZEQUAL   
+099E   26 09 51 0F 58 03      DW   state,AT,ZEQUAL   
+09A4   40 09 51 0F 58 03      DW   nesting,AT,ZEQUAL   
 09AA   86 00                  DW   ANDD   
 09AC                          ;*Macro unroll:  cIf
 09AC   A3 07 00 00            DW   QBRAN,0   
@@ -2768,7 +2768,7 @@
 09B0                CPL_3:    .SET   CPL_2   
 09B0                CPL_2:    .SET   CPL_TOP   
 09B0                CPL_TOP:   .SET   $   
-09B0   F2 08 51 0F            DW   here,fetch   ; TOS = here
+09B0   F2 08 51 0F            DW   here,AT   ; TOS = here
 09B4   1B 12 CF 00 12 10      DW   lit,rst08_opcode,ccomma   ; write z80 jp opcode to word
 09BA                          ;*Macro unroll:  cEndIf
 09BA                          ;*Macro unroll:  cBRANCH_FWD
@@ -2802,8 +2802,8 @@
 09C5                          ;*Macro unroll:  ENTER
 09C5   CF                     RST   $08   
 09C6   E1 0D                  DW   nestMinus   ; reduce nesting
-09C8   26 09 51 0F 58 03      DW   state,fetch,ZEQUAL   
-09CE   40 09 51 0F 58 03      DW   nesting,fetch,ZEQUAL   
+09C8   26 09 51 0F 58 03      DW   state,AT,ZEQUAL   
+09CE   40 09 51 0F 58 03      DW   nesting,AT,ZEQUAL   
 09D4   86 00                  DW   ANDD   
 09D6                          ;*Macro unroll:  cIf
 09D6   A3 07 00 00            DW   QBRAN,0   
@@ -2851,8 +2851,8 @@
 09ED                          ;*Macro unroll:  ENTER
 09ED   CF                     RST   $08   
 09EE   C5 09                  DW   rbrace   
-09F0   26 09 51 0F 58 03      DW   state,fetch,ZEQUAL   
-09F6   40 09 51 0F 58 03      DW   nesting,fetch,ZEQUAL   
+09F0   26 09 51 0F 58 03      DW   state,AT,ZEQUAL   
+09F6   40 09 51 0F 58 03      DW   nesting,AT,ZEQUAL   
 09FC   86 00                  DW   ANDD   
 09FE                          ;*Macro unroll:  cIf
 09FE   A3 07 00 00            DW   QBRAN,0   
@@ -3520,7 +3520,7 @@
 0B84                QUIT:        
 0B84                          ;*Macro unroll:  ENTER
 0B84   CF                     RST   $08   
-0B85   56 09 51 0F BA 0F      DW   sp0,fetch,spStore   
+0B85   56 09 51 0F BA 0F      DW   sp0,AT,spStore   
 0B8B   E9 0B                  DW   interpret   
 0B8D                          ;*Macro unroll:  EXIT
 0B8D   1E 0F                  DW   exit   
@@ -3535,7 +3535,7 @@
 0B99                          ;*Macro unroll:  ENTER
 0B99   CF                     RST   $08   
 0B9A   1B 12 40 00            DW   lit,64   ; limit
-0B9E   F2 08 51 0F            DW   here,fetch   
+0B9E   F2 08 51 0F            DW   here,AT   
 0BA2   51 0C                  DW   xword   ; writes to HERE!
 0BA4                          ;*Macro unroll:  EXIT
 0BA4   1E 0F                  DW   exit   
@@ -4371,7 +4371,7 @@
 0D54                INTERPWORD:      ; ptr len addr --
 0D54   CF                     RST   $08   ; enter forth
 0D55   B0 12 D0 12 B0 12 D0 12 DW   swap,drop,swap,drop   ; ptr len addr -- addr
-0D5D   9C 12 1B 12 02 00 CE 00 7E 0F DW   DUPP,lit,2,plus,cfetch   ; ( headptr -- headptr flags ) add 2 to headptr
+0D5D   9C 12 1B 12 02 00 CE 00 7E 0F DW   DUPP,lit,2,plus,cAT   ; ( headptr -- headptr flags ) add 2 to headptr
 0D67   1B 12 80 00 86 00      DW   lit,msk_immed,ANDD   ; ( headptr flags -- headptr immedflag )
 0D6D   58 03                  DW   zEqual   
 0D6F                          ;*Macro unroll:  cif
@@ -4389,8 +4389,8 @@
 0D73                CPL_2:    .SET   CPL_TOP   
 0D73                CPL_TOP:   .SET   $   
 0D73   B0 0B                  DW   tcfa   ; ( headptr -- xt )
-0D75   26 09 51 0F            DW   state,fetch   
-0D79   40 09 51 0F            DW   nesting,fetch   
+0D75   26 09 51 0F            DW   state,AT   
+0D79   40 09 51 0F            DW   nesting,AT   
 0D7D   9E 00                  DW   ORR   
 0D7F                          ;*Macro unroll:  cif
 0D7F   A3 07 00 00            DW   QBRAN,0   
@@ -4482,8 +4482,8 @@
 0DA3                CPL_3:    .SET   CPL_2   
 0DA3                CPL_2:    .SET   CPL_TOP   
 0DA3                CPL_TOP:   .SET   $   
-0DA3   26 09 51 0F            DW   state,fetch   
-0DA7   40 09 51 0F            DW   nesting,fetch   
+0DA3   26 09 51 0F            DW   state,AT   
+0DA7   40 09 51 0F            DW   nesting,AT   
 0DAB   9E 00                  DW   ORR   
 0DAD                          ;*Macro unroll:  cIf
 0DAD   A3 07 00 00            DW   QBRAN,0   
@@ -4742,7 +4742,7 @@
 0EB4                          ;*Macro unroll:  ENTER
 0EB4   CF                     RST   $08   
 0EB5   85 13                  DW   qt   
-0EB7   26 09 51 0F 58 03      DW   state,fetch,zequal   
+0EB7   26 09 51 0F 58 03      DW   state,AT,zequal   
 0EBD                          ;*Macro unroll:  cIf
 0EBD   A3 07 00 00            DW   QBRAN,0   
 0EC1                          ;*Macro unroll:  CPL_PUSH $
@@ -4870,13 +4870,13 @@
 0F47   DD 4E 00               LD   C,(IX+0)   
 0F4A                          ;*Macro unroll:  NEXT
 0F4A   C3 0D 0F               JP   enter   
-0F4D                          ;*Macro unroll: CODE "@",1,0,FETCH
-0F4D                HEADER_FETCH:      
+0F4D                          ;*Macro unroll: CODE "@",1,0,AT
+0F4D                HEADER_AT:      
 0F4D   2C 0F                  DW   link   
-0F4F                LINK:     .SET   HEADER_FETCH   
+0F4F                LINK:     .SET   HEADER_AT   
 0F4F   01                     DB   0 + 1   
 0F50   40                     DB   "@"   
-0F51                FETCH:       
+0F51                AT:       
 0F51                          ;*Macro unroll:  loadWord H,L, B,C ; HL = TOS
 0F51   69                     LD   L,C   ; HL = TOS
 0F52   60                     LD   H,B   
@@ -4911,14 +4911,14 @@
 0F73   DD 4E 00               LD   C,(IX+0)   
 0F76                          ;*Macro unroll:  NEXT
 0F76   C3 0D 0F               JP   enter   
-0F79                             ; C@     c-addr -- char   fetch char from memory
-0F79                          ;*Macro unroll: CODE "c@",2,0,CFETCH
-0F79                HEADER_CFETCH:      
+0F79                             ; C@     c-addr -- char   AT char from memory
+0F79                          ;*Macro unroll: CODE "c@",2,0,CAT
+0F79                HEADER_CAT:      
 0F79   5A 0F                  DW   link   
-0F7B                LINK:     .SET   HEADER_CFETCH   
+0F7B                LINK:     .SET   HEADER_CAT   
 0F7B   02                     DB   0 + 2   
 0F7C   63 40                  DB   "c@"   
-0F7E                CFETCH:      
+0F7E                CAT:      
 0F7E   0A                     LD   A,(BC)   
 0F7F   4F                     LD   C,A   
 0F80   06 00                  LD   B,0   
@@ -4944,13 +4944,13 @@
 0F96   DD 4E 00               LD   C,(IX+0)   
 0F99                          ;*Macro unroll:  NEXT
 0F99   C3 0D 0F               JP   enter   
-0F9C                          ;*Macro unroll: CODE "sp@",3,0,SPFETCH
-0F9C                HEADER_SPFETCH:      
+0F9C                          ;*Macro unroll: CODE "sp@",3,0,SPAT
+0F9C                HEADER_SPAT:      
 0F9C   85 0F                  DW   link   
-0F9E                LINK:     .SET   HEADER_SPFETCH   
+0F9E                LINK:     .SET   HEADER_SPAT   
 0F9E   03                     DB   0 + 3   
 0F9F   73 70 40               DB   "sp@"   
-0FA2                SPFETCH:      
+0FA2                SPAT:      
 0FA2   DD E5                  PUSH   IX   
 0FA4   E1                     POP   HL   
 0FA5                          ;*Macro unroll:  ppush H,L
@@ -5008,7 +5008,7 @@
 0FE3                PSTOR:       
 0FE3                          ;*Macro unroll:  ENTER
 0FE3   CF                     RST   $08   
-0FE4   B0 12 E4 12 51 0F CE 00 DW   SWAP,OVER,Fetch,PLUS   
+0FE4   B0 12 E4 12 51 0F CE 00 DW   SWAP,OVER,AT,PLUS   
 0FEC   B0 12 30 0F 1E 0F      DW   SWAP,STORE,EXIT   
 0FF2                             ; CODE "+!",2,0,ADDSTORE               ; (n addr -- )
 0FF2                             ; 	ppop H, L		            ; HL = address, TOS = amount to add
@@ -6190,7 +6190,7 @@
 1368                          ;*Macro unroll:  ENTER
 1368   CF                     RST   $08   
 1369   9C 12 1B 12 01 00 CE 00 DW   DUPP,lit,1,plus   ; ( ptr -- ptr ptr+1)
-1371   B0 12 7E 0F            DW   swap,cfetch   ; ( ptr ptr+1 -- ptr+1 len)
+1371   B0 12 7E 0F            DW   swap,cAT   ; ( ptr ptr+1 -- ptr+1 len)
 1375                          ;*Macro unroll:  EXIT
 1375   1E 0F                  DW   exit   
 1377   C3 0D 0F               JP   enter   
@@ -6213,7 +6213,7 @@
 1385                QT:          
 1385                          ;*Macro unroll:  ENTER
 1385   CF                     RST   $08   
-1386   26 09 51 0F 58 03      DW   state,fetch,zequal   
+1386   26 09 51 0F 58 03      DW   state,AT,zequal   
 138C                          ;*Macro unroll:  cIf
 138C   A3 07 00 00            DW   QBRAN,0   
 1390                          ;*Macro unroll:  CPL_PUSH $
@@ -6230,7 +6230,7 @@
 1390                CPL_TOP:   .SET   $   
 1390   1B 12 22 00            DW   lit,$22   ; delim
 1394   1B 12 3F 00            DW   lit,63   ; limit 63 + length
-1398   89 09 51 0F            DW   latestStr,fetch   
+1398   89 09 51 0F            DW   latestStr,AT   
 139C   1B 12 CD 30 3C 01      DW   lit,wordBuf,equal   
 13A2                          ;*Macro unroll:  cIf
 13A2   A3 07 00 00            DW   QBRAN,0   
@@ -6275,7 +6275,7 @@
 13B2                CPL_9:    .SET   CPL_10   
 13B2                CPL_10:   .SET   0   
 13B2   89 09 30 0F            DW   latestStr,store   ; store here in latestStr
-13B6   89 09 51 0F            DW   latestStr,fetch   
+13B6   89 09 51 0F            DW   latestStr,AT   
 13BA   51 0C 68 13            DW   xword,count   
 13BE                          ;*Macro unroll:  cElse
 13BE   C0 07 00 00            DW   BRAN,0   
@@ -6287,7 +6287,7 @@
 13C2                CPL_TOP:   .SET   $   
 13C2   1B 12 4E 13 F6 0F      DW   lit,litstr,comma   
 13C8   1B 12 22 00 99 0B      DW   lit,$22,word   
-13CE   7E 0F 80 03            DW   cfetch,ONEP   
+13CE   7E 0F 80 03            DW   cAT,ONEP   
 13D2   D4 0F                  DW   allot   
 13D4                          ;*Macro unroll:  cEndif
 13D4                          ;*Macro unroll:  cBRANCH_FWD
@@ -6491,8 +6491,8 @@
 142B                DOTS:        
 142B                          ;*Macro unroll:  ENTER
 142B   CF                     RST   $08   
-142C   A2 0F                  DW   spfetch   ; psp
-142E   56 09 51 0F            DW   sp0,fetch   ; psp0
+142C   A2 0F                  DW   spAT   ; psp
+142E   56 09 51 0F            DW   sp0,AT   ; psp0
 1432   1E 01                  DW   SUBB   
 1434   1B 12 00 00 8C 01      DW   lit,0,greaterThan   
 143A                          ;*Macro unroll:  cif
@@ -6509,7 +6509,7 @@
 143E                CPL_3:    .SET   CPL_2   
 143E                CPL_2:    .SET   CPL_TOP   
 143E                CPL_TOP:   .SET   $   
-143E   56 09 51 0F 1B 12 02 00 CE 00 DW   sp0,fetch,lit,2,plus   
+143E   56 09 51 0F 1B 12 02 00 CE 00 DW   sp0,AT,lit,2,plus   
 1448                          ;*Macro unroll:  cdo
 1448   C0 07 06 00            DW   BRAN,6   
 144C   C0 07 00 00            DW   BRAN,0   
@@ -6526,11 +6526,11 @@
 1450                CPL_2:    .SET   CPL_TOP   
 1450                CPL_TOP:   .SET   $   
 1450   9C 12                  DW   DUPP   
-1452   A2 0F 1B 12 02 00 1E 01 DW   spfetch,lit,2,SUBB   
+1452   A2 0F 1B 12 02 00 1E 01 DW   spAT,lit,2,SUBB   
 145A   B0 12 1E 01 58 03      DW   swap,SUBB,zequal   
 1460                          ;*Macro unroll:  cuntil
 1460   58 03 A3 07 E8 FF      DW   ZEQUAL,QBRAN,CPL_TOP - $ - 8   
-1466   9C 12 51 0F 13 0A      DW   DUPP,fetch,dot   
+1466   9C 12 51 0F 13 0A      DW   DUPP,AT,dot   
 146C   1B 12 02 00 CE 00      DW   lit,2,plus   
 1472                          ;*Macro unroll:  cenddo
 1472   C0 07 DC FF            DW   BRAN,CPL_TOP - $ - 2   
@@ -10042,15 +10042,15 @@
 2B77                             ; EXPECT 3, "word 'a xyz'"
 2B77                             ; ppop H,L   ; drop
 2B77                             ; call HERE
-2B77                             ; call FETCH
+2B77                             ; call AT
 2B77                             ; EXPECT START_USER, "here"
 2B77                             ; TEST_SET_TEXT "xyz"
 2B77                             ; call CREATE
 2B77                             ; call LATEST
-2B77                             ; call FETCH
+2B77                             ; call AT
 2B77                             ; EXPECT START_USER, "create xyz latest"
 2B77                             ; call HERE
-2B77                             ; call FETCH
+2B77                             ; call AT
 2B77                             ; EXPECT START_USER + 6, "create xyz here"
 2B77                             ; ppushValue 1
 2B77                             ; ppushValue 2
@@ -10092,7 +10092,7 @@
 2B77                             ; ppushPText "xyz"
 2B77                             ; call COUNT
 2B77                             ; EXPECT 3, "xyz length 3"
-2B77                             ; call CFETCH
+2B77                             ; call CAT
 2B77                             ; EXPECT "x" + 0, "xyz --> x"
 2B77                             ; ppushValue HEADER_LATEST
 2B77                             ; call TCFA
@@ -10114,7 +10114,7 @@
 2B77                             ; rst $08
 2B77                             ; dw interpret
 2B77                             ; dw exit_forth
-2B77                             ; call FETCH
+2B77                             ; call AT
 2B77                             ; EXPECT 10, "expect base to be 10"
 2B77                             ; ppushText "add",3
 2B77                             ; call FIND
@@ -16014,9 +16014,9 @@ STORE:              0F30 DEFINED AT LINE 13
                     > USED AT LINE 32 IN core-extra.z80
                     > USED AT LINE 57 IN core-memory.z80
                     > USED AT LINE 33 IN core-strings.z80
-HEADER_FETCH:       0F4D DEFINED AT LINE 6
+HEADER_AT:       0F4D DEFINED AT LINE 6
                     > USED AT LINE 9
-FETCH:              0F51 DEFINED AT LINE 13
+AT:              0F51 DEFINED AT LINE 13
                     > USED AT LINE 27 IN core-compiler.z80
                     > USED AT LINE 31 IN core-compiler.z80
                     > USED AT LINE 38 IN core-compiler.z80
@@ -16060,18 +16060,18 @@ HEADER_CSTORE:      0F5A DEFINED AT LINE 6
 CSTORE:             0F5F DEFINED AT LINE 13
                     > USED AT LINE 85 IN core-compiler.z80
                     > USED AT LINE 153 IN core-compiler.z80
-HEADER_CFETCH:      0F79 DEFINED AT LINE 6
+HEADER_CAT:      0F79 DEFINED AT LINE 6
                     > USED AT LINE 9
-CFETCH:             0F7E DEFINED AT LINE 13
+CAT:             0F7E DEFINED AT LINE 13
                     > USED AT LINE 70 IN core-compiler.z80
                     > USED AT LINE 12 IN core-strings.z80
                     > USED AT LINE 39 IN core-strings.z80
 HEADER_RSPSTORE:    0F85 DEFINED AT LINE 6
                     > USED AT LINE 9
 RSPSTORE:           0F8C DEFINED AT LINE 13
-HEADER_SPFETCH:     0F9C DEFINED AT LINE 6
+HEADER_SPAT:     0F9C DEFINED AT LINE 6
                     > USED AT LINE 9
-SPFETCH:            0FA2 DEFINED AT LINE 13
+SPAT:            0FA2 DEFINED AT LINE 13
                     > USED AT LINE 4 IN core-utilities.z80
                     > USED AT LINE 12 IN core-utilities.z80
 HEADER_SPSTORE:     0FB4 DEFINED AT LINE 6

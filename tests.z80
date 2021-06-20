@@ -188,16 +188,16 @@ INTERPRET
 ; ppop H,L   ; drop
 
 ; call HERE
-; call FETCH
+; call AT
 ; EXPECT START_USER, "here"
 
 ; TEST_SET_TEXT "xyz"
 ; call CREATE
 ; call LATEST
-; call FETCH
+; call AT
 ; EXPECT START_USER, "create xyz latest"
 ; call HERE
-; call FETCH
+; call AT
 ; EXPECT START_USER + 6, "create xyz here"
 
 ; ppushValue 1
@@ -250,7 +250,7 @@ INTERPRET
 ; ppushPText "xyz"
 ; call COUNT
 ; EXPECT 3, "xyz length 3"
-; call CFETCH
+; call CAT
 ; EXPECT "x" + 0, "xyz --> x"
 
 ; ppushValue HEADER_LATEST
@@ -277,7 +277,7 @@ INTERPRET
 ; rst $08
 ; dw interpret
 ; dw exit_forth
-; call FETCH
+; call AT
 ; EXPECT 10, "expect base to be 10"
 
 ; ppushText "add",3

@@ -1,13 +1,13 @@
 CODE "quit",4,0,quit
     ENTER
-    dw sp0, fetch, spStore
+    dw sp0, AT, spStore
     dw interpret
     EXIT
 
 CODE "word",5,0,WORD                 ; delim -- c-addr
     ENTER
     dw lit, 64                          ; limit
-    dw here, fetch
+    dw here, AT
     dw xword                            ; writes to HERE!
     EXIT
 
@@ -182,13 +182,13 @@ xwordRead:                              ; delim addr char -- c-addr
 interpWord:                                 ; ptr len addr --
     rst $08                                 ; enter forth
     dw swap, drop, swap, drop               ; ptr len addr -- addr
-    dw DUPP, lit, 2, plus, cfetch            ; ( headptr -- headptr flags ) add 2 to headptr
+    dw DUPP, lit, 2, plus, cAT            ; ( headptr -- headptr flags ) add 2 to headptr
     dw lit, msk_immed, ANDD                  ; ( headptr flags -- headptr immedflag )
     dw zEqual
     cif
         dw tcfa                             ; ( headptr -- xt )
-        dw state, fetch
-        dw nesting, fetch
+        dw state, AT
+        dw nesting, AT
         dw ORR
         cif
             dw comma                        ; compile xt
@@ -205,8 +205,8 @@ interpLiteral:                              ; ptr len addr --
     dw drop                                 ; ptr len addr - ptr len
     dw number, zEqual                       ; parse to number
     cif
-        dw state, fetch
-        dw nesting, fetch
+        dw state, AT
+        dw nesting, AT
         dw ORR
         cIf
             dw lit, lit                     ; (val -- val "lit" )

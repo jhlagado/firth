@@ -5,7 +5,7 @@ CODE "!",1,0,STORE
     ppop0 B,C          ; POP new TOS
     NEXT
 
-CODE "@",1,0,FETCH
+CODE "@",1,0,AT
     loadWord H,L, B,C ; HL = TOS
     readWord HL, B,C
     NEXT
@@ -17,8 +17,8 @@ CODE "c!",2,0,CSTORE
     ppop0 B,C          ; POP new TOS
     NEXT
 
-; C@     c-addr -- char   fetch char from memory
-CODE "c@",2,0,CFETCH
+; C@     c-addr -- char   AT char from memory
+CODE "c@",2,0,CAT
     ld A,(BC)
     ld C,A
     ld B,0
@@ -30,7 +30,7 @@ CODE "rsp!",4,0,RSPSTORE
 	ppop0 B,C                      ; POP TOS
     NEXT
 
-CODE "sp@",3,0,SPFETCH
+CODE "sp@",3,0,SPAT
     push IX
     pop HL
     ppush H,L
@@ -53,7 +53,7 @@ CODE "allot",5,0,allot               ;
 ;               Add n to the contents at address a.
 CODE  '+!',2,0,PSTOR
     ENTER
-    DW      SWAP,OVER,Fetch,PLUS
+    DW      SWAP,OVER,AT,PLUS
     DW      SWAP,STORE,EXIT
 
 ; CODE "+!",2,0,ADDSTORE               ; (n addr -- )

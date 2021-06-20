@@ -1,18 +1,18 @@
 ; .s print stack (non-destructively)
 CODE ".s",2,0,dots                   ; ( -- )
     ENTER
-    dw spfetch                          ; psp
-    dw sp0, fetch                       ; psp0
+    dw spAT                          ; psp
+    dw sp0, AT                       ; psp0
     dw SUBB
     dw lit, 0, greaterThan
     cif
-        dw sp0, fetch, lit, 2, plus
+        dw sp0, AT, lit, 2, plus
         cdo
             dw DUPP
-            dw spfetch, lit, 2, SUBB
+            dw spAT, lit, 2, SUBB
             dw swap, SUBB, zequal
         cuntil
-            dw DUPP, fetch, dot
+            dw DUPP, AT, dot
             dw lit, 2, plus
         cenddo
         dw drop
