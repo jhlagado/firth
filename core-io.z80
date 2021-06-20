@@ -46,7 +46,7 @@ CODE "print",5,0,PRINT
     NEXT
 
 ; ." print string"
-CODE {".",$22},2,msk_immed,dotquote
+CODE {".",$22},2,IMMED,dotquote
     ENTER
     dw qt
     dw state, AT, zequal

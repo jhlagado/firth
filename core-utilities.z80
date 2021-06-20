@@ -35,7 +35,7 @@ listWords:
         inc DE                      ; skip over first field
         inc DE
         ld A, (DE)                  ; a = flags+length field
-        and MSK_HIDDEN | MSK_LENGTH ; %al = name length
+        and HIDE | LENMASK ; %al = name length
         ld B,0
         ld C,A
         inc DE

@@ -1,11 +1,11 @@
-CODE "if",2,msk_immed,if
+CODE "if",2,IMMED,if
     ENTER
     dw lbrace
     dw lit, XQBRAN, comma              ; compile ?branch
     dw here, AT, DUPP, comma          ; compile here and also push on stack
     EXIT
 
-CODE "else",4,msk_immed,else
+CODE "else",4,IMMED,else
     ENTER
     dw lit, XBRAN, comma               ; definite branch to just over the false-part
     dw here, AT                      ; save here on stack
@@ -14,7 +14,7 @@ CODE "else",4,msk_immed,else
     dw xendif                           ; must call xendif not endif
     EXIT
 
-CODE "endif",5,msk_immed,endif
+CODE "endif",5,IMMED,endif
     ENTER
     dw xendif                           ; must call xendif not endif
     dw rbraceExec
@@ -29,20 +29,20 @@ xendif:                                 ; must call xendif not endif
 
 ; begin condition while ... repeat
 
-CODE "begin",5,msk_immed,begin
+CODE "begin",5,IMMED,begin
     ENTER
     dw lbrace
     dw here, AT                      ; save here on stack (here1)
     EXIT
 
-CODE "while",5,msk_immed,while
+CODE "while",5,IMMED,while
     ENTER
     dw lit, XQBRAN, comma              ; compile branch on zero
     dw here, AT                      ; save here in stack (here2)
     dw lit, 0, comma                    ; compile dummy offset
     EXIT
 
-CODE "repeat",6,msk_immed,repeat
+CODE "repeat",6,IMMED,repeat
     ENTER
     dw lit, XBRAN, comma               ; compile branch
     dw swap                             ; tos = here1

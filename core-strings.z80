@@ -14,10 +14,10 @@ CODE "count",5,0,count
 
 ; using {"s",$22} because it's surprisingly difficult
 ; to define the name s" using asm80
-CODE {"s",$22},2,msk_immed,squote
+CODE {"s",$22},2,IMMED,squote
     jr qt
 
-CODE $22,1,msk_immed,qt
+CODE $22,1,IMMED,qt
     ENTER
     dw state, AT, zequal
     cIf

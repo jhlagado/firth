@@ -1,4 +1,4 @@
-CODE "{",1,msk_immed,LBRACE
+CODE "{",1,IMMED,LBRACE
     ENTER
     dw state, AT, ZEQUAL
     dw nesting, AT, ZEQUAL
@@ -10,7 +10,7 @@ LBRACE1:
     dw nestPlus                         ; increase nesting
     EXIT                             ; return from the function.
 
-CODE "}",1,msk_immed,RBRACE
+CODE "}",1,IMMED,RBRACE
     ENTER
     dw nestMinus                        ; reduce nesting
     dw state, AT, ZEQUAL
@@ -21,7 +21,7 @@ CODE "}",1,msk_immed,RBRACE
 RBRACE1:
     EXIT                             ; return from the function.
 
-CODE "}exec",5,msk_immed,rbraceExec
+CODE "}exec",5,IMMED,rbraceExec
     ENTER
     dw rbrace
     dw state, AT, ZEQUAL

@@ -15,7 +15,7 @@ CODE ">cfa",4,0,tcfa
     ENTER
     dw lit, 2, plus
     dw count
-    dw lit, msk_length, ANDD
+    dw lit, LENMASK, ANDD
     dw plus
     EXIT
 
@@ -51,7 +51,7 @@ lookup:
         ret z
 
         ; Compare the length expected and the length of the word.
-        ; Note that if the MSK_HIDDEN flag is set on the word, then by a bit of trickery
+        ; Note that if the HIDE flag is set on the word, then by a bit of trickery
         ; this won't pick the word (the length will appear to be wrong).
 
         push DE                     ; save ptr to header
@@ -59,7 +59,7 @@ lookup:
         inc DE                      ; skip over first field
         inc DE
         ld A, (DE)                    ; a = flags+length field
-        and MSK_HIDDEN | MSK_LENGTH    ; %al = name length
+        and HIDE | LENMASK    ; %al = name length
 
         cp C                        ; Length is the same?
         _if z
@@ -183,7 +183,7 @@ interpWord:                                 ; ptr len addr --
     rst $08                                 ; enter forth
     dw swap, drop, swap, drop               ; ptr len addr -- addr
     dw DUPP, lit, 2, plus, CAT            ; ( headptr -- headptr flags ) add 2 to headptr
-    dw lit, msk_immed, ANDD                  ; ( headptr flags -- headptr immedflag )
+    dw lit, IMMED, ANDD                  ; ( headptr flags -- headptr immedflag )
     dw zEqual
     cif
         dw tcfa                             ; ( headptr -- xt )

@@ -736,9 +736,9 @@ latest
 lit
 lshift
 mod
-msk_hidden
-msk_immed
-msk_length
+HIDE
+IMMED
+LENMASK
 negate
 noop
 number

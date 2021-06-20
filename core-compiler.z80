@@ -10,7 +10,7 @@
 
 ; ;   [COMPILE]   ( -- ; <string> )
 ; ;               Compile the next immediate word into code dictionary.
-; CODE '[COMPILE]',9,msk_immed,BCOMP
+; CODE '[COMPILE]',9,IMMED,BCOMP
 ;     ENTER
 ;     DW TICK,COMMA,EXIT
 
@@ -32,7 +32,7 @@ CODE ":",1,0,colon
     dw rbrac                            ; go into compile mode.
     EXIT                                ; return from the function.
 
-CODE ";",1,msk_immed,semicolon
+CODE ";",1,IMMED,semicolon
     ENTER
     dw lit, exit, comma                 ; append exit (so the word will return).
     dw latest, AT, hidden            ; toggle hidden flag -- unhide the word (see below for definition).
@@ -76,7 +76,7 @@ xcreate:
     dw rfrom                            ; push onto stack
     EXIT
 
-CODE "does>", 5, msk_immed, does         ; --
+CODE "does>", 5, IMMED, does         ; --
     ENTER
     dw lit, xdoes, comma
     dw lit, dodoes
@@ -101,11 +101,11 @@ CODE "'",1,0,tick                    ; quotes next word
     dw rFrom,count,over,over,plus,toR
     EXIT
 
-CODE "immediate",9,MSK_IMMED,IMMEDIATE
+CODE "immediate",9,IMMED,IMMEDIATE
     ld HL, (VAR_LATEST)                 ; get head of latest word
     inc HL                              ; point to flags byte
     inc HL
-    ld a, MSK_IMMED
+    ld a, IMMED
     xor (HL)                            ; toggle the IMMED bit.
     ld (HL),a
     NEXT
@@ -124,11 +124,11 @@ CODE "hidden",6,0,HIDDEN
     inc HL                      ; Point to name/flags byte.
 
     ld A, (HL)
-    xor MSK_HIDDEN        	    ; Toggle the HIDDEN bit.
+    xor HIDE        	    ; Toggle the HIDDEN bit.
     ld (HL), A
     NEXT
 
-CODE "[",1,MSK_IMMED,LBRAC
+CODE "[",1,IMMED,LBRAC
 	ld HL, 0
 	ld (VAR_STATE), HL	; Set STATE to 0.
     NEXT
@@ -154,7 +154,7 @@ xdoes:                                  ; --
     dw ONEP, STORE
     EXIT
 
-CODE "postpone",8,msk_immed,postpone ; --
+CODE "postpone",8,IMMED,postpone ; --
     rst $08
 	dw bl, word, count            ; pstr -- ptr len
     dw DUPP, zEqual
@@ -180,7 +180,7 @@ postponeWord:                               ; ( headptr -- )
     rst $08                                 ; enter forth
     dw swap, drop, swap, drop               ; ptr len addr -- addr
     dw DUPP, lit, 2, plus, CAT            ; ( headptr -- headptr flags ) add 2 to headptr
-    dw lit, msk_immed, ANDD                  ; ( headptr flags -- headptr immedflag )
+    dw lit, IMMED, ANDD                  ; ( headptr flags -- headptr immedflag )
     dw zEqual
     cIf
         dw lit, lit, comma
