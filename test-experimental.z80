@@ -38,7 +38,7 @@
 ; INTERPRET
 ; EXPECT 100, "define: q 1 = 100"
 
-; rst $08
+; ENTER
 ; dw litstr
 ; .pstr "Expected parse error"
 ; dw type

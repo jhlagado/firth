@@ -90,7 +90,7 @@ CODE "does>", 5, IMMED, does         ; --
 CODE "constant",8,0,constant         ; --
     ENTER
     dw create,comma,xdoes
-    rst $08
+    ENTER
     dw rfrom                            ; push onto stack
     dw AT
     EXIT
@@ -155,7 +155,7 @@ xdoes:                                  ; --
     EXIT
 
 CODE "postpone",8,IMMED,postpone ; --
-    rst $08
+    ENTER
 	dw bl, word, count            ; pstr -- ptr len
     dw DUPP, zEqual
     dw QBRAN,postpone1
@@ -167,7 +167,7 @@ postpone2:
     EXIT
 
 postponeToken:                          ; --
-    rst $08
+    ENTER
     dw over, over, find                 ; ptr len -- ptr len addr
     dw DUPP, ZNEQU
     dw QBRAN,postponeToken1
@@ -179,7 +179,7 @@ postponeToken2:
     EXIT
 
 postponeWord:                               ; ( headptr -- )
-    rst $08                                 ; enter forth
+    ENTER                                 ; enter forth
     dw swap, drop, swap, drop               ; ptr len addr -- addr
     dw DUPP, LIT, 2, plus, CAT            ; ( headptr -- headptr flags ) add 2 to headptr
     dw LIT, IMMED, ANDD                  ; ( headptr flags -- headptr immedflag )
@@ -195,7 +195,7 @@ postponeWord2:
     EXIT
 
 postponeLiteral:                            ; ( ptr len -- )
-    rst $08                                 ; enter forth
+    ENTER                                 ; enter forth
     dw drop                                 ; ptr len addr - ptr len
     dw number, zEqual                       ; parse to number
     dw QBRAN, postponeLiteral1

@@ -169,7 +169,7 @@ xwordRead:                              ; delim addr char -- c-addr
     ret
 
 interpToken:                                ; ptr len --
-    rst $08
+    ENTER
     dw over, over, find                     ; ptr len -- ptr len addr
     dw DUPP, ZNEQU
     dw QBRAN, interpToken1
@@ -181,7 +181,7 @@ interpToken2:
     EXIT
 
 interpWord:                                 ; ptr len addr --
-    rst $08                                 ; enter forth
+    ENTER                                 ; enter forth
     dw swap, drop, swap, drop               ; ptr len addr -- addr
     dw DUPP, LIT, 2, plus, CAT            ; ( headptr -- headptr flags ) add 2 to headptr
     dw LIT, IMMED, ANDD                  ; ( headptr flags -- headptr immedflag )
@@ -203,7 +203,7 @@ interpWord3:
     EXIT
 
 interpLiteral:                              ; ptr len addr --
-    rst $08                                 ; enter forth
+    ENTER                                 ; enter forth
     dw drop                                 ; ptr len addr - ptr len
     dw number, zEqual                       ; parse to number
     dw QBRAN,interpLiteral1

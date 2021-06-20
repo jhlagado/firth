@@ -435,7 +435,7 @@
 0000                 
 0000                .macro ENTER,
 0000                             ; 
-0000                 rst $08                             ; enter forth
+0000                 ENTER                             ; enter forth
 0000                .endm
 0000                 
 0000                .macro EXIT,
@@ -446,7 +446,7 @@
 0000                 
 0000                .macro INTERPRET,
 0000                             ; 
-0000                 rst $08
+0000                 ENTER
 0000                 dw interpret
 0000                 dw exit_forth
 0000                .endm
@@ -9878,7 +9878,7 @@
                                  ; call FIND
                                  ; EXPECT HEADER_LATEST, "find header of LATEST"
                                  ; TEST_SET_TEXT "base"
-                                 ; rst $08
+                                 ; ENTER
                                  ; dw interpret
                                  ; dw exit_forth
                                  ; call AT
@@ -10535,7 +10535,7 @@
                                  ; TEST_SET_TEXT "1 q"
                                  ; INTERPRET
                                  ; EXPECT 100, "define: q 1 = 100"
-                                 ; rst $08
+                                 ; ENTER
                                  ; dw litstr
                                  ; .pstr "Expected parse error"
                                  ; dw type

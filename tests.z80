@@ -274,7 +274,7 @@ INTERPRET
 ; EXPECT HEADER_LATEST, "find header of LATEST"
 
 ; TEST_SET_TEXT "base"
-; rst $08
+; ENTER
 ; dw interpret
 ; dw exit_forth
 ; call AT

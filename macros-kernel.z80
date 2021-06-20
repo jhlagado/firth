@@ -16,7 +16,7 @@
 .endm
 
 .macro INTERPRET
-    rst $08
+    ENTER
     dw interpret
     dw exit_forth
 .endm
