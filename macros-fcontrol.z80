@@ -54,13 +54,6 @@ CPL_TOP .set 0
     CPL_10 .set 0
 .endm
 
-.macro XBRANCH_FWD
-    CUR_ADR .set $
-    org CPL_TOP - 2
-    DW CUR_ADR - CPL_TOP + 2
-    org CUR_ADR
-.endm
-
 .macro cBRANCH_FWD
     CUR_ADR .set $
     org CPL_TOP - 2
@@ -84,30 +77,3 @@ CPL_TOP .set 0
     CPL_POP
 .endm
 
-.macro cDO
-    DW XBRAN, 6
-    DW XBRAN, 0
-    CPL_PUSH $
-.endm
-
-.macro cWHILE
-    DW XQBRAN, CPL_TOP - $ - 8
-.endm
-
-.macro cUNTIL
-    DW ZEQUAL, XQBRAN, CPL_TOP - $ - 8
-.endm
-
-.macro cBREAK
-    DW XBRAN, CPL_TOP - $ - 8
-.endm
-
-.macro cCONTINUE
-    DW XBRAN, CPL_TOP - $ - 2
-.endm
-
-.macro cENDDO
-    DW XBRAN, CPL_TOP - $ - 2
-    XBRANCH_FWD
-    CPL_POP
-.endm
