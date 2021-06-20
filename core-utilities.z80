@@ -4,12 +4,12 @@ CODE ".s",2,0,dots                   ; ( -- )
     dw spAT                          ; psp
     dw sp0, AT                       ; psp0
     dw SUBB
-    dw lit, 0, greaterThan
+    dw LIT, 0, GREATR
     dw QBRAN,DOTS3
-    dw sp0, AT, lit, 2, plus
+    dw sp0, AT, LIT, 2, plus
 DOTS1:
     dw DUPP
-    dw spAT, lit, 2, SUBB
+    dw spAT, LIT, 2, SUBB
     dw swap, SUBB, ZNEQU
     dw QBRAN,DOTS2
     dw DUPP,AT,dot

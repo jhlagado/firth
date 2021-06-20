@@ -37,7 +37,7 @@ CODE "key?",4,0,QKEY              ; ( -- c )
 
 CODE "bl",2,0,bl
     ENTER
-    dw lit, $20                         ; compile branch on zero
+    dw LIT, $20                         ; compile branch on zero
     EXIT
 
 CODE "print",5,0,PRINT
@@ -54,7 +54,7 @@ CODE {".",$22},2,IMMED,dotquote
         dw type
         dw BRAN, dotquote2
 dotquote1:
-        dw lit, type, comma
+        dw LIT, type, comma
 dotquote2:
     EXIT
 

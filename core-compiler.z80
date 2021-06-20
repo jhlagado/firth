@@ -25,16 +25,16 @@ CODE ":",1,0,colon
     ENTER
     dw create                           ; create the dictionary entry / header
     dw here,AT                       ; back up 3 bytes to start of data area
-    dw lit, 3, SUBB
+    dw LIT, 3, SUBB
     dw here, STORE
-    dw lit, rst08_opcode, ccomma        ; write z80 jp opcode to word
+    dw LIT, rst08_opcode, ccomma        ; write z80 jp opcode to word
     dw latest, AT, hidden            ; make the word hidden (see below for definition).
     dw rbrac                            ; go into compile mode.
     EXIT                                ; return from the function.
 
 CODE ";",1,IMMED,semicolon
     ENTER
-    dw lit, exit, comma                 ; append exit (so the word will return).
+    dw LIT, exit, comma                 ; append exit (so the word will return).
     dw latest, AT, hidden            ; toggle hidden flag -- unhide the word (see below for definition).
     dw lbrac                            ; go back to immediate mode.
     EXIT                                ; return from the function.
@@ -42,13 +42,13 @@ CODE ";",1,IMMED,semicolon
 CODE ":noname",7,0,colonNoName
     ENTER
     dw here, AT                      ; TOS = here
-    dw lit, rst08_opcode, ccomma        ; write z80 jp opcode to word
+    dw LIT, rst08_opcode, ccomma        ; write z80 jp opcode to word
     dw rbrac                            ; go into compile mode.
     EXIT                                ; return from the function.
 
 CODE "variable",8,0,variable         ; ( n -- ) get name from input
     ENTER
-    dw lit, 1, cells
+    dw LIT, 1, cells
     dw here, AT, swap                ; n -- here n
     dw allot                            ; allocate n bytes, push addr
     dw constant
@@ -68,8 +68,8 @@ CODE "create",6,0,create             ; --
     dw latest, STORE                    ; update latest to old "here"
     dw bl, word                   ; read word token
     dw CAT, ONEP, allot           ;
-    dw lit, jp_opcode, cComma           ; compile default behavious
-    dw lit, xcreate, comma              ; i.e. push addr of data area
+    dw LIT, jp_opcode, cComma           ; compile default behavious
+    dw LIT, xcreate, comma              ; i.e. push addr of data area
     EXIT                                ; exit from forth
 xcreate:
     ENTER
@@ -78,13 +78,13 @@ xcreate:
 
 CODE "does>", 5, IMMED, does         ; --
     ENTER
-    dw lit, xdoes, comma
-    dw lit, dodoes
+    dw LIT, xdoes, comma
+    dw LIT, dodoes
     dw here, AT
-    dw lit, call_opcode
+    dw LIT, call_opcode
     dw over, cstore
     dw ONEP, STORE
-    dw lit, 3, allot
+    dw LIT, 3, allot
     EXIT
 
 CODE "constant",8,0,constant         ; --
@@ -149,7 +149,7 @@ xdoes:                                  ; --
     ENTER
     dw rfrom
     dw latest, AT, tcfa
-    dw lit, call_opcode
+    dw LIT, call_opcode
     dw over, cstore
     dw ONEP, STORE
     EXIT
@@ -181,13 +181,13 @@ postponeToken2:
 postponeWord:                               ; ( headptr -- )
     rst $08                                 ; enter forth
     dw swap, drop, swap, drop               ; ptr len addr -- addr
-    dw DUPP, lit, 2, plus, CAT            ; ( headptr -- headptr flags ) add 2 to headptr
-    dw lit, IMMED, ANDD                  ; ( headptr flags -- headptr immedflag )
+    dw DUPP, LIT, 2, plus, CAT            ; ( headptr -- headptr flags ) add 2 to headptr
+    dw LIT, IMMED, ANDD                  ; ( headptr flags -- headptr immedflag )
     dw zEqual
     dw QBRAN,postponeWord1
-        dw lit, lit, comma
+        dw LIT, LIT, comma
         dw tcfa, comma
-        dw lit, comma, comma
+        dw LIT, comma, comma
         dw BRAN,postponeWord2
 postponeWord1:
         dw tcfa, comma
@@ -199,8 +199,8 @@ postponeLiteral:                            ; ( ptr len -- )
     dw drop                                 ; ptr len addr - ptr len
     dw number, zEqual                       ; parse to number
     dw QBRAN, postponeLiteral1
-        dw lit, lit                     ; (val -- val "lit" )
-        dw comma, comma                 ; compile "lit" val
+        dw LIT, LIT                     ; (val -- val "LIT" )
+        dw comma, comma                 ; compile "LIT" val
         dw BRAN, postponeLiteral2
 postponeLiteral1:
         dw drop                             ; ( ptr len zero -- ptr len ), not found

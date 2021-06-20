@@ -1,15 +1,15 @@
 CODE "if",2,IMMED,if
     ENTER
     dw lbrace
-    dw lit, XQBRAN, comma              ; compile ?branch
+    dw LIT, XQBRAN, comma              ; compile ?branch
     dw here, AT, DUPP, comma          ; compile here and also push on stack
     EXIT
 
 CODE "else",4,IMMED,else
     ENTER
-    dw lit, XBRAN, comma               ; definite branch to just over the false-part
+    dw LIT, XBRAN, comma               ; definite branch to just over the false-part
     dw here, AT                      ; save here on stack
-    dw lit, 0, comma                    ; compile a dummy offset
+    dw LIT, 0, comma                    ; compile a dummy offset
     dw swap                             ; now back-fill the original (if) offset
     dw xendif                           ; must call xendif not endif
     EXIT
@@ -37,14 +37,14 @@ CODE "begin",5,IMMED,begin
 
 CODE "while",5,IMMED,while
     ENTER
-    dw lit, XQBRAN, comma              ; compile branch on zero
+    dw LIT, XQBRAN, comma              ; compile branch on zero
     dw here, AT                      ; save here in stack (here2)
-    dw lit, 0, comma                    ; compile dummy offset
+    dw LIT, 0, comma                    ; compile dummy offset
     EXIT
 
 CODE "repeat",6,IMMED,repeat
     ENTER
-    dw lit, XBRAN, comma               ; compile branch
+    dw LIT, XBRAN, comma               ; compile branch
     dw swap                             ; tos = here1
     dw here, AT, SUBB, comma        ; compile offset (here1 - here3)
     dw DUPP

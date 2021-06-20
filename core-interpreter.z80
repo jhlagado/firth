@@ -6,16 +6,16 @@ CODE "quit",4,0,quit
 
 CODE "word",5,0,WORD                 ; delim -- c-addr
     ENTER
-    dw lit, 64                          ; limit
+    dw LIT, 64                          ; limit
     dw here, AT
     dw xword                            ; writes to HERE!
     EXIT
 
 CODE ">cfa",4,0,tcfa
     ENTER
-    dw lit, 2, plus
+    dw LIT, 2, plus
     dw count
-    dw lit, LENMASK, ANDD
+    dw LIT, LENMASK, ANDD
     dw plus
     EXIT
 
@@ -183,8 +183,8 @@ interpToken2:
 interpWord:                                 ; ptr len addr --
     rst $08                                 ; enter forth
     dw swap, drop, swap, drop               ; ptr len addr -- addr
-    dw DUPP, lit, 2, plus, CAT            ; ( headptr -- headptr flags ) add 2 to headptr
-    dw lit, IMMED, ANDD                  ; ( headptr flags -- headptr immedflag )
+    dw DUPP, LIT, 2, plus, CAT            ; ( headptr -- headptr flags ) add 2 to headptr
+    dw LIT, IMMED, ANDD                  ; ( headptr flags -- headptr immedflag )
     dw zEqual
     dw QBRAN,interpWord2
         dw tcfa                             ; ( headptr -- xt )
@@ -211,8 +211,8 @@ interpLiteral:                              ; ptr len addr --
         dw nesting, AT
         dw ORR
         dw QBRAN,interpLiteral2
-            dw lit, lit                     ; (val -- val "lit" )
-            dw comma, comma                 ; compile "lit" val
+            dw LIT, LIT                     ; (val -- val "LIT" )
+            dw comma, comma                 ; compile "LIT" val
             dw BRAN,interpLiteral2
 interpLiteral1:
         dw drop                             ; ( ptr len zero -- ptr len ), not found

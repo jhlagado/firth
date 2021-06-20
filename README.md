@@ -384,9 +384,9 @@ The structure of the defined word looks like this:
 | _body:_
 | :------------------
 | call enter
-| lit 32, MINUS
-| lit 5, STAR
-| lit 9, SLASH
+| LIT 32, MINUS
+| LIT 5, STAR
+| LIT 9, SLASH
 | exit
 | ret
 
@@ -733,7 +733,7 @@ invert
 key
 key?
 latest
-lit
+LIT
 lshift
 mod
 HIDE

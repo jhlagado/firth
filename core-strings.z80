@@ -8,7 +8,7 @@ litStr:                                     ; pushes ptr to string and length on
 ; count extract string length from pascal string  ( ptr -- ptr+1 len )
 CODE "count",5,0,count
     ENTER
-    dw DUPP, lit, 1, plus                ; ( ptr -- ptr ptr+1)
+    dw DUPP, LIT, 1, plus                ; ( ptr -- ptr ptr+1)
     dw swap, CAT                     ; ( ptr ptr+1 -- ptr+1 len)
     EXIT
 
@@ -21,23 +21,23 @@ CODE $22,1,IMMED,QT
     ENTER
     dw state, AT, zequal
     dw QBRAN,QT3
-        dw lit, $22                     ; delim
-        dw lit, 63                      ; limit 63 + length
+        dw LIT, $22                     ; delim
+        dw LIT, 63                      ; limit 63 + length
         dw latestStr, AT
-        dw lit, wordBuf, equal
+        dw LIT, wordBuf, equal
         dw QBRAN,QT1
-            dw lit, wordBuf2
+            dw LIT, wordBuf2
             dw BRAN,QT2
 QT1:    
-            dw lit, wordBuf
+            dw LIT, wordBuf
 QT2:
         dw latestStr, STORE             ; STORE here in latestStr
         dw latestStr, AT
         dw xword, count
         dw BRAN,QT4
 QT3:
-        dw lit, litstr, comma
-        dw lit, $22, word
+        dw LIT, litstr, comma
+        dw LIT, $22, word
         dw CAT, ONEP
         dw allot
 QT4:

@@ -1,4 +1,4 @@
-CODE "lit",3,0,LIT
+CODE "LIT",3,0,LIT
 	ppush0 B,C                      ; pushTOS
 	pop HL                          ; pop address of next Forth word in HL
 	readWord HL, B,C                ; read next word and push on TOS, inc HL by 2
