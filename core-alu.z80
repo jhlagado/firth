@@ -198,14 +198,14 @@ CODE "/mod",4,0,slashmod             ; dvend dvisr -- rem quot
     dw uslashmod                        ; b1 b2 u1 u2 -- b1 b2 r q    unsigned divide (remainder, quotient)
     dw swap                             ; b1 b2 u1 u2 -- b1 b2 q r
     dw rot                              ; b1 b2 q r -- b1 q r b2      bring to top
-    cif
-        dw NEGAT                       ;   b1 q r b2 -- b1 q -r      if -ve then negate answer
-    cendif
+    dw QBRAN1,SLASHMOD1 
+    dw NEGAT                       ;   b1 q r b2 -- b1 q -r      if -ve then negate answer
+SLASHMOD1:
     dw nrot                             ;     b1 q -r -- -r b1 q     bring to top
     dw swap                             ;     -r b1 q -- -r q b1      bring to top
-    cif
-        dw NEGAT                       ;     -r q b1 -- -r -q       if signs differ then negate answer
-    cendif
+    dw QBRAN1,SLASHMOD2
+    dw NEGAT                       ;     -r q b1 -- -r -q       if signs differ then negate answer
+SLASHMOD2:
     EXIT
 
 CODE "mod",3,0,mod                   ; dvend dvisr -- remainder
@@ -405,5 +405,3 @@ unsignedMultiply:
     _until z
     _enddo
     ret
-
-
