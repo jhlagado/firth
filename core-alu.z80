@@ -226,7 +226,7 @@ CODE "u*",2,0,USTAR              ; u1 u2 -- ud
                                     ; udhi result
     NEXT
 
-CODE "*",1,0,star                    ; u1 u2 -- ud
+CODE "*",1,0,STAR                    ; u1 u2 -- ud
     ENTER
     dw over, over                       ; dupe both args
     dw ABS, swap, ABS                   ; remove sign from both args
@@ -234,9 +234,9 @@ CODE "*",1,0,star                    ; u1 u2 -- ud
     dw nrot                             ; move to bottom
     dw XORR                              ; zero if signs are the same
     dw ZLESS                         ; if high bit set
-    cif
-        dw NEGAT                       ; if signs differ then negate answer
-    cendif
+    dw QBRAN,STAR1
+    dw NEGAT                       ; if signs differ then negate answer
+STAR1:
     EXIT
 
 ; CELL+    c-addr1 -- c-addr2   add cell size to addr
