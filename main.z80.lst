@@ -364,13 +364,13 @@
 0000                 
 0000                .macro CIF,
 0000                             ; 
-0000                 DW QBRAN, 0
+0000                 DW XQBRAN, 0
 0000                 CPL_PUSH $
 0000                .endm
 0000                 
 0000                .macro CELSE,
 0000                             ; 
-0000                 DW BRAN, 0
+0000                 DW XBRAN, 0
 0000                 cBRANCH_FWD
 0000                 CPL_TOP .set $          ;reuse TOS
 0000                .endm
@@ -383,34 +383,34 @@
 0000                 
 0000                .macro CDO,
 0000                             ; 
-0000                 DW BRAN, 6
-0000                 DW BRAN, 0
+0000                 DW XBRAN, 6
+0000                 DW XBRAN, 0
 0000                 CPL_PUSH $
 0000                .endm
 0000                 
 0000                .macro CWHILE,
 0000                             ; 
-0000                 DW QBRAN, CPL_TOP - $ - 8
+0000                 DW XQBRAN, CPL_TOP - $ - 8
 0000                .endm
 0000                 
 0000                .macro CUNTIL,
 0000                             ; 
-0000                 DW ZEQUAL, QBRAN, CPL_TOP - $ - 8
+0000                 DW ZEQUAL, XQBRAN, CPL_TOP - $ - 8
 0000                .endm
 0000                 
 0000                .macro CBREAK,
 0000                             ; 
-0000                 DW BRAN, CPL_TOP - $ - 8
+0000                 DW XBRAN, CPL_TOP - $ - 8
 0000                .endm
 0000                 
 0000                .macro CCONTINUE,
 0000                             ; 
-0000                 DW BRAN, CPL_TOP - $ - 2
+0000                 DW XBRAN, CPL_TOP - $ - 2
 0000                .endm
 0000                 
 0000                .macro CENDDO,
 0000                             ; 
-0000                 DW BRAN, CPL_TOP - $ - 2
+0000                 DW XBRAN, CPL_TOP - $ - 2
 0000                 cBRANCH_FWD
 0000                 CPL_POP
 0000                .endm
@@ -772,7 +772,7 @@
 012B                ABS:         
 012B                          ;*Macro unroll:  ENTER
 012B   CF                     RST   $08   
-012C   9C 12 78 00 D4 07 36 01 DW   DUPP,ZLESS,QBRAN1,ABS1   
+012C   9C 12 78 00 D4 07 36 01 DW   DUPP,ZLESS,QBRAN,ABS1   
 0134   F6 00                  DW   NEGAT   
 0136                ABS1:        
 0136   1E 0F                  DW   EXIT   
@@ -787,7 +787,7 @@
 013C                          ;*Macro unroll:  ENTER
 013C   CF                     RST   $08   
 013D   B7 00                  DW   XORR   
-013F   D4 07 49 01            DW   QBRAN1,EQU1   
+013F   D4 07 49 01            DW   QBRAN,EQU1   
 0143   1B 12 00 00 1E 0F      DW   LIT,0,EXIT   ;false flag
 0149                EQU1:        
 0149   1B 12 FF FF 1E 0F      DW   LIT,-1,EXIT   ;true flag
@@ -803,7 +803,7 @@
 0154                          ;*Macro unroll:  ENTER
 0154   CF                     RST   $08   
 0155   47 13 B7 00 78 00      DW   DDUP,XORR,ZLESS   
-015B   D4 07 67 01            DW   QBRAN1,ULES1   
+015B   D4 07 67 01            DW   QBRAN,ULES1   
 015F   B0 12 D0 12 78 00 1E 0F DW   SWAP,DROP,ZLESS,EXIT   
 0167                ULES1:       
 0167   1E 01 78 00 1E 0F      DW   SUBB,ZLESS,EXIT   
@@ -818,7 +818,7 @@
 0171                LESS:        
 0171                          ;*Macro unroll:  ENTER
 0171   CF                     RST   $08   
-0172   47 13 B7 00 78 00 D4 07 82 01 DW   DDUP,XORR,ZLESS,QBRAN1,LESS1   
+0172   47 13 B7 00 78 00 D4 07 82 01 DW   DDUP,XORR,ZLESS,QBRAN,LESS1   
 017C   D0 12 78 00 1E 0F      DW   DROP,ZLESS,EXIT   
 0182                LESS1:       
 0182   1E 01 78 00 1E 0F      DW   SUBB,ZLESS,EXIT   
@@ -854,7 +854,7 @@
 01AA                MAX:         
 01AA                          ;*Macro unroll:  ENTER
 01AA   CF                     RST   $08   
-01AB   47 13 71 01 D4 07 B5 01 DW   DDUP,LESS,QBRAN1,MAX1   
+01AB   47 13 71 01 D4 07 B5 01 DW   DDUP,LESS,QBRAN,MAX1   
 01B3   B0 12                  DW   SWAP   
 01B5                MAX1:        
 01B5   D0 12 1E 0F            DW   DROP,EXIT   
@@ -869,7 +869,7 @@
 01BF                          ;*Macro unroll:  ENTER
 01BF   CF                     RST   $08   
 01C0   47 13 B0 12 71 01      DW   DDUP,SWAP,LESS   
-01C6   D4 07 CC 01            DW   QBRAN1,MIN1   
+01C6   D4 07 CC 01            DW   QBRAN,MIN1   
 01CA   B0 12                  DW   SWAP   
 01CC                MIN1:        
 01CC   D0 12 1E 0F            DW   DROP,EXIT   
@@ -925,7 +925,7 @@
 0215                          ;*Macro unroll:  ENTER
 0215   CF                     RST   $08   
 0216   47 13 54 01            DW   DDUP,ULESS   
-021A   D4 07 6A 02            DW   QBRAN1,UMM4   
+021A   D4 07 6A 02            DW   QBRAN,UMM4   
 021E   F6 00 1B 12 0F 00 0C 13 DW   NEGAT,LIT,15,TOR   
 0226                UMM1:        
 0226   0C 13 9C 12 EE 01      DW   TOR,DUPP,UPLUS   
@@ -933,9 +933,9 @@
 0234   21 13 CE 00 9C 12      DW   RFROM,PLUS,DUPP   
 023A   21 13 40 10 B0 12 0C 13 DW   RFROM,RAT,SWAP,TOR   
 0242   EE 01 21 13 9E 00      DW   UPLUS,RFROM,ORR   
-0248   D4 07 5C 02            DW   QBRAN1,UMM2   
+0248   D4 07 5C 02            DW   QBRAN,UMM2   
 024C   0C 13 D0 12 1B 12 01 00 CE 00 21 13 DW   TOR,DROP,LIT,1,PLUS,RFROM   
-0258   F2 07 5E 02            DW   BRAN1,UMM3   
+0258   F2 07 5E 02            DW   BRAN,UMM3   
 025C                UMM2:        
 025C   D0 12                  DW   DROP   
 025E                UMM3:        
@@ -991,7 +991,7 @@
 02BC   B0 12                  DW   swap   ; b1 b2 u1 u2 -- b1 b2 q r
 02BE   33 12                  DW   rot   ; b1 b2 q r -- b1 q r b2      bring to top
 02C0                          ;*Macro unroll:  cif
-02C0   A3 07 00 00            DW   QBRAN,0   
+02C0   A3 07 00 00            DW   XQBRAN,0   
 02C4                          ;*Macro unroll:  CPL_PUSH $
 02C4                CPL_COUNT:   .SET   CPL_COUNT + 1   
 02C4                CPL_10:   .SET   CPL_9   
@@ -1026,7 +1026,7 @@
 02C6   67 12                  DW   nrot   ;     b1 q -r -- -r b1 q     bring to top
 02C8   B0 12                  DW   swap   ;     -r b1 q -- -r q b1      bring to top
 02CA                          ;*Macro unroll:  cif
-02CA   A3 07 00 00            DW   QBRAN,0   
+02CA   A3 07 00 00            DW   XQBRAN,0   
 02CE                          ;*Macro unroll:  CPL_PUSH $
 02CE                CPL_COUNT:   .SET   CPL_COUNT + 1   
 02CE                CPL_10:   .SET   CPL_9   
@@ -1120,7 +1120,7 @@
 0323   B7 00                  DW   XORR   ; zero if signs are the same
 0325   78 00                  DW   ZLESS   ; if high bit set
 0327                          ;*Macro unroll:  cif
-0327   A3 07 00 00            DW   QBRAN,0   
+0327   A3 07 00 00            DW   XQBRAN,0   
 032B                          ;*Macro unroll:  CPL_PUSH $
 032B                CPL_COUNT:   .SET   CPL_COUNT + 1   
 032B                CPL_10:   .SET   CPL_9   
@@ -1799,7 +1799,7 @@
 043E                             ; CODE  1,"'",TICK
 043E                             ;     ENTER
 043E                             ;     DW      TOKEN,NAMEQ             ;?defined
-043E                             ;     DW      QBRAN1,TICK1
+043E                             ;     DW      QBRAN,TICK1
 043E                             ;     DW      EXIT                    ;yes, push code address
 043E                             ; TICK1:
 043E                             ;     DW      THROW                   ;no, error
@@ -2087,7 +2087,7 @@
 0630   8B 0E 99 0B 68 13      DW   bl,word,count   ; pstr -- ptr len
 0636   9C 12 58 03            DW   DUPP,zEqual   
 063A                          ;*Macro unroll:  cIf
-063A   A3 07 00 00            DW   QBRAN,0   
+063A   A3 07 00 00            DW   XQBRAN,0   
 063E                          ;*Macro unroll:  CPL_PUSH $
 063E                CPL_COUNT:   .SET   CPL_COUNT + 1   
 063E                CPL_10:   .SET   CPL_9   
@@ -2102,7 +2102,7 @@
 063E                CPL_TOP:   .SET   $   
 063E   D0 12 D0 12            DW   drop,drop   ; ptr len --
 0642                          ;*Macro unroll:  cElse
-0642   C0 07 00 00            DW   BRAN,0   
+0642   C0 07 00 00            DW   XBRAN,0   
 0646                          ;*Macro unroll:  cBRANCH_FWD
 0646                CUR_ADR:   .SET   $   
 063C                          .ORG   CPL_TOP - 2   
@@ -2136,7 +2136,7 @@
 064E   E4 12 E4 12 B0 05      DW   over,over,find   ; ptr len -- ptr len addr
 0654   9C 12 6D 03            DW   DUPP,ZNEQU   
 0658                          ;*Macro unroll:  cIf
-0658   A3 07 00 00            DW   QBRAN,0   
+0658   A3 07 00 00            DW   XQBRAN,0   
 065C                          ;*Macro unroll:  CPL_PUSH $
 065C                CPL_COUNT:   .SET   CPL_COUNT + 1   
 065C                CPL_10:   .SET   CPL_9   
@@ -2151,7 +2151,7 @@
 065C                CPL_TOP:   .SET   $   
 065C   69 06                  DW   postponeWord   
 065E                          ;*Macro unroll:  cElse
-065E   C0 07 00 00            DW   BRAN,0   
+065E   C0 07 00 00            DW   XBRAN,0   
 0662                          ;*Macro unroll:  cBRANCH_FWD
 0662                CUR_ADR:   .SET   $   
 065A                          .ORG   CPL_TOP - 2   
@@ -2187,7 +2187,7 @@
 067C   1B 12 80 00 86 00      DW   lit,msk_immed,ANDD   ; ( headptr flags -- headptr immedflag )
 0682   58 03                  DW   zEqual   
 0684                          ;*Macro unroll:  cIf
-0684   A3 07 00 00            DW   QBRAN,0   
+0684   A3 07 00 00            DW   XQBRAN,0   
 0688                          ;*Macro unroll:  CPL_PUSH $
 0688                CPL_COUNT:   .SET   CPL_COUNT + 1   
 0688                CPL_10:   .SET   CPL_9   
@@ -2204,7 +2204,7 @@
 068E   B0 0B F6 0F            DW   tcfa,comma   
 0692   1B 12 F6 0F F6 0F      DW   lit,comma,comma   
 0698                          ;*Macro unroll:  cElse
-0698   C0 07 00 00            DW   BRAN,0   
+0698   C0 07 00 00            DW   XBRAN,0   
 069C                          ;*Macro unroll:  cBRANCH_FWD
 069C                CUR_ADR:   .SET   $   
 0686                          .ORG   CPL_TOP - 2   
@@ -2238,7 +2238,7 @@
 06A6   D0 12                  DW   drop   ; ptr len addr - ptr len
 06A8   37 0B 58 03            DW   number,zEqual   ; parse to number
 06AC                          ;*Macro unroll:  cif
-06AC   A3 07 00 00            DW   QBRAN,0   
+06AC   A3 07 00 00            DW   XQBRAN,0   
 06B0                          ;*Macro unroll:  CPL_PUSH $
 06B0                CPL_COUNT:   .SET   CPL_COUNT + 1   
 06B0                CPL_10:   .SET   CPL_9   
@@ -2254,7 +2254,7 @@
 06B0   1B 12 1B 12            DW   lit,lit   ; (val -- val "lit" )
 06B4   F6 0F F6 0F            DW   comma,comma   ; compile "lit" val
 06B8                          ;*Macro unroll:  cElse
-06B8   C0 07 00 00            DW   BRAN,0   
+06B8   C0 07 00 00            DW   XBRAN,0   
 06BC                          ;*Macro unroll:  cBRANCH_FWD
 06BC                CUR_ADR:   .SET   $   
 06AE                          .ORG   CPL_TOP - 2   
@@ -2296,7 +2296,7 @@
 06DB                          ;*Macro unroll:  ENTER
 06DB   CF                     RST   $08   
 06DC   9D 09                  DW   lbrace   
-06DE   1B 12 A3 07 F6 0F      DW   lit,QBRAN,comma   ; compile ?branch
+06DE   1B 12 A3 07 F6 0F      DW   lit,XQBRAN,comma   ; compile ?branch
 06E4   F2 08 51 0F 9C 12 F6 0F DW   here,AT,DUPP,comma   ; compile here and also push on stack
 06EC                          ;*Macro unroll:  EXIT
 06EC   1E 0F                  DW   exit   
@@ -2310,7 +2310,7 @@
 06F8                ELSE:        
 06F8                          ;*Macro unroll:  ENTER
 06F8   CF                     RST   $08   
-06F9   1B 12 C0 07 F6 0F      DW   lit,BRAN,comma   ; definite branch to just over the false-part
+06F9   1B 12 C0 07 F6 0F      DW   lit,XBRAN,comma   ; definite branch to just over the false-part
 06FF   F2 08 51 0F            DW   here,AT   ; save here on stack
 0703   1B 12 00 00 F6 0F      DW   lit,0,comma   ; compile a dummy offset
 0709   B0 12                  DW   swap   ; now back-fill the original (if) offset
@@ -2365,7 +2365,7 @@
 0754                WHILE:       
 0754                          ;*Macro unroll:  ENTER
 0754   CF                     RST   $08   
-0755   1B 12 A3 07 F6 0F      DW   lit,QBRAN,comma   ; compile branch on zero
+0755   1B 12 A3 07 F6 0F      DW   lit,XQBRAN,comma   ; compile branch on zero
 075B   F2 08 51 0F            DW   here,AT   ; save here in stack (here2)
 075F   1B 12 00 00 F6 0F      DW   lit,0,comma   ; compile dummy offset
 0765                          ;*Macro unroll:  EXIT
@@ -2380,7 +2380,7 @@
 0773                REPEAT:      
 0773                          ;*Macro unroll:  ENTER
 0773   CF                     RST   $08   
-0774   1B 12 C0 07 F6 0F      DW   lit,BRAN,comma   ; compile branch
+0774   1B 12 C0 07 F6 0F      DW   lit,XBRAN,comma   ; compile branch
 077A   B0 12                  DW   swap   ; tos = here1
 077C   F2 08 51 0F 1E 01 F6 0F DW   here,AT,SUBB,comma   ; compile offset (here1 - here3)
 0784   9C 12                  DW   DUPP   
@@ -2391,13 +2391,13 @@
 0794   1E 0F                  DW   exit   
 0796   C3 0D 0F               JP   enter   
 0799                             ; ?branch   x --              branch if TOS zero
-0799                          ;*Macro unroll: CODE "?branch",7,0,QBRAN
+0799                          ;*Macro unroll: CODE "?branch",7,0,XQBRAN
 0799                HEADER_QBRAN:      
 0799   6A 07                  DW   link   
 079B                LINK:     .SET   HEADER_QBRAN   
 079B   07                     DB   0 + 7   
 079C   3F 62 72 61 6E 63 68   DB   "?branch"   
-07A3                QBRAN:       
+07A3                XQBRAN:       
 07A3                          ;*Macro unroll:  checkZeroWord B,C               ; test old TOS
 07A3   79                     LD   A,C   ; test old TOS
 07A4   B0                     OR   B   
@@ -2406,19 +2406,19 @@
 07A7   DD 46 00               LD   B,(IX+0)   
 07AA   DD 2B                  DEC   IX   
 07AC   DD 4E 00               LD   C,(IX+0)   
-07AF   28 0F                  JR   z,BRAN   ; if old TOS=0, branch
+07AF   28 0F                  JR   z,XBRAN   ; if old TOS=0, branch
 07B1   E1                     POP   HL   
 07B2   23                     INC   HL   ; else skip inline value
 07B3   23                     INC   HL   
 07B4                          ;*Macro unroll:  NEXT1
 07B4   C3 0E 0F               JP   enter1   
-07B7                          ;*Macro unroll: CODE "branch",6,0,BRAN         ; relative branching
+07B7                          ;*Macro unroll: CODE "branch",6,0,XBRAN         ; relative branching
 07B7                HEADER_BRAN:      ; relative branching
 07B7   99 07                  DW   link   
 07B9                LINK:     .SET   HEADER_BRAN   
 07B9   06                     DB   0 + 6   
 07BA   62 72 61 6E 63 68      DB   "branch"   
-07C0                BRAN:        
+07C0                XBRAN:        
 07C0   E1                     POP   HL   ; add the offset to the instruction pointer
 07C1   5E                     LD   E,(HL)   
 07C2   23                     INC   HL   
@@ -2428,13 +2428,13 @@
 07C6                          ;*Macro unroll:  NEXT1
 07C6   C3 0E 0F               JP   enter1   
 07C9                             ; ?branch   x --              branch if TOS zero
-07C9                          ;*Macro unroll: CODE "?branch1",7,0,QBRAN1
+07C9                          ;*Macro unroll: CODE "?branch1",7,0,QBRAN
 07C9                HEADER_QBRAN1:      
 07C9   B7 07                  DW   link   
 07CB                LINK:     .SET   HEADER_QBRAN1   
 07CB   07                     DB   0 + 7   
 07CC   3F 62 72 61 6E 63 68 31 DB   "?branch1"   
-07D4                QBRAN1:      
+07D4                QBRAN:      
 07D4                          ;*Macro unroll:  checkZeroWord B,C               ; test old TOS
 07D4   79                     LD   A,C   ; test old TOS
 07D5   B0                     OR   B   
@@ -2443,19 +2443,19 @@
 07D8   DD 46 00               LD   B,(IX+0)   
 07DB   DD 2B                  DEC   IX   
 07DD   DD 4E 00               LD   C,(IX+0)   
-07E0   28 10                  JR   z,BRAN1   ; if old TOS=0, branch
+07E0   28 10                  JR   z,BRAN   ; if old TOS=0, branch
 07E2   E1                     POP   HL   
 07E3   23                     INC   HL   ; else skip inline value
 07E4   23                     INC   HL   
 07E5                          ;*Macro unroll:  NEXT1
 07E5   C3 0E 0F               JP   enter1   
-07E8                          ;*Macro unroll: CODE "branch1",6,0,BRAN1         ; relative branching
+07E8                          ;*Macro unroll: CODE "branch1",6,0,BRAN         ; relative branching
 07E8                HEADER_BRAN1:      ; relative branching
 07E8   C9 07                  DW   link   
 07EA                LINK:     .SET   HEADER_BRAN1   
 07EA   06                     DB   0 + 6   
 07EB   62 72 61 6E 63 68 31   DB   "branch1"   
-07F2                BRAN1:       
+07F2                BRAN:       
 07F2   E1                     POP   HL   ; add the offset to the instruction pointer
 07F3   5E                     LD   E,(HL)   
 07F4   23                     INC   HL   
@@ -2755,7 +2755,7 @@
 09A4   40 09 51 0F 58 03      DW   nesting,AT,ZEQUAL   
 09AA   86 00                  DW   ANDD   
 09AC                          ;*Macro unroll:  cIf
-09AC   A3 07 00 00            DW   QBRAN,0   
+09AC   A3 07 00 00            DW   XQBRAN,0   
 09B0                          ;*Macro unroll:  CPL_PUSH $
 09B0                CPL_COUNT:   .SET   CPL_COUNT + 1   
 09B0                CPL_10:   .SET   CPL_9   
@@ -2806,7 +2806,7 @@
 09CE   40 09 51 0F 58 03      DW   nesting,AT,ZEQUAL   
 09D4   86 00                  DW   ANDD   
 09D6                          ;*Macro unroll:  cIf
-09D6   A3 07 00 00            DW   QBRAN,0   
+09D6   A3 07 00 00            DW   XQBRAN,0   
 09DA                          ;*Macro unroll:  CPL_PUSH $
 09DA                CPL_COUNT:   .SET   CPL_COUNT + 1   
 09DA                CPL_10:   .SET   CPL_9   
@@ -2855,7 +2855,7 @@
 09F6   40 09 51 0F 58 03      DW   nesting,AT,ZEQUAL   
 09FC   86 00                  DW   ANDD   
 09FE                          ;*Macro unroll:  cIf
-09FE   A3 07 00 00            DW   QBRAN,0   
+09FE   A3 07 00 00            DW   XQBRAN,0   
 0A02                          ;*Macro unroll:  CPL_PUSH $
 0A02                CPL_COUNT:   .SET   CPL_COUNT + 1   
 0A02                CPL_10:   .SET   CPL_9   
@@ -3581,8 +3581,8 @@
 0BE9                INTERPRET:      
 0BE9   CF                     RST   $08   
 0BEA                          ;*Macro unroll:  cDo
-0BEA   C0 07 06 00            DW   BRAN,6   
-0BEE   C0 07 00 00            DW   BRAN,0   
+0BEA   C0 07 06 00            DW   XBRAN,6   
+0BEE   C0 07 00 00            DW   XBRAN,0   
 0BF2                          ;*Macro unroll:  CPL_PUSH $
 0BF2                CPL_COUNT:   .SET   CPL_COUNT + 1   
 0BF2                CPL_10:   .SET   CPL_9   
@@ -3598,7 +3598,7 @@
 0BF2   8B 0E 99 0B 68 13      DW   bl,word,count   ; pstr -- ptr len
 0BF8   9C 12 58 03            DW   DUPP,zEqual   
 0BFC                          ;*Macro unroll:  cIf
-0BFC   A3 07 00 00            DW   QBRAN,0   
+0BFC   A3 07 00 00            DW   XQBRAN,0   
 0C00                          ;*Macro unroll:  CPL_PUSH $
 0C00                CPL_COUNT:   .SET   CPL_COUNT + 1   
 0C00                CPL_10:   .SET   CPL_9   
@@ -3635,7 +3635,7 @@
 0C09                CPL_10:   .SET   0   
 0C09   38 0D                  DW   interpToken   ; interpret the next word
 0C0B                          ;*Macro unroll:  cEndDo
-0C0B   C0 07 E5 FF            DW   BRAN,CPL_TOP - $ - 2   
+0C0B   C0 07 E5 FF            DW   XBRAN,CPL_TOP - $ - 2   
 0C0F                          ;*Macro unroll:  cBRANCH_FWD
 0C0F                CUR_ADR:   .SET   $   
 0BF0                          .ORG   CPL_TOP - 2   
@@ -4324,7 +4324,7 @@
 0D39   E4 12 E4 12 B0 05      DW   over,over,find   ; ptr len -- ptr len addr
 0D3F   9C 12 6D 03            DW   DUPP,ZNEQU   
 0D43                          ;*Macro unroll:  cIf
-0D43   A3 07 00 00            DW   QBRAN,0   
+0D43   A3 07 00 00            DW   XQBRAN,0   
 0D47                          ;*Macro unroll:  CPL_PUSH $
 0D47                CPL_COUNT:   .SET   CPL_COUNT + 1   
 0D47                CPL_10:   .SET   CPL_9   
@@ -4339,7 +4339,7 @@
 0D47                CPL_TOP:   .SET   $   
 0D47   54 0D                  DW   interpWord   
 0D49                          ;*Macro unroll:  cElse
-0D49   C0 07 00 00            DW   BRAN,0   
+0D49   C0 07 00 00            DW   XBRAN,0   
 0D4D                          ;*Macro unroll:  cBRANCH_FWD
 0D4D                CUR_ADR:   .SET   $   
 0D45                          .ORG   CPL_TOP - 2   
@@ -4375,7 +4375,7 @@
 0D67   1B 12 80 00 86 00      DW   lit,msk_immed,ANDD   ; ( headptr flags -- headptr immedflag )
 0D6D   58 03                  DW   zEqual   
 0D6F                          ;*Macro unroll:  cif
-0D6F   A3 07 00 00            DW   QBRAN,0   
+0D6F   A3 07 00 00            DW   XQBRAN,0   
 0D73                          ;*Macro unroll:  CPL_PUSH $
 0D73                CPL_COUNT:   .SET   CPL_COUNT + 1   
 0D73                CPL_10:   .SET   CPL_9   
@@ -4393,7 +4393,7 @@
 0D79   40 09 51 0F            DW   nesting,AT   
 0D7D   9E 00                  DW   ORR   
 0D7F                          ;*Macro unroll:  cif
-0D7F   A3 07 00 00            DW   QBRAN,0   
+0D7F   A3 07 00 00            DW   XQBRAN,0   
 0D83                          ;*Macro unroll:  CPL_PUSH $
 0D83                CPL_COUNT:   .SET   CPL_COUNT + 1   
 0D83                CPL_10:   .SET   CPL_9   
@@ -4408,7 +4408,7 @@
 0D83                CPL_TOP:   .SET   $   
 0D83   F6 0F                  DW   comma   ; compile xt
 0D85                          ;*Macro unroll:  cElse
-0D85   C0 07 00 00            DW   BRAN,0   
+0D85   C0 07 00 00            DW   XBRAN,0   
 0D89                          ;*Macro unroll:  cBRANCH_FWD
 0D89                CUR_ADR:   .SET   $   
 0D81                          .ORG   CPL_TOP - 2   
@@ -4435,7 +4435,7 @@
 0D8B                CPL_9:    .SET   CPL_10   
 0D8B                CPL_10:   .SET   0   
 0D8B                          ;*Macro unroll:  cElse
-0D8B   C0 07 00 00            DW   BRAN,0   
+0D8B   C0 07 00 00            DW   XBRAN,0   
 0D8F                          ;*Macro unroll:  cBRANCH_FWD
 0D8F                CUR_ADR:   .SET   $   
 0D71                          .ORG   CPL_TOP - 2   
@@ -4469,7 +4469,7 @@
 0D99   D0 12                  DW   drop   ; ptr len addr - ptr len
 0D9B   37 0B 58 03            DW   number,zEqual   ; parse to number
 0D9F                          ;*Macro unroll:  cif
-0D9F   A3 07 00 00            DW   QBRAN,0   
+0D9F   A3 07 00 00            DW   XQBRAN,0   
 0DA3                          ;*Macro unroll:  CPL_PUSH $
 0DA3                CPL_COUNT:   .SET   CPL_COUNT + 1   
 0DA3                CPL_10:   .SET   CPL_9   
@@ -4486,7 +4486,7 @@
 0DA7   40 09 51 0F            DW   nesting,AT   
 0DAB   9E 00                  DW   ORR   
 0DAD                          ;*Macro unroll:  cIf
-0DAD   A3 07 00 00            DW   QBRAN,0   
+0DAD   A3 07 00 00            DW   XQBRAN,0   
 0DB1                          ;*Macro unroll:  CPL_PUSH $
 0DB1                CPL_COUNT:   .SET   CPL_COUNT + 1   
 0DB1                CPL_10:   .SET   CPL_9   
@@ -4520,7 +4520,7 @@
 0DB9                CPL_9:    .SET   CPL_10   
 0DB9                CPL_10:   .SET   0   
 0DB9                          ;*Macro unroll:  cElse
-0DB9   C0 07 00 00            DW   BRAN,0   
+0DB9   C0 07 00 00            DW   XBRAN,0   
 0DBD                          ;*Macro unroll:  cBRANCH_FWD
 0DBD                CUR_ADR:   .SET   $   
 0DA1                          .ORG   CPL_TOP - 2   
@@ -4744,7 +4744,7 @@
 0EB5   85 13                  DW   qt   
 0EB7   26 09 51 0F 58 03      DW   state,AT,zequal   
 0EBD                          ;*Macro unroll:  cIf
-0EBD   A3 07 00 00            DW   QBRAN,0   
+0EBD   A3 07 00 00            DW   XQBRAN,0   
 0EC1                          ;*Macro unroll:  CPL_PUSH $
 0EC1                CPL_COUNT:   .SET   CPL_COUNT + 1   
 0EC1                CPL_10:   .SET   CPL_9   
@@ -4759,7 +4759,7 @@
 0EC1                CPL_TOP:   .SET   $   
 0EC1   F2 0D                  DW   type   
 0EC3                          ;*Macro unroll:  cElse
-0EC3   C0 07 00 00            DW   BRAN,0   
+0EC3   C0 07 00 00            DW   XBRAN,0   
 0EC7                          ;*Macro unroll:  cBRANCH_FWD
 0EC7                CUR_ADR:   .SET   $   
 0EBF                          .ORG   CPL_TOP - 2   
@@ -6215,7 +6215,7 @@
 1385   CF                     RST   $08   
 1386   26 09 51 0F 58 03      DW   state,AT,zequal   
 138C                          ;*Macro unroll:  cIf
-138C   A3 07 00 00            DW   QBRAN,0   
+138C   A3 07 00 00            DW   XQBRAN,0   
 1390                          ;*Macro unroll:  CPL_PUSH $
 1390                CPL_COUNT:   .SET   CPL_COUNT + 1   
 1390                CPL_10:   .SET   CPL_9   
@@ -6233,7 +6233,7 @@
 1398   89 09 51 0F            DW   latestStr,AT   
 139C   1B 12 CD 30 3C 01      DW   lit,wordBuf,equal   
 13A2                          ;*Macro unroll:  cIf
-13A2   A3 07 00 00            DW   QBRAN,0   
+13A2   A3 07 00 00            DW   XQBRAN,0   
 13A6                          ;*Macro unroll:  CPL_PUSH $
 13A6                CPL_COUNT:   .SET   CPL_COUNT + 1   
 13A6                CPL_10:   .SET   CPL_9   
@@ -6248,7 +6248,7 @@
 13A6                CPL_TOP:   .SET   $   
 13A6   1B 12 0D 31            DW   lit,wordBuf2   
 13AA                          ;*Macro unroll:  cElse
-13AA   C0 07 00 00            DW   BRAN,0   
+13AA   C0 07 00 00            DW   XBRAN,0   
 13AE                          ;*Macro unroll:  cBRANCH_FWD
 13AE                CUR_ADR:   .SET   $   
 13A4                          .ORG   CPL_TOP - 2   
@@ -6278,7 +6278,7 @@
 13B6   89 09 51 0F            DW   latestStr,AT   
 13BA   51 0C 68 13            DW   xword,count   
 13BE                          ;*Macro unroll:  cElse
-13BE   C0 07 00 00            DW   BRAN,0   
+13BE   C0 07 00 00            DW   XBRAN,0   
 13C2                          ;*Macro unroll:  cBRANCH_FWD
 13C2                CUR_ADR:   .SET   $   
 138E                          .ORG   CPL_TOP - 2   
@@ -6496,7 +6496,7 @@
 1432   1E 01                  DW   SUBB   
 1434   1B 12 00 00 8C 01      DW   lit,0,greaterThan   
 143A                          ;*Macro unroll:  cif
-143A   A3 07 00 00            DW   QBRAN,0   
+143A   A3 07 00 00            DW   XQBRAN,0   
 143E                          ;*Macro unroll:  CPL_PUSH $
 143E                CPL_COUNT:   .SET   CPL_COUNT + 1   
 143E                CPL_10:   .SET   CPL_9   
@@ -6511,8 +6511,8 @@
 143E                CPL_TOP:   .SET   $   
 143E   56 09 51 0F 1B 12 02 00 CE 00 DW   sp0,AT,lit,2,plus   
 1448                          ;*Macro unroll:  cdo
-1448   C0 07 06 00            DW   BRAN,6   
-144C   C0 07 00 00            DW   BRAN,0   
+1448   C0 07 06 00            DW   XBRAN,6   
+144C   C0 07 00 00            DW   XBRAN,0   
 1450                          ;*Macro unroll:  CPL_PUSH $
 1450                CPL_COUNT:   .SET   CPL_COUNT + 1   
 1450                CPL_10:   .SET   CPL_9   
@@ -6529,11 +6529,11 @@
 1452   A2 0F 1B 12 02 00 1E 01 DW   spAT,lit,2,SUBB   
 145A   B0 12 1E 01 58 03      DW   swap,SUBB,zequal   
 1460                          ;*Macro unroll:  cuntil
-1460   58 03 A3 07 E8 FF      DW   ZEQUAL,QBRAN,CPL_TOP - $ - 8   
+1460   58 03 A3 07 E8 FF      DW   ZEQUAL,XQBRAN,CPL_TOP - $ - 8   
 1466   9C 12 51 0F 13 0A      DW   DUPP,AT,dot   
 146C   1B 12 02 00 CE 00      DW   lit,2,plus   
 1472                          ;*Macro unroll:  cenddo
-1472   C0 07 DC FF            DW   BRAN,CPL_TOP - $ - 2   
+1472   C0 07 DC FF            DW   XBRAN,CPL_TOP - $ - 2   
 1476                          ;*Macro unroll:  cBRANCH_FWD
 1476                CUR_ADR:   .SET   $   
 144E                          .ORG   CPL_TOP - 2   
@@ -15386,7 +15386,7 @@ HEADER_REPEAT:      076A DEFINED AT LINE 6
 REPEAT:             0773 DEFINED AT LINE 13
 HEADER_QBRAN:       0799 DEFINED AT LINE 6
                     > USED AT LINE 9
-QBRAN:              07A3 DEFINED AT LINE 13
+XQBRAN:              07A3 DEFINED AT LINE 13
                     > USED AT LINE 65
                     > USED AT LINE 65
                     > USED AT LINE 65
@@ -15412,7 +15412,7 @@ QBRAN:              07A3 DEFINED AT LINE 13
                     > USED AT LINE 91
 HEADER_BRAN:        07B7 DEFINED AT LINE 6
                     > USED AT LINE 9
-BRAN:               07C0 DEFINED AT LINE 13
+XBRAN:               07C0 DEFINED AT LINE 13
                     > USED AT LINE 70
                     > USED AT LINE 70
                     > USED AT LINE 70
@@ -15435,7 +15435,7 @@ BRAN:               07C0 DEFINED AT LINE 13
                     > USED AT LINE 103
 HEADER_QBRAN1:      07C9 DEFINED AT LINE 6
                     > USED AT LINE 9
-QBRAN1:             07D4 DEFINED AT LINE 13
+QBRAN:             07D4 DEFINED AT LINE 13
                     > USED AT LINE 83 IN core-alu.z80
                     > USED AT LINE 93 IN core-alu.z80
                     > USED AT LINE 125 IN core-alu.z80
@@ -15443,7 +15443,7 @@ QBRAN1:             07D4 DEFINED AT LINE 13
                     > USED AT LINE 163 IN core-alu.z80
 HEADER_BRAN1:       07E8 DEFINED AT LINE 6
                     > USED AT LINE 9
-BRAN1:              07F2 DEFINED AT LINE 13
+BRAN:              07F2 DEFINED AT LINE 13
                     > USED AT LINE 165 IN core-alu.z80
                     > USED AT LINE 79 IN core-control.z80
 HEADER_DONXT:       07FA DEFINED AT LINE 6

@@ -3,7 +3,7 @@
 ; CODE  1,"'",TICK
 ;     ENTER
 ;     DW      TOKEN,NAMEQ             ;?defined
-;     DW      QBRAN1,TICK1
+;     DW      QBRAN,TICK1
 ;     DW      EXIT                    ;yes, push code address
 ; TICK1:          
 ;     DW      THROW                   ;no, error

@@ -71,7 +71,7 @@ CODE "-",1,0,SUBB
 ; abs   n -- u                          absolute value
 CODE "abs",3,0,ABS                   ; case sensitive for ABS label for some reason
     ENTER
-    DW	DUPP, ZLESS, QBRAN1, ABS1
+    DW	DUPP, ZLESS, QBRAN, ABS1
     DW	NEGAT
 ABS1:		
     DW	EXIT
@@ -80,7 +80,7 @@ ABS1:
 CODE "=",1,0,EQUAL
     ENTER
     DW      XORR
-    DW      QBRAN1,EQU1
+    DW      QBRAN,EQU1
     DW      LIT,0,EXIT            ;false flag
 EQU1:           
     DW      LIT,-1,EXIT           ;true flag
@@ -90,7 +90,7 @@ EQU1:
 CODE "U<",2,0,ULESS	        ; less than
     ENTER
     DW      DDUP,XORR,ZLESS
-    DW      QBRAN1,ULES1
+    DW      QBRAN,ULES1
     DW      SWAP,DROP,ZLESS,EXIT
 ULES1:          
     DW      SUBB,ZLESS,EXIT
@@ -99,7 +99,7 @@ ULES1:
 ;               is less than
 CODE "<",1,0,LESS	        ; less than
     ENTER
-	DW	DDUP, XORR, ZLESS, QBRAN1, LESS1
+	DW	DDUP, XORR, ZLESS, QBRAN, LESS1
 	DW	DROP, ZLESS, EXIT
 LESS1:		
     DW	SUBB, ZLESS, EXIT
@@ -113,7 +113,7 @@ CODE ">",1,0,GREATERTHAN	        ; less than
 ; max   n1 n2 -- u                      maximum
 CODE "max",3,0,MAX
     ENTER
-	DW	DDUP, LESS, QBRAN1, MAX1
+	DW	DDUP, LESS, QBRAN, MAX1
     DW	SWAP
 MAX1:		
     DW	DROP,EXIT
@@ -122,7 +122,7 @@ MAX1:
 CODE "min",3,0,MIN
     ENTER
     DW      DDUP,SWAP,LESS
-    DW      QBRAN1,MIN1
+    DW      QBRAN,MIN1
     DW      SWAP
 MIN1:           
     DW      DROP,EXIT
@@ -152,7 +152,7 @@ UMP1:
 CODE  'UM/MOD',6,0,UMMOD
     ENTER
     DW      DDUP,ULESS
-    DW      QBRAN1,UMM4
+    DW      QBRAN,UMM4
     DW      NEGAT,LIT,15,TOR
 UMM1:           
     DW      TOR,DUPP,UPLUS
@@ -160,9 +160,9 @@ UMM1:
     DW      RFROM,PLUS,DUPP
     DW      RFROM,RAT,SWAP,TOR
     DW      UPLUS,RFROM,ORR
-    DW      QBRAN1,UMM2
+    DW      QBRAN,UMM2
     DW      TOR,DROP,LIT,1,PLUS,RFROM
-    DW      BRAN1,UMM3
+    DW      BRAN,UMM3
 UMM2:           
     DW      DROP
 UMM3:           
@@ -198,12 +198,12 @@ CODE "/mod",4,0,slashmod             ; dvend dvisr -- rem quot
     dw uslashmod                        ; b1 b2 u1 u2 -- b1 b2 r q    unsigned divide (remainder, quotient)
     dw swap                             ; b1 b2 u1 u2 -- b1 b2 q r
     dw rot                              ; b1 b2 q r -- b1 q r b2      bring to top
-    dw QBRAN1,SLASHMOD1 
+    dw QBRAN,SLASHMOD1 
     dw NEGAT                       ;   b1 q r b2 -- b1 q -r      if -ve then negate answer
 SLASHMOD1:
     dw nrot                             ;     b1 q -r -- -r b1 q     bring to top
     dw swap                             ;     -r b1 q -- -r q b1      bring to top
-    dw QBRAN1,SLASHMOD2
+    dw QBRAN,SLASHMOD2
     dw NEGAT                       ;     -r q b1 -- -r -q       if signs differ then negate answer
 SLASHMOD2:
     EXIT

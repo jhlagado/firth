@@ -62,12 +62,12 @@ CPL_TOP .set 0
 .endm
 
 .macro cIF
-    DW QBRAN, 0
+    DW XQBRAN, 0
     CPL_PUSH $
 .endm
 
 .macro cELSE
-    DW BRAN, 0
+    DW XBRAN, 0
     cBRANCH_FWD
     CPL_TOP .set $          ;reuse TOS
 .endm
@@ -78,29 +78,29 @@ CPL_TOP .set 0
 .endm
 
 .macro cDO
-    DW BRAN, 6
-    DW BRAN, 0
+    DW XBRAN, 6
+    DW XBRAN, 0
     CPL_PUSH $
 .endm
 
 .macro cWHILE
-    DW QBRAN, CPL_TOP - $ - 8
+    DW XQBRAN, CPL_TOP - $ - 8
 .endm
 
 .macro cUNTIL
-    DW ZEQUAL, QBRAN, CPL_TOP - $ - 8
+    DW ZEQUAL, XQBRAN, CPL_TOP - $ - 8
 .endm
 
 .macro cBREAK
-    DW BRAN, CPL_TOP - $ - 8
+    DW XBRAN, CPL_TOP - $ - 8
 .endm
 
 .macro cCONTINUE
-    DW BRAN, CPL_TOP - $ - 2
+    DW XBRAN, CPL_TOP - $ - 2
 .endm
 
 .macro cENDDO
-    DW BRAN, CPL_TOP - $ - 2
+    DW XBRAN, CPL_TOP - $ - 2
     cBRANCH_FWD
     CPL_POP
 .endm
