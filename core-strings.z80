@@ -17,28 +17,30 @@ CODE "count",5,0,count
 CODE {"s",$22},2,IMMED,squote
     jr qt
 
-CODE $22,1,IMMED,qt
+CODE $22,1,IMMED,QT
     ENTER
     dw state, AT, zequal
-    cIf
+    dw QBRAN,QT3
         dw lit, $22                     ; delim
         dw lit, 63                      ; limit 63 + length
         dw latestStr, AT
         dw lit, wordBuf, equal
-        cIf
+        dw QBRAN,QT1
             dw lit, wordBuf2
-        cElse
+            dw BRAN,QT2
+QT1:    
             dw lit, wordBuf
-        cEndIf
+QT2:
         dw latestStr, STORE             ; STORE here in latestStr
         dw latestStr, AT
         dw xword, count
-    cElse
+        dw BRAN,QT4
+QT3:
         dw lit, litstr, comma
         dw lit, $22, word
         dw CAT, ONEP
         dw allot
-    cEndif
+QT4:
     EXIT
 
 

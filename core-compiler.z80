@@ -158,22 +158,24 @@ CODE "postpone",8,IMMED,postpone ; --
     rst $08
 	dw bl, word, count            ; pstr -- ptr len
     dw DUPP, zEqual
-    cIf
+    dw QBRAN,postpone1
         dw drop, drop                   ; ptr len --
-    cElse
+        dw BRAN,postpone2
+postpone1:
         dw postponeToken                ; interpret the next word
-    cEndif
+postpone2:    
     EXIT
 
 postponeToken:                          ; --
     rst $08
     dw over, over, find                 ; ptr len -- ptr len addr
     dw DUPP, ZNEQU
-    cIf
+    dw QBRAN,postponeToken1
         dw postponeWord
-    cElse
+        dw BRAN,postponeToken2
+postponeToken1:
         dw postponeLiteral
-    cEndif
+postponeToken2:
     EXIT
 
 postponeWord:                               ; ( headptr -- )
@@ -182,28 +184,30 @@ postponeWord:                               ; ( headptr -- )
     dw DUPP, lit, 2, plus, CAT            ; ( headptr -- headptr flags ) add 2 to headptr
     dw lit, IMMED, ANDD                  ; ( headptr flags -- headptr immedflag )
     dw zEqual
-    cIf
+    dw QBRAN,postponeWord1
         dw lit, lit, comma
         dw tcfa, comma
         dw lit, comma, comma
-    cElse
+        dw BRAN,postponeWord2
+postponeWord1:
         dw tcfa, comma
-    cEndIf
+postponeWord2:
     EXIT
 
 postponeLiteral:                            ; ( ptr len -- )
     rst $08                                 ; enter forth
     dw drop                                 ; ptr len addr - ptr len
     dw number, zEqual                       ; parse to number
-    cif
+    dw QBRAN, postponeLiteral1
         dw lit, lit                     ; (val -- val "lit" )
         dw comma, comma                 ; compile "lit" val
-    cElse
+        dw BRAN, postponeLiteral2
+postponeLiteral1:
         dw drop                             ; ( ptr len zero -- ptr len ), not found
         dw litstr                           ; err != 0, parse error
         .pstr "Error: parsing"
         dw type
-    cEndIf
+postponeLiteral2:
     EXIT
 
 

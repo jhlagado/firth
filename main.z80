@@ -6,7 +6,6 @@
         .include "macros-compiler.z80"
         .include "macros-control.z80"
         .include "macros-dloop.z80"
-        .include "macros-fcontrol.z80"
         .include "macros-kernel.z80"
         .include "macros-stack.z80"
         .include "macros-util.z80"

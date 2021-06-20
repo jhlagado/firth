@@ -50,11 +50,12 @@ CODE {".",$22},2,IMMED,dotquote
     ENTER
     dw qt
     dw state, AT, zequal
-    cIf
+    dw QBRAN, dotquote1
         dw type
-    cElse
+        dw BRAN, dotquote2
+dotquote1:
         dw lit, type, comma
-    cEndIf
+dotquote2:
     EXIT
 
 
