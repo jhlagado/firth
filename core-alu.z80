@@ -239,6 +239,66 @@ CODE "*",1,0,star                    ; u1 u2 -- ud
     cendif
     EXIT
 
+; CELL+    c-addr1 -- c-addr2   add cell size to addr
+CODE "cell+",5,0,CELLP
+    jp TWOP
+
+CODE "cell-",5,0,CELLM
+    jp TWOM
+
+; CELLS   ( n1 -- n2 ) n2 is the size in address units of n1 cells.
+CODE "cells",5,0,CELLS
+    jp TWOST
+
+; 0= zero-equal
+CODE "0=",2,0,ZEQUAL
+    checkZeroWord B,C            ; returns 0 if not equal, 1 if equal
+    _if nz
+        ld BC, -1
+    _endif
+    inc BC
+    NEXT
+
+CODE "0<>",3,0,ZNEQU
+    checkZeroWord B,C            ; returns 0 if not equal, 1 if equal
+    _if nz
+        ld BC, 1
+    _endif
+    NEXT
+
+; 1+      n -- n                    add 1 to TOS
+CODE "1+",2,0,ONEP
+    inc BC
+    NEXT
+
+; 1-      n -- n            sub 1 to TOS
+CODE "1-",2,0,ONEM
+    dec BC
+    NEXT
+
+; 2+      n1/u1 -- n2/u2            add 2 to TOS
+CODE "2+",2,0,TWOP
+    inc BC
+    inc BC
+    NEXT
+
+CODE "2-",2,0,TWOM
+    dec BC
+    dec BC
+    NEXT
+
+; 2*      n1/u1 -- n2/u2            arithmetic left shift
+CODE "2*",2,0,TWOST
+    sla C
+    rl B
+    NEXT
+
+; 2/      x1 -- x2                  arithmetic right shift
+CODE "2/",2,0,TWOSLASH
+    sra B
+    rr C
+    NEXT
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; negate ***
 ; params: HL = number
@@ -345,65 +405,5 @@ unsignedMultiply:
     _until z
     _enddo
     ret
-
-; CELL+    c-addr1 -- c-addr2   add cell size to addr
-CODE "cell+",5,0,CELLP
-    jp TWOP
-
-CODE "cell-",5,0,CELLM
-    jp TWOM
-
-; CELLS   ( n1 -- n2 ) n2 is the size in address units of n1 cells.
-CODE "cells",5,0,CELLS
-    jp TWOST
-
-; 0= zero-equal
-CODE "0=",2,0,ZEQUAL
-    checkZeroWord B,C            ; returns 0 if not equal, 1 if equal
-    _if nz
-        ld BC, -1
-    _endif
-    inc BC
-    NEXT
-
-CODE "0<>",3,0,ZNEQU
-    checkZeroWord B,C            ; returns 0 if not equal, 1 if equal
-    _if nz
-        ld BC, 1
-    _endif
-    NEXT
-
-; 1+      n -- n                    add 1 to TOS
-CODE "1+",2,0,ONEP
-    inc BC
-    NEXT
-
-; 1-      n -- n            sub 1 to TOS
-CODE "1-",2,0,ONEM
-    dec BC
-    NEXT
-
-; 2+      n1/u1 -- n2/u2            add 2 to TOS
-CODE "2+",2,0,TWOP
-    inc BC
-    inc BC
-    NEXT
-
-CODE "2-",2,0,TWOM
-    dec BC
-    dec BC
-    NEXT
-
-; 2*      n1/u1 -- n2/u2            arithmetic left shift
-CODE "2*",2,0,TWOST
-    sla C
-    rl B
-    NEXT
-
-; 2/      x1 -- x2                  arithmetic right shift
-CODE "2/",2,0,TWOSLASH
-    sra B
-    rr C
-    NEXT
 
 

@@ -45,20 +45,28 @@ CODE "sp!",3,0,SPSTORE
 ; allocate n bytes of memory                                   ( n -- ) allocate n bytes of memory
 CODE "allot",5,0,allot               ;
     ENTER
-    dw here, addstore                   ; adds n to here
+    ; dw here, addstore                   ; adds n to here
+    dw here, PSTOR                   ; adds n to here
     EXIT
 
-CODE "+!",2,0,ADDSTORE               ; (n addr -- )
-	ppop H, L		            ; HL = address, TOS = amount to add
-	ld A,(HL)
-	add A,C                         ; add TOS at (HL),
-	ld (HL),A
-	inc HL
-	ld A,(HL)
-	adc A,B
-	ld (HL),A
-	ppop0 B,C                      ; clear param stack
-    NEXT
+;   +!          ( n a -- )
+;               Add n to the contents at address a.
+CODE  '+!',2,0,PSTOR
+    ENTER
+    DW      SWAP,OVER,Fetch,PLUS
+    DW      SWAP,STORE,EXIT
+
+; CODE "+!",2,0,ADDSTORE               ; (n addr -- )
+; 	ppop H, L		            ; HL = address, TOS = amount to add
+; 	ld A,(HL)
+; 	add A,C                         ; add TOS at (HL),
+; 	ld (HL),A
+; 	inc HL
+; 	ld A,(HL)
+; 	adc A,B
+; 	ld (HL),A
+; 	ppop0 B,C                      ; clear param stack
+;     NEXT
 
 CODE ",",1,0,COMMA
 	ld HL, (VAR_HERE)	; HERE

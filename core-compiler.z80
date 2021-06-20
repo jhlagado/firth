@@ -1,3 +1,26 @@
+; ;   '           ( -- ca )
+; ;               Search context vocabularies for the next word in input stream.
+; CODE  1,"'",TICK
+;     ENTER
+;     DW      TOKEN,NAMEQ             ;?defined
+;     DW      QBRAN1,TICK1
+;     DW      EXIT                    ;yes, push code address
+; TICK1:          
+;     DW      THROW                   ;no, error
+
+; ;   [COMPILE]   ( -- ; <string> )
+; ;               Compile the next immediate word into code dictionary.
+; CODE '[COMPILE]',9,msk_immed,BCOMP
+;     ENTER
+;     DW TICK,COMMA,EXIT
+
+;   COMPILE     ( -- )
+;               Compile the next address in colon list to code dictionary.
+CODE 'COMPILE',7,0,COMPI
+    ENTER
+    DW RFROM,DUPP,Fetch,COMMA     ;compile address
+    DW CELLP,TOR,EXIT          ;adjust return address
+
 CODE ":",1,0,colon
     ENTER
     dw create                           ; create the dictionary entry / header
