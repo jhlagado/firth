@@ -24,7 +24,7 @@ xendif:                                 ; must call xendif not endif
     ENTER
     dw DUPP
     dw here, AT, swap, SUBB         ; calculate the offset from the address saved on the stack
-    dw swap, store                      ; store the offset in the back-filled location
+    dw swap, STORE                      ; STORE the offset in the back-filled location
     EXIT
 
 ; begin condition while ... repeat
@@ -49,7 +49,7 @@ CODE "repeat",6,msk_immed,repeat
     dw here, AT, SUBB, comma        ; compile offset (here1 - here3)
     dw DUPP
     dw here, AT, swap, SUBB         ; compile offset (here2 - here3)
-    dw swap, store                      ; save offset in here2
+    dw swap, STORE                      ; save offset in here2
     dw rbraceExec
     EXIT
 

@@ -1,4 +1,4 @@
-; !        x a-addr --   store cell in memory
+; !        x a-addr --   STORE cell in memory
 CODE "!",1,0,STORE
     ppop H,L
     writeWord HL, B,C
@@ -10,7 +10,7 @@ CODE "@",1,0,AT
     readWord HL, B,C
     NEXT
 
-; C!      char c-addr --    store char in memory
+; C!      char c-addr --    STORE char in memory
 CODE "c!",2,0,CSTORE
     ppop H,L
     ld (HL),C
@@ -23,6 +23,15 @@ CODE "c@",2,0,CAT
     ld C,A
     ld B,0
     NEXT
+
+;   R@          ( -- w )
+;               Copy top of return stack to the data stack.
+CODE	'R@',2,0,RAT
+	PUSH	BC
+	LD	C,(IX+0)
+	LD	B,(IX+1)
+	NEXT
+
 
 ;z RSP!  a-addr --                  set return stack pointer
 CODE "rsp!",4,0,RSPSTORE
@@ -56,18 +65,6 @@ CODE  '+!',2,0,PSTOR
     DW      SWAP,OVER,AT,PLUS
     DW      SWAP,STORE,EXIT
 
-; CODE "+!",2,0,ADDSTORE               ; (n addr -- )
-; 	ppop H, L		            ; HL = address, TOS = amount to add
-; 	ld A,(HL)
-; 	add A,C                         ; add TOS at (HL),
-; 	ld (HL),A
-; 	inc HL
-; 	ld A,(HL)
-; 	adc A,B
-; 	ld (HL),A
-; 	ppop0 B,C                      ; clear param stack
-;     NEXT
-
 CODE ",",1,0,COMMA
 	ld HL, (VAR_HERE)	; HERE
 	writeWord HL, B,C
@@ -78,18 +75,10 @@ CODE ",",1,0,COMMA
 CODE "c,",1,0,CCOMMA
     ppush0 H,L
 	ld HL, (VAR_HERE)	; HERE
-	ld (HL), C          ; Store DE at memory pointed to by VAR_HERE
+	ld (HL), C          ; STORE DE at memory pointed to by VAR_HERE
 	inc HL
 	ld (VAR_HERE), HL	; Update HERE (incremented)
     ppop0 H,L
 	ppop0 B,C		        ; cleanup TOS
     NEXT
-
-;   R@          ( -- w )
-;               Copy top of return stack to the data stack.
-CODE	'R@',2,0,RAT
-	PUSH	BC
-	LD	C,(IX+0)
-	LD	B,(IX+1)
-	NEXT
 

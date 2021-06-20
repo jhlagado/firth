@@ -26,7 +26,7 @@ CODE ":",1,0,colon
     dw create                           ; create the dictionary entry / header
     dw here,AT                       ; back up 3 bytes to start of data area
     dw lit, 3, SUBB
-    dw here, store
+    dw here, STORE
     dw lit, rst08_opcode, ccomma        ; write z80 jp opcode to word
     dw latest, AT, hidden            ; make the word hidden (see below for definition).
     dw rbrac                            ; go into compile mode.
@@ -65,9 +65,9 @@ CODE "create",6,0,create             ; --
     ENTER
     dw here, AT                      ; get old "here"
     dw latest, AT, comma             ; write link to previous word to "here"
-    dw latest, store                    ; update latest to old "here"
+    dw latest, STORE                    ; update latest to old "here"
     dw bl, word                   ; read word token
-    dw cAT, ONEP, allot           ;
+    dw CAT, ONEP, allot           ;
     dw lit, jp_opcode, cComma           ; compile default behavious
     dw lit, xcreate, comma              ; i.e. push addr of data area
     EXIT                                ; exit from forth
@@ -83,7 +83,7 @@ CODE "does>", 5, msk_immed, does         ; --
     dw here, AT
     dw lit, call_opcode
     dw over, cstore
-    dw ONEP, store
+    dw ONEP, STORE
     dw lit, 3, allot
     EXIT
 
@@ -151,7 +151,7 @@ xdoes:                                  ; --
     dw latest, AT, tcfa
     dw lit, call_opcode
     dw over, cstore
-    dw ONEP, store
+    dw ONEP, STORE
     EXIT
 
 CODE "postpone",8,msk_immed,postpone ; --
@@ -179,7 +179,7 @@ postponeToken:                          ; --
 postponeWord:                               ; ( headptr -- )
     rst $08                                 ; enter forth
     dw swap, drop, swap, drop               ; ptr len addr -- addr
-    dw DUPP, lit, 2, plus, cAT            ; ( headptr -- headptr flags ) add 2 to headptr
+    dw DUPP, lit, 2, plus, CAT            ; ( headptr -- headptr flags ) add 2 to headptr
     dw lit, msk_immed, ANDD                  ; ( headptr flags -- headptr immedflag )
     dw zEqual
     cIf

@@ -1,4 +1,4 @@
-; Store the chain of links.
+; STORE the chain of links.
 link: .set 0
 
 .macro CODE, name, namelen, flags, label

@@ -266,9 +266,9 @@ The header starts with a pointer to the previous word in the dictionary and is f
 
 The Immediate flag marks this word as one that will execute immediately rather than being compiled for later use. The Hidden flag marks this word as being invisible to searches. This is usually done to indicate that the word has not yet been completely defined and is probably in the processs of being parsed and compiled.
 
-The lower 6 bits of this byte are used to store the length of the word's name. this means that the maxiumum length of a word is limited to 63 ASCII characters.
+The lower 6 bits of this byte are used to STORE the length of the word's name. this means that the maxiumum length of a word is limited to 63 ASCII characters.
 
-After this byte comes an array chars which store the actual name of the word and finally the body of the word which consists of either a subroutine written in machine code or is a sequence of other Forth words.
+After this byte comes an array chars which STORE the actual name of the word and finally the body of the word which consists of either a subroutine written in machine code or is a sequence of other Forth words.
 
 The process of looking up a word consists of starting with the latest word (which in Firth is pointed to by a global variable called `latest`) and working backwards through the list, jumping from word to word comparing the name of the word with what we are looking for until a match is found. If the dictionary cannot provide a match then Forth will finally encounter a pointer with a value of 0 and the search terminates.
 
@@ -576,12 +576,12 @@ In the stack column of the table below, items on the left of the `--` represent 
 | word  | stack          | definition                    |
 | ----- | -------------- | ----------------------------- |
 | @     | addr -- x      | fetch 16-bit number from addr |
-| !     | x addr --      | store 16-bit number at addr   |
+| !     | x addr --      | STORE 16-bit number at addr   |
 | ,     | x --           | write x to heap memory        |
 | cell+ | addr1 -- addr2 | add size of cell (2) to addr  |
 | cells | n1 -- n2       | size of n1 cells (n1 \* 2)    |
 | c@    | addr -- c      | fetch char from addr          |
-| c!    | c addr --      | store char at addr            |
+| c!    | c addr --      | STORE char at addr            |
 | c,    | x --           | write char to heap memory     |
 
 #### Device

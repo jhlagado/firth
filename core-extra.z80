@@ -29,7 +29,7 @@ CODE "}exec",5,msk_immed,rbraceExec
     dw ANDD
     dw QBRAN,RBRACEEXEC1
     dw DUPP
-    dw here, store
+    dw here, STORE
     dw execute
 RBRACEEXEC1:
     EXIT                             ; return from the function.

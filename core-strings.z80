@@ -9,7 +9,7 @@ litStr:                                     ; pushes ptr to string and length on
 CODE "count",5,0,count
     ENTER
     dw DUPP, lit, 1, plus                ; ( ptr -- ptr ptr+1)
-    dw swap, cAT                     ; ( ptr ptr+1 -- ptr+1 len)
+    dw swap, CAT                     ; ( ptr ptr+1 -- ptr+1 len)
     EXIT
 
 ; using {"s",$22} because it's surprisingly difficult
@@ -30,13 +30,13 @@ CODE $22,1,msk_immed,qt
         cElse
             dw lit, wordBuf
         cEndIf
-        dw latestStr, store             ; store here in latestStr
+        dw latestStr, STORE             ; STORE here in latestStr
         dw latestStr, AT
         dw xword, count
     cElse
         dw lit, litstr, comma
         dw lit, $22, word
-        dw cAT, ONEP
+        dw CAT, ONEP
         dw allot
     cEndif
     EXIT

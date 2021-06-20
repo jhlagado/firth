@@ -29,7 +29,7 @@
 0000                RST08_OPCODE:   EQU   $CF   ; call enter
 0000                RTS_HIGH:   EQU   0D6H   ; 11010110
 0000                RTS_LOW:   EQU   096H   ; 10010110
-0000                             ; Store the chain of links.
+0000                             ; STORE the chain of links.
 0000                LINK:     .SET   0   
 0000                .macro CODE,name,namelen,flags,label
 0000                             ; 
@@ -1751,7 +1751,7 @@
 0476   11 05                  DW   create   ; create the dictionary entry / header
 0478   0C 09 63 0F            DW   here,AT   ; back up 3 bytes to start of data area
 047C   5E 12 03 00 38 01      DW   lit,3,SUBB   
-0482   0C 09 42 0F            DW   here,store   
+0482   0C 09 42 0F            DW   here,STORE   
 0486   5E 12 CF 00 24 10      DW   lit,rst08_opcode,ccomma   ; write z80 jp opcode to word
 048C   06 15 63 0F E5 05      DW   latest,AT,hidden   ; make the word hidden (see below for definition).
 0492   0B 06                  DW   rbrac   ; go into compile mode.
@@ -1830,9 +1830,9 @@
 0511   CF                     RST   $08   
 0512   0C 09 63 0F            DW   here,AT   ; get old "here"
 0516   06 15 63 0F 08 10      DW   latest,AT,comma   ; write link to previous word to "here"
-051C   06 15 42 0F            DW   latest,store   ; update latest to old "here"
+051C   06 15 42 0F            DW   latest,STORE   ; update latest to old "here"
 0520   9D 0E B3 0B            DW   bl,word   ; read word token
-0524   90 0F 9A 03 E6 0F      DW   cAT,ONEP,allot   ; 
+0524   90 0F 9A 03 E6 0F      DW   CAT,ONEP,allot   ; 
 052A   5E 12 C3 00 24 10      DW   lit,jp_opcode,cComma   ; compile default behavious
 0530   5E 12 3B 05 08 10      DW   lit,xcreate,comma   ; i.e. push addr of data area
 0536                          ;*Macro unroll:  EXIT                                ; exit from forth
@@ -1859,7 +1859,7 @@
 0556   0C 09 63 0F            DW   here,AT   
 055A   5E 12 CD 00            DW   lit,call_opcode   
 055E   27 13 71 0F            DW   over,cstore   
-0562   9A 03 42 0F            DW   ONEP,store   
+0562   9A 03 42 0F            DW   ONEP,STORE   
 0566   5E 12 03 00 E6 0F      DW   lit,3,allot   
 056C                          ;*Macro unroll:  EXIT
 056C   30 0F                  DW   exit   
@@ -1990,7 +1990,7 @@
 0627   06 15 63 0F CA 0B      DW   latest,AT,tcfa   
 062D   5E 12 CD 00            DW   lit,call_opcode   
 0631   27 13 71 0F            DW   over,cstore   
-0635   9A 03 42 0F            DW   ONEP,store   
+0635   9A 03 42 0F            DW   ONEP,STORE   
 0639                          ;*Macro unroll:  EXIT
 0639   30 0F                  DW   exit   
 063B   C3 1F 0F               JP   enter   
@@ -2101,7 +2101,7 @@
 0683                POSTPONEWORD:      ; ( headptr -- )
 0683   CF                     RST   $08   ; enter forth
 0684   F3 12 13 13 F3 12 13 13 DW   swap,drop,swap,drop   ; ptr len addr -- addr
-068C   DF 12 5E 12 02 00 E8 00 90 0F DW   DUPP,lit,2,plus,cAT   ; ( headptr -- headptr flags ) add 2 to headptr
+068C   DF 12 5E 12 02 00 E8 00 90 0F DW   DUPP,lit,2,plus,CAT   ; ( headptr -- headptr flags ) add 2 to headptr
 0696   5E 12 80 00 A0 00      DW   lit,msk_immed,ANDD   ; ( headptr flags -- headptr immedflag )
 069C   72 03                  DW   zEqual   
 069E                          ;*Macro unroll:  cIf
@@ -2255,7 +2255,7 @@
 073E   CF                     RST   $08   
 073F   DF 12                  DW   DUPP   
 0741   0C 09 63 0F F3 12 38 01 DW   here,AT,swap,SUBB   ; calculate the offset from the address saved on the stack
-0749   F3 12 42 0F            DW   swap,store   ; store the offset in the back-filled location
+0749   F3 12 42 0F            DW   swap,STORE   ; STORE the offset in the back-filled location
 074D                          ;*Macro unroll:  EXIT
 074D   30 0F                  DW   exit   
 074F   C3 1F 0F               JP   enter   
@@ -2303,7 +2303,7 @@
 0796   0C 09 63 0F 38 01 08 10 DW   here,AT,SUBB,comma   ; compile offset (here1 - here3)
 079E   DF 12                  DW   DUPP   
 07A0   0C 09 63 0F F3 12 38 01 DW   here,AT,swap,SUBB   ; compile offset (here2 - here3)
-07A8   F3 12 42 0F            DW   swap,store   ; save offset in here2
+07A8   F3 12 42 0F            DW   swap,STORE   ; save offset in here2
 07AC   07 0A                  DW   rbraceExec   
 07AE                          ;*Macro unroll:  EXIT
 07AE   30 0F                  DW   exit   
@@ -2714,7 +2714,7 @@
 0A16   A0 00                  DW   ANDD   
 0A18   EF 07 24 0A            DW   QBRAN,RBRACEEXEC1   
 0A1C   DF 12                  DW   DUPP   
-0A1E   0C 09 42 0F            DW   here,store   
+0A1E   0C 09 42 0F            DW   here,STORE   
 0A22   EA 0B                  DW   execute   
 0A24                RBRACEEXEC1:      
 0A24                          ;*Macro unroll:  EXIT                             ; return from the function.
@@ -3322,7 +3322,7 @@
 0B75                DECIMAL:      
 0B75                          ;*Macro unroll:  ENTER
 0B75   CF                     RST   $08   
-0B76   5E 12 0A 00 87 09 42 0F DW   lit,10,base,store   
+0B76   5E 12 0A 00 87 09 42 0F DW   lit,10,base,STORE   
 0B7E                          ;*Macro unroll:  EXIT
 0B7E   30 0F                  DW   exit   
 0B80   C3 1F 0F               JP   enter   
@@ -3335,7 +3335,7 @@
 0B89                HEX:         
 0B89                          ;*Macro unroll:  ENTER
 0B89   CF                     RST   $08   
-0B8A   5E 12 10 00 87 09 42 0F DW   lit,16,base,store   
+0B8A   5E 12 10 00 87 09 42 0F DW   lit,16,base,STORE   
 0B92                          ;*Macro unroll:  EXIT
 0B92   30 0F                  DW   exit   
 0B94   C3 1F 0F               JP   enter   
@@ -4168,7 +4168,7 @@
 0D66                INTERPWORD:      ; ptr len addr --
 0D66   CF                     RST   $08   ; enter forth
 0D67   F3 12 13 13 F3 12 13 13 DW   swap,drop,swap,drop   ; ptr len addr -- addr
-0D6F   DF 12 5E 12 02 00 E8 00 90 0F DW   DUPP,lit,2,plus,cAT   ; ( headptr -- headptr flags ) add 2 to headptr
+0D6F   DF 12 5E 12 02 00 E8 00 90 0F DW   DUPP,lit,2,plus,CAT   ; ( headptr -- headptr flags ) add 2 to headptr
 0D79   5E 12 80 00 A0 00      DW   lit,msk_immed,ANDD   ; ( headptr flags -- headptr immedflag )
 0D7F   72 03                  DW   zEqual   
 0D81                          ;*Macro unroll:  cif
@@ -4637,7 +4637,7 @@
 0F3B                NOOP:        
 0F3B                          ;*Macro unroll:  NEXT
 0F3B   C3 1F 0F               JP   enter   
-0F3E                             ; !        x a-addr --   store cell in memory
+0F3E                             ; !        x a-addr --   STORE cell in memory
 0F3E                          ;*Macro unroll: CODE "!",1,0,STORE
 0F3E                HEADER_STORE:      
 0F3E   34 0F                  DW   link   
@@ -4684,7 +4684,7 @@
 0F68   23                     INC   HL   
 0F69                          ;*Macro unroll:  NEXT
 0F69   C3 1F 0F               JP   enter   
-0F6C                             ; C!      char c-addr --    store char in memory
+0F6C                             ; C!      char c-addr --    STORE char in memory
 0F6C                          ;*Macro unroll: CODE "c!",2,0,CSTORE
 0F6C                HEADER_CSTORE:      
 0F6C   5F 0F                  DW   link   
@@ -4854,7 +4854,7 @@
 1029   DD 74 00               LD   (IX+0),H   
 102C   DD 23                  INC   IX   
 102E   2A 51 24               LD   HL,(VAR_HERE)   ; HERE
-1031   71                     LD   (HL),C   ; Store DE at memory pointed to by VAR_HERE
+1031   71                     LD   (HL),C   ; STORE DE at memory pointed to by VAR_HERE
 1032   23                     INC   HL   
 1033   22 51 24               LD   (VAR_HERE),HL   ; Update HERE (incremented)
 1036                          ;*Macro unroll:  ppop0 H,L
@@ -5256,7 +5256,7 @@
 114F                             ; params: A = char to output
 114F                             ; 
 114F                PUTC:        
-114F   F5                     PUSH   AF   ; Store character
+114F   F5                     PUSH   AF   ; STORE character
 1150                          ;*Macro unroll:  _do
 1150   18 03                  JR   L_M_1981S117   
 1152   C3 52 11               JP   $   
@@ -5987,7 +5987,7 @@
 13AB                          ;*Macro unroll:  ENTER
 13AB   CF                     RST   $08   
 13AC   DF 12 5E 12 01 00 E8 00 DW   DUPP,lit,1,plus   ; ( ptr -- ptr ptr+1)
-13B4   F3 12 90 0F            DW   swap,cAT   ; ( ptr ptr+1 -- ptr+1 len)
+13B4   F3 12 90 0F            DW   swap,CAT   ; ( ptr ptr+1 -- ptr+1 len)
 13B8                          ;*Macro unroll:  EXIT
 13B8   30 0F                  DW   exit   
 13BA   C3 1F 0F               JP   enter   
@@ -6071,7 +6071,7 @@
 13F5                CPL_8:    .SET   CPL_9   
 13F5                CPL_9:    .SET   CPL_10   
 13F5                CPL_10:   .SET   0   
-13F5   A3 09 42 0F            DW   latestStr,store   ; store here in latestStr
+13F5   A3 09 42 0F            DW   latestStr,STORE   ; STORE here in latestStr
 13F9   A3 09 63 0F            DW   latestStr,AT   
 13FD   63 0C AB 13            DW   xword,count   
 1401                          ;*Macro unroll:  cElse
@@ -6084,7 +6084,7 @@
 1405                CPL_TOP:   .SET   $   
 1405   5E 12 91 13 08 10      DW   lit,litstr,comma   
 140B   5E 12 22 00 B3 0B      DW   lit,$22,word   
-1411   90 0F 9A 03            DW   cAT,ONEP   
+1411   90 0F 9A 03            DW   CAT,ONEP   
 1415   E6 0F                  DW   allot   
 1417                          ;*Macro unroll:  cEndif
 1417                          ;*Macro unroll:  cBRANCH_FWD

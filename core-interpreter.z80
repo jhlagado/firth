@@ -182,7 +182,7 @@ xwordRead:                              ; delim addr char -- c-addr
 interpWord:                                 ; ptr len addr --
     rst $08                                 ; enter forth
     dw swap, drop, swap, drop               ; ptr len addr -- addr
-    dw DUPP, lit, 2, plus, cAT            ; ( headptr -- headptr flags ) add 2 to headptr
+    dw DUPP, lit, 2, plus, CAT            ; ( headptr -- headptr flags ) add 2 to headptr
     dw lit, msk_immed, ANDD                  ; ( headptr flags -- headptr immedflag )
     dw zEqual
     cif

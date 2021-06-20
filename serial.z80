@@ -113,7 +113,7 @@ getc:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 putc:
-    push     AF              ; Store character
+    push     AF              ; STORE character
     _do
         in A,($80)         ; Status byte
         bit 1,A             ; Set Zero flag if still transmitting character
