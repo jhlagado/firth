@@ -1,8 +1,3 @@
-.macro SET_RET_SP
-    loadWord H,L, B,C
-    LD SP, HL
-.endm
-
 .macro SAVE_REGS, regHI, regLO    ; Swap register bank and transfer TOS to regTOS
     ppush0 B,C             ; only use if word doesn't execute other words
     exx
