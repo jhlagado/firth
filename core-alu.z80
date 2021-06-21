@@ -107,7 +107,7 @@ LESS1:
 ; >      n1 n2 -- flag          test n1 > n2
 CODE ">",1,0,GREATR	        ; less than
     PNIP H,L                  ; swap operands
-    ppush H,L
+    PPUSH H,L
     jr LESS
 
 ; max   n1 n2 -- u                      maximum
@@ -176,7 +176,7 @@ UMM4:
 
 ; U/MOD   u1 u2 -- u1 u2    unsigned 16 / 16 -> r q
 CODE "u/mod",5,0,USLASHMOD
-    ppop D,E                ; DE = divisor
+    PPOP D,E                ; DE = divisor
                             ; BC = dividend
     call divideWordByWord
 

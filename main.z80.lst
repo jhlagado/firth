@@ -843,7 +843,7 @@
 01A8   DD 66 00               LD   H,(IX+0)   
 01AB   DD 2B                  DEC   IX   
 01AD   DD 6E 00               LD   L,(IX+0)   
-01B0                          ;*Macro unroll:  ppush H,L
+01B0                          ;*Macro unroll:  PPUSH H,L
 01B0                          ;*Macro unroll:  PDUP             ; push TOS reg pair
 01B0   DD 71 00               LD   (IX+0),C   ; push TOS reg pair
 01B3   DD 23                  INC   IX   
@@ -961,7 +961,7 @@
 0292   05                     DB   0 + 5   
 0293   75 2F 6D 6F 64         DB   "u/mod"   
 0298                USLASHMOD:      
-0298                          ;*Macro unroll:  ppop D,E                ; DE = divisor
+0298                          ;*Macro unroll:  PPOP D,E                ; DE = divisor
 0298   50                     LD   D,B   ; DE = divisor
 0299   59                     LD   E,C   
 029A                          ;*Macro unroll:  PDROP
@@ -1935,7 +1935,7 @@
 05DE   06                     DB   0 + 6   
 05DF   68 69 64 64 65 6E      DB   "hidden"   
 05E5                HIDDEN:      
-05E5                          ;*Macro unroll:  ppop H,L		            ; HL = Dictionary entry.
+05E5                          ;*Macro unroll:  PPOP H,L		            ; HL = Dictionary entry.
 05E5   60                     LD   H,B   ; HL = Dictionary entry.
 05E6   69                     LD   L,C   
 05E7                          ;*Macro unroll:  PDROP
@@ -3391,7 +3391,7 @@
 0BE2   07                     DB   0 + 7   
 0BE3   65 78 65 63 75 74 65   DB   "execute"   
 0BEA                EXECUTE:      
-0BEA                          ;*Macro unroll:  ppop H,L                        ; POP TOS into HL
+0BEA                          ;*Macro unroll:  PPOP H,L                        ; POP TOS into HL
 0BEA   60                     LD   H,B   ; POP TOS into HL
 0BEB   69                     LD   L,C   
 0BEC                          ;*Macro unroll:  PDROP
@@ -3620,7 +3620,7 @@
 0C69                          ;*Macro unroll:  NEXT
 0C69   C3 1F 0F               JP   enter   
 0C6C                XWORDSKIP:      ; delim addr -- delim addr char
-0C6C                          ;*Macro unroll:  ppop H,L
+0C6C                          ;*Macro unroll:  PPOP H,L
 0C6C   60                     LD   H,B   
 0C6D   69                     LD   L,C   
 0C6E                          ;*Macro unroll:  PDROP
@@ -3628,7 +3628,7 @@
 0C70   DD 46 00               LD   B,(IX+0)   
 0C73   DD 2B                  DEC   IX   
 0C75   DD 4E 00               LD   C,(IX+0)   
-0C78                          ;*Macro unroll:  ppop D,E
+0C78                          ;*Macro unroll:  PPOP D,E
 0C78   50                     LD   D,B   
 0C79   59                     LD   E,C   
 0C7A                          ;*Macro unroll:  PDROP
@@ -3992,7 +3992,7 @@
 0D03   DD 46 00               LD   B,(IX+0)   
 0D06   DD 2B                  DEC   IX   
 0D08   DD 4E 00               LD   C,(IX+0)   
-0D0B                          ;*Macro unroll:  ppop H,L
+0D0B                          ;*Macro unroll:  PPOP H,L
 0D0B   60                     LD   H,B   
 0D0C   69                     LD   L,C   
 0D0D                          ;*Macro unroll:  PDROP
@@ -4000,7 +4000,7 @@
 0D0F   DD 46 00               LD   B,(IX+0)   
 0D12   DD 2B                  DEC   IX   
 0D14   DD 4E 00               LD   C,(IX+0)   
-0D17                          ;*Macro unroll:  ppop D,E
+0D17                          ;*Macro unroll:  PPOP D,E
 0D17   50                     LD   D,B   
 0D18   59                     LD   E,C   
 0D19                          ;*Macro unroll:  PDROP
@@ -4398,7 +4398,7 @@
 0E2B   06                     DB   0 + 6   
 0E2C   61 63 63 65 70 74      DB   "accept"   
 0E32                ACCEPT:      
-0E32                          ;*Macro unroll:  ppop D,E                    ; max - up to 255
+0E32                          ;*Macro unroll:  PPOP D,E                    ; max - up to 255
 0E32   50                     LD   D,B   ; max - up to 255
 0E33   59                     LD   E,C   
 0E34                          ;*Macro unroll:  PDROP
@@ -4517,7 +4517,7 @@
 0EA9   05                     DB   0 + 5   
 0EAA   70 72 69 6E 74         DB   "print"   
 0EAF                PRINT:       
-0EAF                          ;*Macro unroll:  ppop D,E
+0EAF                          ;*Macro unroll:  PPOP D,E
 0EAF   50                     LD   D,B   
 0EB0   59                     LD   E,C   
 0EB1                          ;*Macro unroll:  PDROP
@@ -4645,7 +4645,7 @@
 0F40   01                     DB   0 + 1   
 0F41   21                     DB   "!"   
 0F42                STORE:       
-0F42                          ;*Macro unroll:  ppop H,L
+0F42                          ;*Macro unroll:  PPOP H,L
 0F42   60                     LD   H,B   
 0F43   69                     LD   L,C   
 0F44                          ;*Macro unroll:  PDROP
@@ -4692,7 +4692,7 @@
 0F6E   02                     DB   0 + 2   
 0F6F   63 21                  DB   "c!"   
 0F71                CSTORE:      
-0F71                          ;*Macro unroll:  ppop H,L
+0F71                          ;*Macro unroll:  PPOP H,L
 0F71   60                     LD   H,B   
 0F72   69                     LD   L,C   
 0F73                          ;*Macro unroll:  PDROP
@@ -4750,7 +4750,7 @@
 0FB4                SPAT:        
 0FB4   DD E5                  PUSH   IX   
 0FB6   E1                     POP   HL   
-0FB7                          ;*Macro unroll:  ppush H,L
+0FB7                          ;*Macro unroll:  PPUSH H,L
 0FB7                          ;*Macro unroll:  PDUP             ; push TOS reg pair
 0FB7   DD 71 00               LD   (IX+0),C   ; push TOS reg pair
 0FBA   DD 23                  INC   IX   
@@ -4767,7 +4767,7 @@
 0FC8   03                     DB   0 + 3   
 0FC9   73 70 21               DB   "sp!"   
 0FCC                SPSTORE:      
-0FCC                          ;*Macro unroll:  ppop H,L
+0FCC                          ;*Macro unroll:  PPOP H,L
 0FCC   60                     LD   H,B   
 0FCD   69                     LD   L,C   
 0FCE                          ;*Macro unroll:  PDROP
@@ -4808,7 +4808,7 @@
 0FF6   F3 12 27 13 63 0F E8 00 DW   SWAP,OVER,AT,PLUS   
 0FFE   F3 12 42 0F 30 0F      DW   SWAP,STORE,EXIT   
 1004                             ; CODE "+!",2,0,ADDSTORE               ; (n addr -- )
-1004                             ; 	ppop H, L		            ; HL = address, TOS = amount to add
+1004                             ; 	PPOP H, L		            ; HL = address, TOS = amount to add
 1004                             ; 	ld A,(HL)
 1004                             ; 	add A,C                         ; add TOS at (HL),
 1004                             ; 	ld (HL),A
@@ -5781,7 +5781,7 @@
 128D   DD 23                  INC   IX   
 128F   DD 72 00               LD   (IX+0),D   
 1292   DD 23                  INC   IX   
-1294                          ;*Macro unroll:  ppush H,L               ; PUSH x1 - x2 x3 x1
+1294                          ;*Macro unroll:  PPUSH H,L               ; PUSH x1 - x2 x3 x1
 1294                          ;*Macro unroll:  PDUP             ; push TOS reg pair
 1294   DD 71 00               LD   (IX+0),C   ; push TOS reg pair
 1297   DD 23                  INC   IX   
@@ -5810,7 +5810,7 @@
 12B6   DD 66 00               LD   H,(IX+0)   
 12B9   DD 2B                  DEC   IX   
 12BB   DD 6E 00               LD   L,(IX+0)   
-12BE                          ;*Macro unroll:  ppush H,L               ; PUSH x1 - x3 x1
+12BE                          ;*Macro unroll:  PPUSH H,L               ; PUSH x1 - x3 x1
 12BE                          ;*Macro unroll:  PDUP             ; push TOS reg pair
 12BE   DD 71 00               LD   (IX+0),C   ; push TOS reg pair
 12C1   DD 23                  INC   IX   
@@ -5818,7 +5818,7 @@
 12C6   DD 23                  INC   IX   
 12C8   44                     LD   B,H   ; PUSH x1 - x3 x1
 12C9   4D                     LD   C,L   
-12CA                          ;*Macro unroll:  ppush D,E               ; PUSH x2 - x3 x1 x2
+12CA                          ;*Macro unroll:  PPUSH D,E               ; PUSH x2 - x3 x1 x2
 12CA                          ;*Macro unroll:  PDUP             ; push TOS reg pair
 12CA   DD 71 00               LD   (IX+0),C   ; push TOS reg pair
 12CD   DD 23                  INC   IX   
@@ -5856,7 +5856,7 @@
 12F5   DD 56 00               LD   D,(IX+0)   
 12F8   DD 2B                  DEC   IX   
 12FA   DD 5E 00               LD   E,(IX+0)   
-12FD                          ;*Macro unroll:  ppush D,E
+12FD                          ;*Macro unroll:  PPUSH D,E
 12FD                          ;*Macro unroll:  PDUP             ; push TOS reg pair
 12FD   DD 71 00               LD   (IX+0),C   ; push TOS reg pair
 1300   DD 23                  INC   IX   
@@ -5898,7 +5898,7 @@
 1334   DD 23                  INC   IX   
 1336   DD 74 00               LD   (IX+0),H   
 1339   DD 23                  INC   IX   
-133B                          ;*Macro unroll:  ppush H,L
+133B                          ;*Macro unroll:  PPUSH H,L
 133B                          ;*Macro unroll:  PDUP             ; push TOS reg pair
 133B   DD 71 00               LD   (IX+0),C   ; push TOS reg pair
 133E   DD 23                  INC   IX   
@@ -6257,7 +6257,7 @@
 1444   04                     DB   0 + 4   
 1445   70 61 63 6B            DB   "pack"   
 1449                PACK:        
-1449                          ;*Macro unroll:  ppop D,E                        ; DE = adr2, BC = len
+1449                          ;*Macro unroll:  PPOP D,E                        ; DE = adr2, BC = len
 1449   50                     LD   D,B   ; DE = adr2, BC = len
 144A   59                     LD   E,C   
 144B                          ;*Macro unroll:  PDROP
@@ -9791,13 +9791,13 @@
                                  ; call WORD
                                  ; call COUNT
                                  ; EXPECT 1, "word 'x'"
-                                 ; ppop H,L   ; drop
+                                 ; PPOP H,L   ; drop
                                  ; TEST_SET_TEXT "xyz"
                                  ; ppushValue $20
                                  ; call WORD
                                  ; call COUNT
                                  ; EXPECT 3, "word 'xyz'"
-                                 ; ppop H,L   ; drop
+                                 ; PPOP H,L   ; drop
                                  ; TEST_SET_TEXT "a xyz "
                                  ; ppushValue $20
                                  ; call WORD
@@ -9807,7 +9807,7 @@
                                  ; call WORD
                                  ; call COUNT
                                  ; EXPECT 3, "word 'a xyz'"
-                                 ; ppop H,L   ; drop
+                                 ; PPOP H,L   ; drop
                                  ; call HERE
                                  ; call AT
                                  ; EXPECT START_USER, "here"

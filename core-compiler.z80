@@ -93,7 +93,7 @@ CODE "immediate",9,IMMED,IMMEDIATE
     NEXT
 
 CODE "hidden",6,0,HIDDEN
-    ppop H,L		            ; HL = Dictionary entry.
+    PPOP H,L		            ; HL = Dictionary entry.
     inc HL
     inc HL                      ; Point to name/flags byte.
 

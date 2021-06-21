@@ -1,6 +1,6 @@
 ; !        x a-addr --   STORE cell in memory
 CODE "!",1,0,STORE
-    ppop H,L
+    PPOP H,L
     writeWord HL, B,C
     PDROP          ; POP new TOS
     NEXT
@@ -12,7 +12,7 @@ CODE "@",1,0,AT
 
 ; C!      char c-addr --    STORE char in memory
 CODE "c!",2,0,CSTORE
-    ppop H,L
+    PPOP H,L
     ld (HL),C
     PDROP          ; POP new TOS
     NEXT
@@ -51,11 +51,11 @@ CODE 'rp@', 3,0,RPAT
 CODE "sp@",3,0,SPAT
     push IX
     pop HL
-    ppush H,L
+    PPUSH H,L
     NEXT
 
 CODE "sp!",3,0,SPSTORE
-    ppop H,L
+    PPOP H,L
     push HL
     pop IX
     NEXT

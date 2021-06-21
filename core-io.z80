@@ -9,7 +9,7 @@ CODE "cr",2,0,cr                 ; ( -- )
     NEXT
 
     CODE "accept",6,0,ACCEPT              ; ( addr max -- len )
-    ppop D,E                    ; max - up to 255
+    PPOP D,E                    ; max - up to 255
 	PNIP H,L                          ; addr
     call getline
     NEXT
@@ -41,7 +41,7 @@ CODE "bl",2,0,bl
     EXIT
 
 CODE "print",5,0,PRINT
-    ppop D,E
+    PPOP D,E
     call printPStr
     NEXT
 

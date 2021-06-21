@@ -75,7 +75,7 @@ compareStr:
     ret
 
 CODE "pack",4,0,pack             ; ( adr1 len adr2 -- adr2 )
-    ppop D,E                        ; DE = adr2, BC = len
+    PPOP D,E                        ; DE = adr2, BC = len
     push DE
     PNIP H,L                       ; HL = adr1
     ld A,C

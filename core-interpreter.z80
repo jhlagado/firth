@@ -1,5 +1,5 @@
 CODE "execute",7,0,EXECUTE
-    ppop H,L                        ; POP TOS into HL
+    PPOP H,L                        ; POP TOS into HL
     jp (hl)                         ; go do Forth word
 
 CODE "interpret",6,0,INTERPRET
@@ -168,8 +168,8 @@ CODE "xword",6,0,xword               ; delim limit addr -- c-addr
     NEXT
 
 xwordSkip:                              ; delim addr -- delim addr char
-    ppop H,L
-    ppop D,E
+    PPOP H,L
+    PPOP D,E
     PDUP
     PTUCK D,E
     PTUCK H,L
@@ -217,8 +217,8 @@ xwordSkip:                              ; delim addr -- delim addr char
 xwordRead:                              ; delim addr char -- c-addr
     ld A,C
     PDROP
-    ppop H,L
-    ppop D,E
+    PPOP H,L
+    PPOP D,E
     ld D,0
     or A
     _if nz

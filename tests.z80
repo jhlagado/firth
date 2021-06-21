@@ -167,14 +167,14 @@ INTERPRET
 ; call WORD
 ; call COUNT
 ; EXPECT 1, "word 'x'"
-; ppop H,L   ; drop
+; PPOP H,L   ; drop
 
 ; TEST_SET_TEXT "xyz"
 ; ppushValue $20
 ; call WORD
 ; call COUNT
 ; EXPECT 3, "word 'xyz'"
-; ppop H,L   ; drop
+; PPOP H,L   ; drop
 
 ; TEST_SET_TEXT "a xyz "
 ; ppushValue $20
@@ -185,7 +185,7 @@ INTERPRET
 ; call WORD
 ; call COUNT
 ; EXPECT 3, "word 'a xyz'"
-; ppop H,L   ; drop
+; PPOP H,L   ; drop
 
 ; call HERE
 ; call AT

@@ -9,7 +9,7 @@ CODE "rot",3,0,ROT       ; x1 x2 x3 -- x2 x3 x1
     PNIP D,E               ; x2 in DE
     PNIP H,L               ; x1 in HL
     PTUCK D,E              ; x2 on stack
-    ppush H,L               ; PUSH x1 - x2 x3 x1
+    PPUSH H,L               ; PUSH x1 - x2 x3 x1
                             ; x1 in BC
     NEXT
 
@@ -17,8 +17,8 @@ CODE "-rot",4,0,NROT     ; x1 x2 x3 -- x3 x1 x2
                             ; x3 in BC
     PNIP D,E               ; x2 in DE
     PNIP H,L               ; x1 in HL
-    ppush H,L               ; PUSH x1 - x3 x1
-    ppush D,E               ; PUSH x2 - x3 x1 x2
+    PPUSH H,L               ; PUSH x1 - x3 x1
+    PPUSH D,E               ; PUSH x2 - x3 x1 x2
                             ; x2 in BC
     NEXT
 
@@ -29,7 +29,7 @@ CODE "dup",3,0,DUPP        ; x -- x x
 ; SWAP     x1 x2 -- x2 x1    swap top two items
 CODE "swap",4,0,SWAP      ; x1 x2 -- x2 x1
     PNIP D,E
-    ppush D,E
+    PPUSH D,E
     NEXT
 
 CODE "drop",4,0,DROP      ; x --
@@ -40,7 +40,7 @@ CODE "drop",4,0,DROP      ; x --
 CODE "over",4,0,OVER
     PNIP H,L
     PTUCK H,L
-    ppush H,L
+    PPUSH H,L
     NEXT
 
 ; >R    ( x -- ) ( R: -- x )  Move  x from TOS to the return stack.
