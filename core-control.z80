@@ -1,3 +1,29 @@
+;   AHEAD       ( -- A )
+;               Compile a forward branch instruction.
+CODE  'AHEAD',5,IMMED,AHEAD
+    DW      COMPI,BRAN,HERE,LIT,0,COMMA,EXIT
+
+;   IFF          ( -- A )
+;               Begin a conditional branch structure.
+CODE  'IFF',3,IMMED,IFF
+    ENTER
+    DW      COMPI,QBRAN,HERE
+    DW      LIT,0,COMMA,EXIT
+
+;   THEN        ( A -- )
+;               Terminate a conditional branch structure.
+CODE  'THENN',5,IMMED,THENN
+    ENTER
+    DW      HERE,SWAP,STORE,EXIT
+
+;   ELSE        ( A -- A )
+;               Start the false clause in an IF-ELSE-THEN structure.
+CODE  'ELSEE',5,IMMED,ELSEE
+    ENTER
+    DW      AHEAD,SWAP,THENN,EXIT
+
+
+
 ; ?branch   x --              branch if TOS zero
 CODE "x?branch",7,0,XQBRAN
     checkZeroWord B,C               ; test old TOS
@@ -20,14 +46,14 @@ CODE "xbranch",6,0,XBRAN         ; relative branching
 CODE "if",2,IMMED,if
     ENTER
     dw lbrace
-    dw LIT, XQBRAN, comma              ; compile ?branch
-    dw here, AT, DUPP, comma          ; compile here and also push on stack
+    dw LIT, XQBRAN, comma               ; compile ?branch
+    dw here, AT, DUPP, comma            ; compile here and also push on stack
     EXIT
 
 CODE "else",4,IMMED,else
     ENTER
-    dw LIT, XBRAN, comma               ; definite branch to just over the false-part
-    dw here, AT                      ; save here on stack
+    dw LIT, XBRAN, comma                ; definite branch to just over the false-part
+    dw here, AT                         ; save here on stack
     dw LIT, 0, comma                    ; compile a dummy offset
     dw swap                             ; now back-fill the original (if) offset
     dw xendif                           ; must call xendif not endif

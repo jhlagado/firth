@@ -1,18 +1,6 @@
-; ;   '           ( -- ca )
-; ;               Search context vocabularies for the next word in input stream.
-; CODE  1,"'",TICK
-;     ENTER
-;     DW      TOKEN,NAMEQ             ;?defined
-;     DW      QBRAN,TICK1
-;     DW      EXIT                    ;yes, push code address
-; TICK1:          
-;     DW      THROW                   ;no, error
-
-; ;   [COMPILE]   ( -- ; <string> )
-; ;               Compile the next immediate word into code dictionary.
-; CODE '[COMPILE]',9,IMMED,BCOMP
-;     ENTER
-;     DW TICK,COMMA,EXIT
+CODE 'PRN',3,0,PRN
+    ENTER
+    DW COMPI,DOT,EXIT                   ;test only
 
 ;   COMPILE     ( -- )
 ;               Compile the next address in colon list to code dictionary.
@@ -95,12 +83,6 @@ CODE "constant",8,0,constant         ; --
     dw AT
     EXIT
 
-CODE "'",1,0,tick                    ; quotes next word
-    ENTER
-    dw bl,word,find,zEqual
-    dw rFrom,count,over,over,plus,toR
-    EXIT
-
 CODE "immediate",9,IMMED,IMMEDIATE
     ld HL, (VAR_LATEST)                 ; get head of latest word
     inc HL                              ; point to flags byte
@@ -108,14 +90,6 @@ CODE "immediate",9,IMMED,IMMEDIATE
     ld a, IMMED
     xor (HL)                            ; toggle the IMMED bit.
     ld (HL),a
-    NEXT
-
-CODE "find",4,0,FIND
-    ppop0 H,L
-
-    call lookup                     ; params: HL = string address, BC = string length
-                                    ; returns: DE = found header ptr or 0
-    loadWord B,C, D,E               ; move to TOS
     NEXT
 
 CODE "hidden",6,0,HIDDEN

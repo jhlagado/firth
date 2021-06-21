@@ -1,15 +1,102 @@
+CODE "interpret",6,0,INTERPRET
+    ENTER
+INTERPRET1:
+	dw bl, word, count        ; pstr -- ptr len
+    dw DUPP, zEqual
+    dw QBRAN,INTERPRET2
+        dw drop, drop                           ; ptr len --
+        EXIT
+INTERPRET2:
+    dw interpToken                       ; interpret the next word
+    dw BRAN,INTERPRET1  
+    EXIT
+
+interpToken:                                ; ptr len --
+    ENTER
+    dw over, over, find                     ; ptr len -- ptr len addr
+    dw DUPP, ZNEQU
+    dw QBRAN, interpToken1
+        dw interpWord
+        dw BRAN, interpToken2
+interpToken1:
+        dw interpLiteral
+interpToken2:
+    EXIT
+
+interpWord:                                 ; ptr len addr --
+    ENTER                                 ; enter forth
+    dw swap, drop, swap, drop               ; ptr len addr -- addr
+    dw DUPP, LIT, 2, plus, CAT            ; ( headptr -- headptr flags ) add 2 to headptr
+    dw LIT, IMMED, ANDD                  ; ( headptr flags -- headptr immedflag )
+    dw zEqual
+    dw QBRAN,interpWord2
+        dw tcfa                             ; ( headptr -- xt )
+        dw state, AT
+        dw nesting, AT
+        dw ORR
+        dw QBRAN,interpWord1
+            dw comma                        ; compile xt
+            dw BRAN,interpWord3
+interpWord1:
+            dw execute                      ; execute xt
+            dw BRAN,interpWord3
+interpWord2:
+        dw tcfa, execute                    ; execute xt
+interpWord3:
+    EXIT
+
+interpLiteral:                              ; ptr len addr --
+    ENTER                                 ; enter forth
+    dw drop                                 ; ptr len addr - ptr len
+    dw number, zEqual                       ; parse to number
+    dw QBRAN,interpLiteral1
+        dw state, AT
+        dw nesting, AT
+        dw ORR
+        dw QBRAN,interpLiteral2
+            dw LIT, LIT                     ; (val -- val "LIT" )
+            dw comma, comma                 ; compile "LIT" val
+            dw BRAN,interpLiteral2
+interpLiteral1:
+        dw drop                             ; ( ptr len zero -- ptr len ), not found
+        dw litstr                           ; err != 0, parse error
+        .pstr "Error: parsing"
+        dw type
+interpLiteral2:
+    EXIT
+
+nestPlus:
+	ld HL, (VAR_NESTING)
+    INC HL
+	ld (VAR_NESTING), HL
+    NEXT
+
+nestMinus:
+	ld HL, (VAR_NESTING)
+    DEC HL
+	ld (VAR_NESTING), HL
+    NEXT
+
 CODE "quit",4,0,quit
     ENTER
     dw sp0, AT, spStore
     dw interpret
     EXIT
 
-CODE "word",5,0,WORD                 ; delim -- c-addr
+CODE "word",4,0,WORD                 ; delim -- c-addr
     ENTER
     dw LIT, 64                          ; limit
     dw here, AT
     dw xword                            ; writes to HERE!
     EXIT
+
+CODE "find",4,0,FIND
+    ppop0 H,L
+
+    call lookup                     ; params: HL = string address, BC = string length
+                                    ; returns: DE = found header ptr or 0
+    loadWord B,C, D,E               ; move to TOS
+    NEXT
 
 CODE ">cfa",4,0,tcfa
     ENTER
@@ -23,18 +110,6 @@ CODE "execute",7,0,EXECUTE
     ppop H,L                        ; POP TOS into HL
     jp (hl)                         ; go do Forth word
 
-CODE "interpret",6,0,INTERPRET
-    ENTER
-INTERPRET1:
-	dw bl, word, count        ; pstr -- ptr len
-    dw DUPP, zEqual
-    dw QBRAN,INTERPRET2
-        dw drop, drop                           ; ptr len --
-        EXIT
-INTERPRET2:
-    dw interpToken                       ; interpret the next word
-    dw BRAN,INTERPRET1  
-    EXIT
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; lookup - lookup header in dictionary ***
@@ -168,68 +243,3 @@ xwordRead:                              ; delim addr char -- c-addr
     loadWord B,C, H,L                   ; TOS = str ptr
     ret
 
-interpToken:                                ; ptr len --
-    ENTER
-    dw over, over, find                     ; ptr len -- ptr len addr
-    dw DUPP, ZNEQU
-    dw QBRAN, interpToken1
-        dw interpWord
-        dw BRAN, interpToken2
-interpToken1:
-        dw interpLiteral
-interpToken2:
-    EXIT
-
-interpWord:                                 ; ptr len addr --
-    ENTER                                 ; enter forth
-    dw swap, drop, swap, drop               ; ptr len addr -- addr
-    dw DUPP, LIT, 2, plus, CAT            ; ( headptr -- headptr flags ) add 2 to headptr
-    dw LIT, IMMED, ANDD                  ; ( headptr flags -- headptr immedflag )
-    dw zEqual
-    dw QBRAN,interpWord2
-        dw tcfa                             ; ( headptr -- xt )
-        dw state, AT
-        dw nesting, AT
-        dw ORR
-        dw QBRAN,interpWord1
-            dw comma                        ; compile xt
-            dw BRAN,interpWord3
-interpWord1:
-            dw execute                      ; execute xt
-            dw BRAN,interpWord3
-interpWord2:
-        dw tcfa, execute                    ; execute xt
-interpWord3:
-    EXIT
-
-interpLiteral:                              ; ptr len addr --
-    ENTER                                 ; enter forth
-    dw drop                                 ; ptr len addr - ptr len
-    dw number, zEqual                       ; parse to number
-    dw QBRAN,interpLiteral1
-        dw state, AT
-        dw nesting, AT
-        dw ORR
-        dw QBRAN,interpLiteral2
-            dw LIT, LIT                     ; (val -- val "LIT" )
-            dw comma, comma                 ; compile "LIT" val
-            dw BRAN,interpLiteral2
-interpLiteral1:
-        dw drop                             ; ( ptr len zero -- ptr len ), not found
-        dw litstr                           ; err != 0, parse error
-        .pstr "Error: parsing"
-        dw type
-interpLiteral2:
-    EXIT
-
-nestPlus:
-	ld HL, (VAR_NESTING)
-    INC HL
-	ld (VAR_NESTING), HL
-    NEXT
-
-nestMinus:
-	ld HL, (VAR_NESTING)
-    DEC HL
-	ld (VAR_NESTING), HL
-    NEXT

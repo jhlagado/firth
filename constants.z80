@@ -23,7 +23,7 @@ LINE_BUFSIZE    equ     128
 IO_DATA         equ     $81
 IO_CTRL         equ     $80
 
-IMMED       equ     $80
+IMMED           equ     $80
 HIDE            equ     $40
 LENMASK         equ     $3f ; length mask
 
