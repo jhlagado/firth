@@ -1,3 +1,7 @@
+CODE "execute",7,0,EXECUTE
+    ppop H,L                        ; POP TOS into HL
+    jp (hl)                         ; go do Forth word
+
 CODE "interpret",6,0,INTERPRET
     ENTER
 INTERPRET1:
@@ -95,7 +99,7 @@ CODE "find",4,0,FIND
 
     call lookup                     ; params: HL = string address, BC = string length
                                     ; returns: DE = found header ptr or 0
-    loadWord B,C, D,E               ; move to TOS
+    setTOS D,E               ; move to TOS
     NEXT
 
 CODE ">cfa",4,0,tcfa
@@ -105,11 +109,6 @@ CODE ">cfa",4,0,tcfa
     dw LIT, LENMASK, ANDD
     dw plus
     EXIT
-
-CODE "execute",7,0,EXECUTE
-    ppop H,L                        ; POP TOS into HL
-    jp (hl)                         ; go do Forth word
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; lookup - lookup header in dictionary ***
@@ -240,6 +239,6 @@ xwordRead:                              ; delim addr char -- c-addr
         pop HL                          ; restore HL
     _endif
     ld (HL),D                           ; write length
-    loadWord B,C, H,L                   ; TOS = str ptr
+    setTOS H,L                   ; TOS = str ptr
     ret
 

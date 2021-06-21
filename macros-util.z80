@@ -10,9 +10,14 @@
     ppop0 B,C
 .endm
 
-.macro loadWord, destHI, destLO, srcHI, srcLO    ; transfer from src reg pair to dest reg pair
-    ld destLO, srcLO
-    ld destHI, srcHI
+.macro setTOS, regHI, regLO                     ; transfer from src reg pair to TOS
+    ld C, regLO
+    ld B, regHI
+.endm
+
+.macro getTOS, regHI, regLO                     ; transfer from TOS to dest reg pair
+    ld regLO, C
+    ld regHI, B
 .endm
 
 ; works with HL, IX+d, IY+d

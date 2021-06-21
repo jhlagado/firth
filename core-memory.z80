@@ -6,7 +6,7 @@ CODE "!",1,0,STORE
     NEXT
 
 CODE "@",1,0,AT
-    loadWord H,L, B,C ; HL = TOS
+    getTOS H,L ; HL = TOS
     readWord HL, B,C
     NEXT
 
@@ -34,7 +34,7 @@ CODE	'R@',2,0,RAT
 
 ;z RSP!  a-addr --                  set return stack pointer
 CODE "rp!",4,0,RPSTO
-    loadWord H,L, B,C
+    getTOS H,L
     LD SP, HL
     ppop0 B,C                      ; POP TOS
     NEXT
@@ -45,7 +45,7 @@ CODE 'rp@', 3,0,RPAT
     ppush0 B,C                      ; PUSH TOS
     LD HL,0
     ADD HL,SP 
-    loadWord B,C, H,L
+    setTOS H,L
     NEXT
 
 CODE "sp@",3,0,SPAT
