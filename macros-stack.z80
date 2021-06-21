@@ -1,33 +1,39 @@
 ; Macros to deal with the param stack.
-.macro ppush0, regHI, regLO
+.macro PTUCK, regHI, regLO
     ld (IX+0), regLO     ; POP register pair from ret stk
     inc IX
     ld (IX+0), regHI
     inc IX
 .endm
 
-.macro ppop0, regHI, regLO
+.macro PNIP, regHI, regLO
     dec IX              ; PUSH register pair on ret stack
     ld regHI, (IX+0)
     dec IX
     ld regLO, (IX+0)
 .endm
 
-; Macros to deal with the param stack with TOS in BC
-.macro ppush, regHI, regLO
-    ppush0 B,C             ; push TOS reg pair
-    ld B, regHI         ; move register pair into TOS reg pair
-    ld C, regLO
+.macro PDUP
+    PTUCK B,C
 .endm
 
-.macro ppop, regHI, regLO
-    ld regHI, B         ; move TOS reg pair into register pair
-    ld regLO, C
-    ppop0 B,C
+.macro PDROP
+    PNIP B,C
+.endm
+
+    ; Macros to deal with the param stack with TOS in BC
+.macro PPUSH, regHI, regLO
+    PDUP             ; push TOS reg pair
+    setTOS regHI,regLO
+.endm
+
+.macro PPOP, regHI, regLO
+    getTOS regHI,regLO
+    PDROP
 .endm
 
 .macro ppushValue, val
-    ppush0 B,C
+    PDUP
     ld BC, val
 .endm
 

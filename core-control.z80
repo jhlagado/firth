@@ -27,7 +27,7 @@ CODE  'ELSEE',5,IMMED,ELSEE
 ; ?branch   x --              branch if TOS zero
 CODE "x?branch",7,0,XQBRAN
     checkZeroWord B,C               ; test old TOS
-    ppop0 B,C                       ; POP new TOS
+    PDROP                       ; POP new TOS
     jr z,XBRAN                     ; if old TOS=0, branch
     pop HL
     inc HL                          ; else skip inline value
@@ -101,7 +101,7 @@ CODE "repeat",6,IMMED,repeat
 ; ?branch   x --              branch if TOS zero
 CODE "?branch",7,0,QBRAN
     checkZeroWord B,C               ; test old TOS
-    ppop0 B,C                       ; POP new TOS
+    PDROP                       ; POP new TOS
     jr z,BRAN                     ; if old TOS=0, branch
     pop HL
     inc HL                          ; else skip inline value

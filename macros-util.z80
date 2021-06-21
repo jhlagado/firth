@@ -1,13 +1,13 @@
 .macro SAVE_REGS, regHI, regLO    ; Swap register bank and transfer TOS to regTOS
-    ppush0 B,C             ; only use if word doesn't execute other words
+    PDUP             ; only use if word doesn't execute other words
     exx
-    ppop0 regHI, regLO
+    PNIP regHI, regLO
 .endm
 
 .macro RESTORE_REGS, regHI, regLO ; Swap register bank and transfer regTOS to TOS
-    ppush0 regHI, regLO         ; only use if word doesn't execute other words
+    PTUCK regHI, regLO         ; only use if word doesn't execute other words
     exx
-    ppop0 B,C
+    PDROP
 .endm
 
 .macro setTOS, regHI, regLO                     ; transfer from src reg pair to TOS
@@ -48,10 +48,10 @@
 .endm
 
 .macro PRINT_STR, addr
-    ppush0 D,E
+    PTUCK D,E
     ld DE, addr
     call printPStr
-    ppop0 D,E
+    PNIP D,E
 .endm
 
 .macro CMP16, val

@@ -21,7 +21,7 @@ tst_text%%M:
     call printNum
     getTOS H,L
     ld L, C
-    ppop0 B,C
+    PDROP
     CMP16 expect
     jp z, tf_done%%M            ; asm80 macro nesting issue
                                 ; prevents using _if macro here

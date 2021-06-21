@@ -15,14 +15,14 @@ label:
 
 .macro mVAR, name, namelen, flags, label, var_label
 CODE name,namelen,flags,label
-    ppush0 B,C
+    PDUP
     ld BC, var_label
     NEXT
 .endm
 
 .macro mCONST, name, namelen, flags, label, value
 CODE name,namelen,flags,label
-    ppush0 B,C
+    PDUP
     ld BC, value
     NEXT
 .endm

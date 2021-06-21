@@ -113,7 +113,7 @@ CODE "]",1,0,RBRAC
     NEXT
 
 dodoes:             ; -- a-addr
-    ppush0 B,C
+    PDUP
     pop HL          ; parameter field address
     pop BC
     push HL

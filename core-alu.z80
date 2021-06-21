@@ -9,7 +9,7 @@ CODE '0<',2,0,ZLESS
 
 ; and    x1 x2 -- x3            logical and
 CODE "and",3,0,ANDD	        ; bitwise and
-    PPOP0 H,L
+    PNIP H,L
     LD A,B
     AND H
     LD B,A
@@ -20,7 +20,7 @@ CODE "and",3,0,ANDD	        ; bitwise and
 
 ; OR    x1 x2 -- x3             logical OR
 CODE "or",2,0,ORR	            ; bitwise OR
-    ppop0 H,L
+    PNIP H,L
     ld A,B
     or H
     ld B,A
@@ -31,7 +31,7 @@ CODE "or",2,0,ORR	            ; bitwise OR
 
 ; xor    x1 x2 -- x3            logical xor
 CODE "xor",3,0,XORR	        ; bitwise xor
-    ppop0 H,L
+    PNIP H,L
     ld A,B
     xor H
     ld B,A
@@ -42,7 +42,7 @@ CODE "xor",3,0,XORR	        ; bitwise xor
 
 ; +       n1/u1 n2/u2 -- n3/u3     add n1+n2
 CODE "+",1,0,PLUS
-    ppop0 H,L
+    PNIP H,L
     add HL,BC
     setTOS H,L
     NEXT
@@ -106,7 +106,7 @@ LESS1:
 
 ; >      n1 n2 -- flag          test n1 > n2
 CODE ">",1,0,GREATR	        ; less than
-    ppop0 H,L                  ; swap operands
+    PNIP H,L                  ; swap operands
     ppush H,L
     jr LESS
 
@@ -137,9 +137,9 @@ CODE 'WITHIN',6,0,WITHI
 ;   UM+         ( w w -- w cy )
 ;               Add two numbers, return the sum and carry flag.
 CODE "UM+",6,0,UPLUS
-    ppop0 H,L
+    PNIP H,L
 	ADD	HL,BC	        ;11t
-    ppush0 H,L
+    PTUCK H,L
 	LD	BC,0	        ;10t
 	JR	NC,UMP1         ;12/7t
 UMP2:		
@@ -180,7 +180,7 @@ CODE "u/mod",5,0,USLASHMOD
                             ; BC = dividend
     call divideWordByWord
 
-    ppush0 H,L           ; PUSH remainder,
+    PTUCK H,L           ; PUSH remainder,
     NEXT
 
 CODE "/mod",4,0,slashmod             ; dvend dvisr -- rem quot
@@ -220,9 +220,9 @@ CODE "/",1,0,slash                   ; dvend dvisr -- quot
 ; U*   u1 u2 -- ud   unsigned mutliply
 CODE "u*",2,0,USTAR              ; u1 u2 -- ud
                                     ; u2 in BC
-    ppop0 D,E                       ; u1 in DE
+    PNIP D,E                       ; u1 in DE
 	call unsignedMultiply
-    ppush0 D,E                      ; udlo result
+    PTUCK D,E                      ; udlo result
                                     ; udhi result
     NEXT
 

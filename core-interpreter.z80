@@ -95,8 +95,7 @@ CODE "word",4,0,WORD                 ; delim -- c-addr
     EXIT
 
 CODE "find",4,0,FIND
-    ppop0 H,L
-
+    PNIP H,L
     call lookup                     ; params: HL = string address, BC = string length
                                     ; returns: DE = found header ptr or 0
     setTOS D,E               ; move to TOS
@@ -171,9 +170,9 @@ CODE "xword",6,0,xword               ; delim limit addr -- c-addr
 xwordSkip:                              ; delim addr -- delim addr char
     ppop H,L
     ppop D,E
-    ppush0 B,C
-    ppush0 D,E
-    ppush0 H,L
+    PDUP
+    PTUCK D,E
+    PTUCK H,L
     _do
         call getKey                     ; get next key, returned in A
 
@@ -217,7 +216,7 @@ xwordSkip:                              ; delim addr -- delim addr char
 
 xwordRead:                              ; delim addr char -- c-addr
     ld A,C
-    ppop0 B,C
+    PDROP
     ppop H,L
     ppop D,E
     ld D,0

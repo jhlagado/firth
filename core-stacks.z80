@@ -1,45 +1,45 @@
 CODE "LIT",3,0,LIT
-	ppush0 B,C                      ; pushTOS
+	PDUP                      ; pushTOS
 	pop HL                          ; pop address of next Forth word in HL
 	readWord HL, B,C                ; read next word and push on TOS, inc HL by 2
     NEXT1
 
 CODE "rot",3,0,ROT       ; x1 x2 x3 -- x2 x3 x1
                             ; x3 in BC
-    ppop0 D,E               ; x2 in DE
-    ppop0 H,L               ; x1 in HL
-    ppush0 D,E              ; x2 on stack
+    PNIP D,E               ; x2 in DE
+    PNIP H,L               ; x1 in HL
+    PTUCK D,E              ; x2 on stack
     ppush H,L               ; PUSH x1 - x2 x3 x1
                             ; x1 in BC
     NEXT
 
 CODE "-rot",4,0,NROT     ; x1 x2 x3 -- x3 x1 x2
                             ; x3 in BC
-    ppop0 D,E               ; x2 in DE
-    ppop0 H,L               ; x1 in HL
+    PNIP D,E               ; x2 in DE
+    PNIP H,L               ; x1 in HL
     ppush H,L               ; PUSH x1 - x3 x1
     ppush D,E               ; PUSH x2 - x3 x1 x2
                             ; x2 in BC
     NEXT
 
 CODE "dup",3,0,DUPP        ; x -- x x
-    ppush0 B,C
+    PDUP
     NEXT
 
 ; SWAP     x1 x2 -- x2 x1    swap top two items
 CODE "swap",4,0,SWAP      ; x1 x2 -- x2 x1
-    ppop0 D,E
+    PNIP D,E
     ppush D,E
     NEXT
 
 CODE "drop",4,0,DROP      ; x --
-    ppop0 B,C		    ; drop top of stack
+    PDROP		    ; drop top of stack
     NEXT
 
 ; OVER    x1 x2 -- x1 x2 x1
 CODE "over",4,0,OVER
-    ppop0 H,L
-    ppush0 H,L
+    PNIP H,L
+    PTUCK H,L
     ppush H,L
     NEXT
 
@@ -48,12 +48,12 @@ CODE ">r",2,0,TOR
     pop HL
     push BC
     push HL
-    ppop0 B,C
+    PDROP
     NEXT
 
 ; R>    ( -- x ) ( R: x -- )  Move x from the return stack to TOS
 CODE "r>",2,0,RFROM
-    ppush0 B,C
+    PDUP
     pop HL
     pop BC
     push HL
