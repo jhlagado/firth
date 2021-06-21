@@ -1,3 +1,22 @@
+; ?branch   x --              branch if TOS zero
+CODE "x?branch",7,0,XQBRAN
+    checkZeroWord B,C               ; test old TOS
+    ppop0 B,C                       ; POP new TOS
+    jr z,XBRAN                     ; if old TOS=0, branch
+    pop HL
+    inc HL                          ; else skip inline value
+    inc HL
+    NEXT1
+
+CODE "xbranch",6,0,XBRAN         ; relative branching
+    pop HL                          ; add the offset to the instruction pointer
+    ld E,(HL)
+    inc HL
+    ld D,(HL)
+    dec HL
+    add HL,DE
+    NEXT1
+
 CODE "if",2,IMMED,if
     ENTER
     dw lbrace
@@ -52,25 +71,6 @@ CODE "repeat",6,IMMED,repeat
     dw swap, STORE                      ; save offset in here2
     dw rbraceExec
     EXIT
-
-; ?branch   x --              branch if TOS zero
-CODE "x?branch",7,0,XQBRAN
-    checkZeroWord B,C               ; test old TOS
-    ppop0 B,C                       ; POP new TOS
-    jr z,XBRAN                     ; if old TOS=0, branch
-    pop HL
-    inc HL                          ; else skip inline value
-    inc HL
-    NEXT1
-
-CODE "xbranch",6,0,XBRAN         ; relative branching
-    pop HL                          ; add the offset to the instruction pointer
-    ld E,(HL)
-    inc HL
-    ld D,(HL)
-    dec HL
-    add HL,DE
-    NEXT1
 
 ; ?branch   x --              branch if TOS zero
 CODE "?branch",7,0,QBRAN
