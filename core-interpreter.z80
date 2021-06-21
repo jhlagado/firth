@@ -93,6 +93,85 @@ CODE "word",4,0,WORD                 ; delim -- c-addr
     dw here, AT
     dw xword                            ; writes to HERE!
     EXIT
+    
+CODE "xword",5,0,xword               ; delim limit addr -- c-addr
+    call xwordSkip
+    call xwordRead
+    NEXT
+
+xwordSkip:                              ; delim addr -- delim addr char
+    PPOP H,L
+    PPOP D,E
+    PDUP
+    PTUCK D,E
+    PTUCK H,L
+    _do
+        call getKey                     ; get next key, returned in A
+
+        _switch
+
+            bit 7, A                    ; check end of input
+            _if nz
+                ld (HL),0
+                ld A,0
+                _break
+            _endif
+
+            cp $5C                      ; \ start of a comment?
+            _case z                     ; if yes skip to end of line
+                _do
+                    call getKey
+                    cp "\r"             ; end of line yet?
+                    _if nz
+                        cp "\n"         ; end of line yet?
+                    _endif
+                _until z
+                _enddo
+            _endcase
+
+            cp C                        ; = space?
+            _case z
+            _endcase
+
+            cp " "                      ; < space?
+            _case c
+            _endcase
+
+            ; default case
+            _break
+
+        _endswitch
+    _enddo
+    setTOS 0,A
+    ret
+
+xwordRead:                              ; delim addr char -- c-addr
+    ld A,C
+    PDROP
+    PPOP H,L
+    PPOP D,E
+    ld D,0
+    or A
+    _if nz
+        push HL                         ; save a copy of HL
+        inc HL                          ; move to leave space for length byte
+        ld B,E
+        _do
+            ld (HL), A                  ; add character to return lineBuf
+            inc HL
+            inc D
+            call getKey                 ; get next key
+            cp C                        ; = delim?
+        _until z
+            cp " "                      ; < space? i.e. control chars
+        _until c
+        _djnz
+        pop HL                          ; restore HL
+    _endif
+    ld (HL),D                           ; write length
+    setTOS H,L                   ; TOS = str ptr
+    ret
+
 
 CODE "find",4,0,FIND
     PNIP H,L
@@ -100,14 +179,6 @@ CODE "find",4,0,FIND
                                     ; returns: DE = found header ptr or 0
     setTOS D,E               ; move to TOS
     NEXT
-
-CODE ">cfa",4,0,tcfa
-    ENTER
-    dw LIT, 2, plus
-    dw count
-    dw LIT, LENMASK, ANDD
-    dw plus
-    EXIT
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; lookup - lookup header in dictionary ***
@@ -162,82 +233,11 @@ lookup:
         ld E,A
     _enddo
 
-CODE "xword",6,0,xword               ; delim limit addr -- c-addr
-    call xwordSkip
-    call xwordRead
-    NEXT
-
-xwordSkip:                              ; delim addr -- delim addr char
-    PPOP H,L
-    PPOP D,E
-    PDUP
-    PTUCK D,E
-    PTUCK H,L
-    _do
-        call getKey                     ; get next key, returned in A
-
-        _switch
-
-            bit 7, A                    ; check end of input
-            _if nz
-                ld (HL),0
-                ld A,0
-                _break
-            _endif
-
-            cp $5C                      ; \ start of a comment?
-            _case z                     ; if yes skip to end of line
-                _do
-                    call getKey
-                    cp "\r"             ; end of line yet?
-                    _if nz
-                        cp "\n"         ; end of line yet?
-                    _endif
-                _until z
-                _enddo
-            _endcase
-
-            cp C                        ; = space?
-            _case z
-            _endcase
-
-            cp " "                      ; < space?
-            _case c
-            _endcase
-
-            ; default case
-            _break
-
-        _endswitch
-    _enddo
-    ld B,0
-    ld C,A
-    ret
-
-xwordRead:                              ; delim addr char -- c-addr
-    ld A,C
-    PDROP
-    PPOP H,L
-    PPOP D,E
-    ld D,0
-    or A
-    _if nz
-        push HL                         ; save a copy of HL
-        inc HL                          ; move to leave space for length byte
-        ld B,E
-        _do
-            ld (HL), A                  ; add character to return lineBuf
-            inc HL
-            inc D
-            call getKey                 ; get next key
-            cp C                        ; = delim?
-        _until z
-            cp " "                      ; < space? i.e. control chars
-        _until c
-        _djnz
-        pop HL                          ; restore HL
-    _endif
-    ld (HL),D                           ; write length
-    setTOS H,L                   ; TOS = str ptr
-    ret
+CODE ">cfa",4,0,tcfa
+    ENTER
+    dw LIT, 2, plus
+    dw count
+    dw LIT, LENMASK, ANDD
+    dw plus
+    EXIT
 
