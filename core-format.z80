@@ -2,7 +2,7 @@ CODE ".",1,0,DOT                 ; print top of stack in BASE
     push HL
     push DE
     push BC
-    loadWord H,L, B,C
+    getTOS H,L
     ld A,(VAR_BASE)
     ld C,A
     ld DE, wordBuf
@@ -19,7 +19,7 @@ printNum:
     push HL
     push DE
     push BC
-    loadWord H,L, B,C
+    getTOS H,L
     ld A,(VAR_BASE)
     ld C,A
     ld DE, wordBuf
@@ -72,7 +72,7 @@ formatNum:
     ex DE,HL
     or A
     sbc HL,DE
-    loadWord B,C, H,L
+    setTOS  H,L
     ret
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

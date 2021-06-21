@@ -522,7 +522,7 @@
 0000                 
 0000                .macro SET_RET_SP,
 0000                             ; 
-0000                 loadWord H,L, B,C
+0000                 getTOS H,L
 0000                 LD SP, HL
 0000                .endm
 0000                 
@@ -720,7 +720,7 @@
 00ED   DD 2B                  DEC   IX   
 00EF   DD 6E 00               LD   L,(IX+0)   
 00F2   09                     ADD   HL,BC   
-00F3                          ;*Macro unroll:  loadWord B,C, H,L
+00F3                          ;*Macro unroll:  setTOS  H,L
 00F3   4D                     LD   C,L   
 00F4   44                     LD   B,H   
 00F5                          ;*Macro unroll:  NEXT
@@ -1923,7 +1923,7 @@
 05D1   DD 6E 00               LD   L,(IX+0)   
 05D4   CD 26 0C               CALL   lookup   ; params: HL = string address, BC = string length
 05D7                             ; returns: DE = found header ptr or 0
-05D7                          ;*Macro unroll:  loadWord B,C, D,E               ; move to TOS
+05D7                          ;*Macro unroll:  setTOS  D,E               ; move to TOS
 05D7   4B                     LD   C,E   ; move to TOS
 05D8   42                     LD   B,D   
 05D9                          ;*Macro unroll:  NEXT
@@ -2730,7 +2730,7 @@
 0A2D   E5                     PUSH   HL   
 0A2E   D5                     PUSH   DE   
 0A2F   C5                     PUSH   BC   
-0A30                          ;*Macro unroll:  loadWord H,L, B,C
+0A30                          ;*Macro unroll:  getTOS H,L
 0A30   69                     LD   L,C   
 0A31   60                     LD   H,B   
 0A32   3A 5B 24               LD   A,(VAR_BASE)   
@@ -2753,7 +2753,7 @@
 0A52   E5                     PUSH   HL   
 0A53   D5                     PUSH   DE   
 0A54   C5                     PUSH   BC   
-0A55                          ;*Macro unroll:  loadWord H,L, B,C
+0A55                          ;*Macro unroll:  getTOS H,L
 0A55   69                     LD   L,C   
 0A56   60                     LD   H,B   
 0A57   3A 5B 24               LD   A,(VAR_BASE)   
@@ -2958,7 +2958,7 @@
 0AA9   EB                     EX   DE,HL   
 0AAA   B7                     OR   A   
 0AAB   ED 52                  SBC   HL,DE   
-0AAD                          ;*Macro unroll:  loadWord B,C, H,L
+0AAD                          ;*Macro unroll:  setTOS  H,L
 0AAD   4D                     LD   C,L   
 0AAE   44                     LD   B,H   
 0AAF   C9                     RET      
@@ -4112,7 +4112,7 @@
 0D46                STRUC_11:   .SET   STRUC_12   
 0D46                STRUC_12:   .SET   0   
 0D46   72                     LD   (HL),D   ; write length
-0D47                          ;*Macro unroll:  loadWord B,C, H,L                   ; TOS = str ptr
+0D47                          ;*Macro unroll:  setTOS  H,L                   ; TOS = str ptr
 0D47   4D                     LD   C,L   ; TOS = str ptr
 0D48   44                     LD   B,H   
 0D49   C9                     RET      
@@ -4674,7 +4674,7 @@
 0F61   01                     DB   0 + 1   
 0F62   40                     DB   "@"   
 0F63                AT:          
-0F63                          ;*Macro unroll:  loadWord H,L, B,C ; HL = TOS
+0F63                          ;*Macro unroll:  getTOS H,L ; HL = TOS
 0F63   69                     LD   L,C   ; HL = TOS
 0F64   60                     LD   H,B   
 0F65                          ;*Macro unroll:  readWord HL, B,C
@@ -4730,7 +4730,7 @@
 0F9A   72 73 70 21            DB   "rsp!"   
 0F9E                RSPSTORE:      
 0F9E                          ;*Macro unroll:  SET_RET_SP B,C
-0F9E                          ;*Macro unroll:  loadWord H,L, B,C
+0F9E                          ;*Macro unroll:  getTOS H,L
 0F9E   69                     LD   L,C   
 0F9F   60                     LD   H,B   
 0FA0   F9                     LD   SP,HL   
@@ -6462,7 +6462,7 @@
                     .macro EXPECT,expect,failtxt
                                  ; 
                      call printNum
-                     loadWord H,L, B,C
+                     getTOS H,L
                      ld L, C
                      ppop0 B,C
                      CMP16 expect
@@ -6630,7 +6630,7 @@
                               DW   exit_forth   
                               ;*Macro unroll: EXPECT 100, "expect 100"
                               CALL   printNum   
-                              ;*Macro unroll:  loadWord H,L, B,C
+                              ;*Macro unroll:  getTOS H,L
                               LD   L,C   
                               LD   H,B   
                               LD   L,C   
@@ -6789,7 +6789,7 @@
                               DW   exit_forth   
                               ;*Macro unroll: EXPECT 100, "expect 100"
                               CALL   printNum   
-                              ;*Macro unroll:  loadWord H,L, B,C
+                              ;*Macro unroll:  getTOS H,L
                               LD   L,C   
                               LD   H,B   
                               LD   L,C   
@@ -7236,7 +7236,7 @@
                               DW   exit_forth   
                               ;*Macro unroll: EXPECT 23, "expect 23"
                               CALL   printNum   
-                              ;*Macro unroll:  loadWord H,L, B,C
+                              ;*Macro unroll:  getTOS H,L
                               LD   L,C   
                               LD   H,B   
                               LD   L,C   
@@ -7354,7 +7354,7 @@
                               DW   exit_forth   
                               ;*Macro unroll: EXPECT 1, "1 interpret dup"
                               CALL   printNum   
-                              ;*Macro unroll:  loadWord H,L, B,C
+                              ;*Macro unroll:  getTOS H,L
                               LD   L,C   
                               LD   H,B   
                               LD   L,C   
@@ -7417,7 +7417,7 @@
                     TF_DONEM_2395S44:      
                               ;*Macro unroll: EXPECT 1, "1 interpret dup 2"
                               CALL   printNum   
-                              ;*Macro unroll:  loadWord H,L, B,C
+                              ;*Macro unroll:  getTOS H,L
                               LD   L,C   
                               LD   H,B   
                               LD   L,C   
@@ -7528,7 +7528,7 @@
                               DW   exit_forth   
                               ;*Macro unroll: EXPECT 123, "interpret 123"
                               CALL   printNum   
-                              ;*Macro unroll:  loadWord H,L, B,C
+                              ;*Macro unroll:  getTOS H,L
                               LD   L,C   
                               LD   H,B   
                               LD   L,C   
@@ -7687,7 +7687,7 @@
                               DW   exit_forth   
                               ;*Macro unroll: EXPECT 123, "constant x123 = 123"
                               CALL   printNum   
-                              ;*Macro unroll:  loadWord H,L, B,C
+                              ;*Macro unroll:  getTOS H,L
                               LD   L,C   
                               LD   H,B   
                               LD   L,C   
@@ -7901,7 +7901,7 @@
                               DW   exit_forth   
                               ;*Macro unroll: EXPECT 123, "variable v1 = 123"
                               CALL   printNum   
-                              ;*Macro unroll:  loadWord H,L, B,C
+                              ;*Macro unroll:  getTOS H,L
                               LD   L,C   
                               LD   H,B   
                               LD   L,C   
@@ -8067,7 +8067,7 @@
                               DW   exit_forth   
                               ;*Macro unroll: EXPECT 4, "colon dbl 2 = 4"
                               CALL   printNum   
-                              ;*Macro unroll:  loadWord H,L, B,C
+                              ;*Macro unroll:  getTOS H,L
                               LD   L,C   
                               LD   H,B   
                               LD   L,C   
@@ -8240,7 +8240,7 @@
                               DW   exit_forth   
                               ;*Macro unroll: EXPECT 100, "1 if 100 endif --> 100"
                               CALL   printNum   
-                              ;*Macro unroll:  loadWord H,L, B,C
+                              ;*Macro unroll:  getTOS H,L
                               LD   L,C   
                               LD   H,B   
                               LD   L,C   
@@ -8358,7 +8358,7 @@
                               DW   exit_forth   
                               ;*Macro unroll: EXPECT 200, "0 if 100 endif --> 200"
                               CALL   printNum   
-                              ;*Macro unroll:  loadWord H,L, B,C
+                              ;*Macro unroll:  getTOS H,L
                               LD   L,C   
                               LD   H,B   
                               LD   L,C   
@@ -8524,7 +8524,7 @@
                               DW   exit_forth   
                               ;*Macro unroll: EXPECT 200, "0 --> 200"
                               CALL   printNum   
-                              ;*Macro unroll:  loadWord H,L, B,C
+                              ;*Macro unroll:  getTOS H,L
                               LD   L,C   
                               LD   H,B   
                               LD   L,C   
@@ -8642,7 +8642,7 @@
                               DW   exit_forth   
                               ;*Macro unroll: EXPECT 100, "1 --> 100"
                               CALL   printNum   
-                              ;*Macro unroll:  loadWord H,L, B,C
+                              ;*Macro unroll:  getTOS H,L
                               LD   L,C   
                               LD   H,B   
                               LD   L,C   
@@ -8808,7 +8808,7 @@
                               DW   exit_forth   
                               ;*Macro unroll: EXPECT 5, "Loop until limit < 5"
                               CALL   printNum   
-                              ;*Macro unroll:  loadWord H,L, B,C
+                              ;*Macro unroll:  getTOS H,L
                               LD   L,C   
                               LD   H,B   
                               LD   L,C   
@@ -8919,7 +8919,7 @@
                               DW   exit_forth   
                               ;*Macro unroll: EXPECT 100, "interpret parse 100"
                               CALL   printNum   
-                              ;*Macro unroll:  loadWord H,L, B,C
+                              ;*Macro unroll:  getTOS H,L
                               LD   L,C   
                               LD   H,B   
                               LD   L,C   
@@ -9030,7 +9030,7 @@
                               DW   exit_forth   
                               ;*Macro unroll: EXPECT 5, "3 + 2 = 5"
                               CALL   printNum   
-                              ;*Macro unroll:  loadWord H,L, B,C
+                              ;*Macro unroll:  getTOS H,L
                               LD   L,C   
                               LD   H,B   
                               LD   L,C   
@@ -9203,7 +9203,7 @@
                               DW   exit_forth   
                               ;*Macro unroll: EXPECT 4, "2 2 add = 4"
                               CALL   printNum   
-                              ;*Macro unroll:  loadWord H,L, B,C
+                              ;*Macro unroll:  getTOS H,L
                               LD   L,C   
                               LD   H,B   
                               LD   L,C   
@@ -9506,7 +9506,7 @@
                               DW   exit_forth   
                               ;*Macro unroll: EXPECT 3, "str len = 3"
                               CALL   printNum   
-                              ;*Macro unroll:  loadWord H,L, B,C
+                              ;*Macro unroll:  getTOS H,L
                               LD   L,C   
                               LD   H,B   
                               LD   L,C   
@@ -9665,7 +9665,7 @@
                               DW   exit_forth   
                               ;*Macro unroll: EXPECT 3, "str len = 3"
                               CALL   printNum   
-                              ;*Macro unroll:  loadWord H,L, B,C
+                              ;*Macro unroll:  getTOS H,L
                               LD   L,C   
                               LD   H,B   
                               LD   L,C   
@@ -9948,7 +9948,7 @@
                               DW   exit_forth   
                               ;*Macro unroll: EXPECT 32, "expect $20 to be 32"
                               CALL   printNum   
-                              ;*Macro unroll:  loadWord H,L, B,C
+                              ;*Macro unroll:  getTOS H,L
                               LD   L,C   
                               LD   H,B   
                               LD   L,C   
@@ -10059,7 +10059,7 @@
                               DW   exit_forth   
                               ;*Macro unroll: EXPECT 20, "expect decimal 20 to be 32"
                               CALL   printNum   
-                              ;*Macro unroll:  loadWord H,L, B,C
+                              ;*Macro unroll:  getTOS H,L
                               LD   L,C   
                               LD   H,B   
                               LD   L,C   
@@ -10170,7 +10170,7 @@
                               DW   exit_forth   
                               ;*Macro unroll: EXPECT 200, "100 100 + = 200"
                               CALL   printNum   
-                              ;*Macro unroll:  loadWord H,L, B,C
+                              ;*Macro unroll:  getTOS H,L
                               LD   L,C   
                               LD   H,B   
                               LD   L,C   
@@ -10329,7 +10329,7 @@
                               DW   exit_forth   
                               ;*Macro unroll: EXPECT 10, "expect abs -10 to be 10"
                               CALL   printNum   
-                              ;*Macro unroll:  loadWord H,L, B,C
+                              ;*Macro unroll:  getTOS H,L
                               LD   L,C   
                               LD   H,B   
                               LD   L,C   
@@ -10440,7 +10440,7 @@
                               DW   exit_forth   
                               ;*Macro unroll: EXPECT 10, "expect abs 10 to be 10"
                               CALL   printNum   
-                              ;*Macro unroll:  loadWord H,L, B,C
+                              ;*Macro unroll:  getTOS H,L
                               LD   L,C   
                               LD   H,B   
                               LD   L,C   

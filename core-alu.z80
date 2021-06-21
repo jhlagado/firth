@@ -44,7 +44,7 @@ CODE "xor",3,0,XORR	        ; bitwise xor
 CODE "+",1,0,PLUS
     ppop0 H,L
     add HL,BC
-    loadWord B,C, H,L
+    setTOS H,L
     NEXT
 
 ; INVERT x1 -- x2               ; bitwise complement
